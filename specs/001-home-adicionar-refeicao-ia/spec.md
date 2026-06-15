@@ -63,11 +63,12 @@ Após receber a estimativa, o usuário pode editar descrição e calorias antes 
 - **FR-003**: Deve haver navegação inferior com "Home" e "Adicionar refeição".
 - **FR-004**: Ao selecionar "Adicionar refeição" o usuário pode escolher entrada por texto ou por áudio.
 - **FR-005**: Para entrada por texto, o usuário deve poder digitar livremente em campo multilinha.
-- **FR-006**: Para entrada por áudio, o app deve capturar áudio, solicitar permissão de microfone e converter para texto (transcrição) localmente ou via adaptador de IA definido no plano técnico.
+- **FR-006**: Para entrada por áudio, o app deve capturar áudio, solicitar permissão de microfone e converter para texto preferencialmente on-device (transcrição local). Uso de serviços externos NÃO será utilizado no MVP; qualquer alternativa externa DEVE ser justificada e documentada em `plan.md`.
 - **FR-007**: Após entrada, o app DEVE solicitar estimativa calórica por IA (pode usar adaptador mock no MVP).
 - **FR-008**: A IA deve retornar descrição interpretada, calorias estimadas, observação curta e nível de confiança quando disponível.
 - **FR-009**: Antes de salvar, o usuário deve revisar, editar (descrição e calorias) ou cancelar.
 - **FR-010**: Ao confirmar, a refeição deve ser adicionada à lista e o total diário recalculado.
+- **FR-011**: Se a IA retornar nível de confiança baixo (quando disponível), o app DEVE exibir um aviso claro e destacar os campos editáveis; o usuário PODE ainda salvar a refeição após revisão. O comportamento detalhado (threshold numérico, textos de aviso) DEVE ser definido no `plan.md`.
 
 ## Key Entities
 
@@ -89,4 +90,12 @@ Após receber a estimativa, o usuário pode editar descrição e calorias antes 
 - Integração real com IA/LLM ficará desacoplada via adaptador; MVP pode usar mock.
 - Permissões de microfone dependem do SO; fluxo deve guiar o usuário.
 - Não implementar backend próprio nesta feature.
+
+## Clarifications
+
+### Session 2026-06-15
+
+- Q: Transcrição de áudio no MVP — usar transcrição on‑device ou serviço externo? → A: Transcrição on‑device (Option A).
+- Q: Comportamento quando confiança da IA é baixa? → A: Permitir salvar, exibir aviso e destacar edição recomendada (Option B).
+
 
