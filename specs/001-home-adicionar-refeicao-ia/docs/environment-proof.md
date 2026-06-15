@@ -77,3 +77,29 @@ Comandos faltantes detectados:
 Conclusão: o Android Studio foi instalado, porém as ferramentas de linha de comando do SDK (platform-tools, cmdline-tools e emulator) não estão disponíveis globalmente no PATH. Para rodar e emular dispositivos Android via CLI ainda é necessário instalar/ativar o Android SDK (pelo Android Studio ou via sdkmanager) e garantir `adb`, `emulator` e `avdmanager` no PATH.
 
 Próximo passo sugerido: executar a instalação headless das Android CLI tools (platform-tools, cmdline-tools, emulator, system-images) ou abrir o Android Studio e usar o SDK Manager para instalar os componentes e criar um AVD.
+
+## Segunda checagem (após instalar Android Studio)
+
+Executado novamente: 2026-06-15 — saída atualizada das ferramentas:
+
+```
+/snap/bin/flutter
+Flutter 3.44.2 • channel stable • https://github.com/flutter/flutter.git
+[!] Android toolchain - develop for Android devices (Android SDK version 36.1.0)
+    • Android SDK at /home/s017754475/Android/Sdk
+    • Emulator version 36.6.11.0 (build_id 15507667)
+    ✗ cmdline-tools component is missing.
+      Try installing or updating Android Studio.
+    ✗ Android license status unknown.
+      Run `flutter doctor --android-licenses` to accept the SDK licenses.
+
+! Doctor found issues in 1 category.
+
+Comandos ausentes detectados:
+- `adb`: não encontrado
+- `sdkmanager`: não encontrado
+- `avdmanager`: não encontrado
+- `emulator`: não encontrado
+```
+
+Observação: o Android Studio foi instalado, o SDK principal foi criado em `/home/s017754475/Android/Sdk`, porém os `cmdline-tools` (necessários para `sdkmanager`, `avdmanager`, `emulator`) não estão completos/ativados no PATH. Para finalizar o setup headless, execute os passos de instalação do `cmdline-tools` e do `platform-tools` (conforme instruções anteriores).
