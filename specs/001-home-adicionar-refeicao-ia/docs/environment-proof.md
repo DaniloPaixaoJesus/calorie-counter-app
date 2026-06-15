@@ -38,3 +38,42 @@ Próximos passos sugeridos (requer interação do usuário / permissões):
 1. Instalar `adb` (Android Platform Tools) via gerenciador de pacotes do SO (`sudo apt install adb`) ou instalar Android Studio e as platform tools.
 2. Se quiser que eu tente instalar `adb` via apt/sudo e/ou instalar Flutter via `snap`, autorize que eu execute comandos com sudo.
 3. Após instalação do Android SDK/ADB, execute `flutter doctor -v` e resolva pendências indicadas (licenças, plugins do Android Studio).
+
+## Re-checagem após instalação do Android Studio
+
+Executado: 2026-06-15 — verificação completa das ferramentas disponíveis no host.
+
+Resumo das saídas detectadas:
+
+- `which flutter`: `/snap/bin/flutter` (instalação via snap detectada)
+- `flutter --version`: `Flutter 3.44.2` (canal stable)
+- `flutter doctor -v`: mostrou que o Flutter local em `tools/flutter` existe, mas o Android SDK não foi localizado; também reportou faltas para toolchains de Linux (clang, cmake, ninja, GTK dev).
+- `java -version`: OpenJDK 21.0.10 (presente)
+- `adb --version`: não encontrado (ainda ausente no PATH)
+- `sdkmanager`, `avdmanager`, `emulator`: comandos não encontrados no PATH (ferramentas do Android SDK não expostas globalmente)
+
+Trecho relevante do `flutter doctor -v`:
+
+```
+[!] Flutter (Channel stable, 3.44.2, on Ubuntu 22.04.5 LTS ...)
+  • Flutter version 3.44.2 on channel stable at /home/s017754475/workspace/MY_STUDIES/meu_github/calorie-counter-app/tools/flutter
+  ! Warning: `flutter` on your path resolves to /usr/bin/snap, which is not inside your current Flutter SDK checkout at /home/.... Consider adding .../tools/flutter/bin to the front of your path.
+
+[✗] Android toolchain - develop for Android devices
+  ✗ Unable to locate Android SDK.
+    Install Android Studio ... On first launch it will assist you in installing the Android SDK components.
+
+[✓] Connected device (2 available)
+  • Linux (desktop) • linux  • linux-x64
+  • Chrome (web)    • chrome • web-javascript
+
+Comandos faltantes detectados:
+
+- `adb`: sugerido `sudo apt install adb`
+- `sdkmanager`: sugerido `sudo apt install sdkmanager`
+- `avdmanager`: comando não encontrado
+- `emulator`: sugerido `sudo apt install google-android-emulator-installer`
+
+Conclusão: o Android Studio foi instalado, porém as ferramentas de linha de comando do SDK (platform-tools, cmdline-tools e emulator) não estão disponíveis globalmente no PATH. Para rodar e emular dispositivos Android via CLI ainda é necessário instalar/ativar o Android SDK (pelo Android Studio ou via sdkmanager) e garantir `adb`, `emulator` e `avdmanager` no PATH.
+
+Próximo passo sugerido: executar a instalação headless das Android CLI tools (platform-tools, cmdline-tools, emulator, system-images) ou abrir o Android Studio e usar o SDK Manager para instalar os componentes e criar um AVD.
