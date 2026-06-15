@@ -1,99 +1,91 @@
----
-description: "Generated tasks for feature implementation"
----
-
-# Tasks: Home e adicionar refeição com estimativa calórica por IA
-
-**Input**: Design documents from `/specs/001-home-adicionar-refeicao-ia/`
-
-## Phase 1: Setup (Shared Infrastructure)
-
-- [ ] T001 Create Flutter skeleton files: lib/main.dart, pubspec.yaml, analysis_options.yaml
-- [ ] T002 Create theme file `lib/themes/nutrition_theme.dart` (ColorScheme + tokens)
-- [ ] T003 [P] Create test folders `test/unit/` and `test/widget/` and basic test harness
-
+description: "Tarefas geradas para implementação da feature"
 ---
 
-## Phase 2: Foundational (Blocking Prerequisites)
 
-- [ ] T004 Create model `lib/models/meal.dart` with fields (id, descricao, calorias, timestamp, origem, ai_confidence, nota)
-- [ ] T005 [P] Create AI adapter interface `lib/services/ai_adapter/ai_adapter.dart`
-- [ ] T006 [P] Create AI adapter mock `lib/services/ai_adapter/ai_adapter_mock.dart`
-- [ ] T007 [P] Create speech service abstraction `lib/services/speech/speech_service.dart` (on-device transcription hook)
-- [ ] T008 [P] Create in-memory repository `lib/services/repository/in_memory_repository.dart` with CRUD for `Meal`
-- [ ] T009 Implement `lib/features/home/view_model.dart` (ChangeNotifier) wiring models, repository and services
-- [ ] T010 [P] Add basic app routing and shell in `lib/main.dart` (Home route + AddMeal route)
+# Tarefas: Home e adicionar refeição com estimativa calórica por IA
 
-**Checkpoint**: Foundation complete — UI implementation for user stories can begin.
+**Input**: Documentos em [specs/001-home-adicionar-refeicao-ia](specs/001-home-adicionar-refeicao-ia)
 
----
+## Fase 0: Ambiente e Ferramentas (pré-requisito)
 
-## Phase 3: User Story 1 - Registrar refeição por texto (Priority: P1) 🎯 MVP
+- [ ] T001 Instalar Flutter local (ou garantir `flutter` no PATH) e verificar com `flutter --version`
+- [ ] T002 Instalar Android SDK platform-tools (`adb`) e expor `ANDROID_SDK_ROOT`/`PATH` (ver `docs/setup.md`)
+- [ ] T003 Instalar `cmdline-tools` (sdkmanager, avdmanager) e `emulator` no Android SDK
+- [ ] T004 Validar ambiente com `flutter doctor -v` e adicionar evidências em `specs/001-home-adicionar-refeicao-ia/docs/environment-proof.md`
 
-**Goal**: Permitir adicionar refeição via campo de texto e salvar registro localmente com atualização do total diário.
+## Fase 1: Setup (Estrutura do Projeto)
 
-**Independent Test**: Abrir Home -> Adicionar refeição (texto) -> solicitar estimativa IA -> revisar -> confirmar -> verificar lista e total.
+- [ ] T005 Criar esqueleto do app Flutter: `lib/main.dart`, `pubspec.yaml`, `analysis_options.yaml`
+- [ ] T006 Criar tema e tokens: `lib/themes/nutrition_theme.dart` (Material 3 ColorScheme)
+- [ ] T007 [P] Criar pastas de teste `test/unit/` e `test/widget/` e adicionar configuração básica de testes
 
-- [ ] T011 [US1] Implement `lib/features/home/add_meal_page.dart` with text input UI and submit button
-- [ ] T012 [P] [US1] Implement form widget `lib/features/home/widgets/meal_form.dart` (descricao, calorias editavel)
-- [ ] T013 [US1] Implement save logic in `lib/features/home/view_model.dart` to add `Meal` to `in_memory_repository.dart`
-- [ ] T014 [US1] Implement `lib/features/home/home_page.dart` to list meals and show daily total
-- [ ] T015 [US1] Add widget test `test/widget/us1_add_meal_test.dart` validating add-by-text flow
+## Fase 2: Fundacionais (pré-requisitos bloqueantes)
 
----
+- [ ] T008 Criar modelo `lib/models/meal.dart` com campos: `id`, `descricao`, `calorias`, `timestamp`, `origem`, `ai_confidence`, `nota`
+- [ ] T009 [P] Definir interface `AiAdapter` em `lib/services/ai_adapter/ai_adapter.dart`
+- [ ] T010 [P] Implementar mock `AiAdapter` em `lib/services/ai_adapter/ai_adapter_mock.dart` (para testes/MVP)
+- [ ] T011 [P] Criar abstração de transcrição `lib/services/speech/speech_service.dart` (hooks para transcrição on-device)
+- [ ] T012 [P] Implementar repositório em memória `lib/services/repository/in_memory_repository.dart` com operações CRUD para `Meal`
+- [ ] T013 Implementar `lib/features/home/view_model.dart` (ChangeNotifier) integrando modelo, repositório e `AiAdapter`
 
-## Phase 4: User Story 2 - Registrar refeição por áudio (Priority: P1)
+**Checkpoint**: Completar Fundacionais antes de iniciar as histórias de usuário.
 
-**Goal**: Permitir gravação on-device, transcrição local e envio ao `AiAdapter` para estimativa.
+## Fase 3: História de Usuário 1 - Registrar refeição por texto (Prioridade: P1) 🎯 MVP
 
-**Independent Test**: Gravar áudio -> verificar transcrição -> solicitar estimativa -> revisar -> confirmar.
+Objetivo: Adicionar refeição via texto, pedir estimativa IA, revisar e salvar localmente.
 
-- [ ] T016 [US2] Integrate `lib/services/speech/speech_service.dart` into `lib/features/home/add_meal_page.dart` (record/stop)
-- [ ] T017 [US2] Implement transcription handling and update form with transcribed text in `lib/features/home/view_model.dart`
-- [ ] T018 [P] [US2] Add permission guidance and handling in `lib/features/home/add_meal_page.dart` (microphone permission flow)
-- [ ] T019 [US2] Add widget test `test/widget/us2_audio_flow_test.dart` validating mocked transcription and UI flow
+Teste independente: Abrir Home → Adicionar refeição → digitar texto → solicitar estimativa → revisar → confirmar → verificar lista e total.
 
----
+- [ ] T014 [US1] Implementar formulário `lib/features/home/widgets/meal_form.dart` (campos: descricao, calorias editáveis)
+- [ ] T015 [US1] Implementar página de adicionar `lib/features/home/add_meal_page.dart` com entrada de texto e botão enviar
+- [ ] T016 [US1] Implementar lógica de solicitação de estimativa via `AiAdapter` e preencher campos de revisão em `lib/features/home/view_model.dart`
+- [ ] T017 [US1] Implementar listagem `lib/features/home/home_page.dart` e cálculo de total diário
+- [ ] T018 [US1] Adicionar teste de widget `test/widget/us1_add_meal_test.dart` cobrindo fluxo de texto (incluir mocks do `AiAdapter`)
 
-## Phase 5: User Story 3 - Revisar e editar sugestão da IA (Priority: P2)
+## Fase 4: História de Usuário 2 - Registrar refeição por áudio (Prioridade: P1)
 
-**Goal**: Permitir revisão/edição da sugestão da IA, exibir aviso quando confiança baixa, permitir salvar mesmo assim.
+Objetivo: Gravar áudio on-device, transcrever localmente, pedir estimativa IA e salvar após revisão.
 
-**Independent Test**: Receber sugestão -> editar campos -> salvar -> verificar lista atualizada.
+Teste independente: Gravar → transcrever → solicitar estimativa → revisar → confirmar.
 
-- [ ] T020 [US3] Implement review dialog `lib/features/home/widgets/review_suggestion_dialog.dart` (descricao + calorias editable)
-- [ ] T021 [US3] Implement low-confidence UI `lib/features/home/widgets/confidence_warning.dart` and threshold logic in `lib/features/home/view_model.dart`
-- [ ] T022 [US3] Add flow to allow saving despite low confidence (with conspicuous warning) in `lib/features/home/view_model.dart`
-- [ ] T023 [US3] Add unit tests `test/unit/us3_review_tests.dart` for review/edit flows and low-confidence behavior
+- [ ] T019 [US2] Integrar `lib/services/speech/speech_service.dart` em `lib/features/home/add_meal_page.dart` (gravar/parar)
+- [ ] T020 [US2] Implementar fluxo de transcrição on-device e preencher `meal_form` a partir da transcrição em `lib/features/home/view_model.dart`
+- [ ] T021 [US2] Adicionar tratamento de permissões e instruções de uso em `lib/features/home/add_meal_page.dart` (microfone)
+- [ ] T022 [US2] Adicionar teste de widget `test/widget/us2_audio_flow_test.dart` validando fluxo de áudio com transcrição mockada
 
----
+## Fase 5: História de Usuário 3 - Revisar e editar sugestão da IA (Prioridade: P2)
 
-## Phase N: Polish & Cross-Cutting Concerns
+Objetivo: Permitir revisão/edição da sugestão, exibir aviso de baixa confiança e permitir salvar mesmo assim.
 
-- [ ] T024 [P] Update documentation in `specs/001-home-adicionar-refeicao-ia/quickstart.md` with validation steps
-- [ ] T025 Code cleanup and lints (run formatter and analyzer) — apply to modified files
-- [ ] T026 Add accessibility/contrast checks and high-contrast theme variant in `lib/themes/nutrition_theme.dart`
-- [ ] T027 Add privacy checklist and notes about IA keys in `specs/001-home-adicionar-refeicao-ia/research.md`
+Teste independente: Receber sugestão → editar campos → salvar → verificar lista.
 
----
+- [ ] T023 [US3] Implementar diálogo de revisão `lib/features/home/widgets/review_suggestion_dialog.dart` (edição de descricao e calorias)
+- [ ] T024 [US3] Implementar componente/aviso `lib/features/home/widgets/confidence_warning.dart` e lógica de threshold em `lib/features/home/view_model.dart`
+- [ ] T025 [US3] Implementar fluxo que permite salvar apesar de baixa confiança (com aviso) em `lib/features/home/view_model.dart`
+- [ ] T026 [US3] Adicionar testes unitários `test/unit/us3_review_tests.dart` cobrindo edição e baixa confiança
 
-## Dependencies & Execution Order
+## Fase N: Polish & Questões Transversais
 
-- Setup (Phase 1) → Foundational (Phase 2) → User Stories (Phase 3+) → Polish
-- Within each story: models → services → viewmodels → UI → tests
+- [ ] T027 [P] Atualizar `specs/001-home-adicionar-refeicao-ia/quickstart.md` com passos de validação
+- [ ] T028 Limpeza de código, aplicar `dart format` e resolver `analysis` warnings
+- [ ] T029 Adicionar verificações de acessibilidade/contraste e variante de alto contraste em `lib/themes/nutrition_theme.dart`
+- [ ] T030 Documentar considerações de privacidade e chaves de IA em `specs/001-home-adicionar-refeicao-ia/research.md`
 
-## Parallel opportunities
+## Dependências & Ordem de Execução
 
-- `T003`, `T005`, `T006`, `T007`, `T008`, `T010` marked `[P]` can be implemented in parallel by different devs
-- Once Foundational completes, `US1` and `US2` tasks can proceed in parallel (subject to team size)
+- Setup (Fase 1) → Fundacionais (Fase 2) → Histórias de usuário (Fase 3+) → Polish
+- Dentro de cada história: modelos → serviços → viewmodels → UI → testes
 
-## Implementation Strategy
+## Oportunidades de paralelismo
 
-- MVP first: focus on Phase 3 (User Story 1) after Foundational. Deliver US1, validate, then add US2 (audio) and US3 (review/edit).
+- T007, T009, T010, T011 e T012 podem ser implementadas em paralelo (tarefas de infra e mocks)
+- Depois de Fundacionais, US1, US2 e US3 podem ser trabalhadas em paralelo por membros diferentes da equipe
+
+## Estratégia de implementação
+
+- MVP: completar Fase 1 + Fase 2, entregar US1 como primeiro incremento (validar independentemente)
+- Em seguida, adicionar US2 (áudio) e US3 (revisão) e finalizar Polish
 
 ---
 
-## Notes
 
-- All tasks include explicit file paths to keep changes traceable.
-- Tests are included as widget/unit stubs; implement details as needed.
