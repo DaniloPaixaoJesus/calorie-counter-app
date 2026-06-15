@@ -87,12 +87,13 @@ de degradabilidade quando a IA não estiver disponível.
 
 ```text
 specs/001-home-adicionar-refeicao-ia/
-├── plan.md              # Este arquivo
-├── research.md          # Fase 0 — pesquisa sobre transcrição, IA e permissões
-├── data-model.md        # Fase 1 — entidades e tipos
-├── quickstart.md        # Fase 1 — validação rápida/como testar
-├── contracts/           # Contratos do adaptador IA (interface)
-└── tasks.md             # Fase 2 — gerado por /speckit.tasks
+├── plan.md                      # Este arquivo
+├── research.md                  # Fase 0 — pesquisa sobre transcrição, IA e permissões ✓
+├── data-model.md                # Fase 1 — entidades e tipos ✓
+├── quickstart.md                # Fase 1 — validação rápida/como testar ✓
+├── contracts/
+│   └── ai_adapter.md            # Fase 1 — contrato interface AiAdapter ✓
+└── tasks.md                     # Fase 2 — gerado por /speckit.tasks ✓
 ```
 
 ### Source Code (proposta minimalista para Flutter em /app)
@@ -129,37 +130,54 @@ O adaptador IA permanece como interface pública com implementação mock no MVP
 Sem violações constitucionais que exijam justificativa MAJOR. Pequenas condições (privacidade
 de IA, degradabilidade) estão tratadas por tarefas no Phase 0/1.
 
-## Phase 0 — Research (Tasks)
+## Phase 0 — Research ✓ Concluído
 
-1. Pesquisar opções de transcrição de áudio para Flutter (on‑device `speech_to_text` vs
-   APIs externas). Identificar requisitos de permissões por plataforma.
-2. Definir interface do `AiAdapter` (entrada: texto; saída: {descricao, calorias, nota, confidence}).
-3. Projetar prompt/contract para estimativa calórica (ex.: instruções, unidades, contexto).
-4. Pesquisar práticas de UX para revisão de sugestões automatizadas e mensagens de baixa confiança.
-5. Avaliar estratégias de armazenamento seguro para chaves de API (quando aplicável) e opções de
-   uso sem backend (riscos de expor chaves em app — documentar como NÃO armazenar chaves no app).
+1. ✓ Transcrição de áudio: decisão por `speech_to_text` on-device no MVP.
+2. ✓ Interface `AiAdapter` definida: `estimateCalories(text) → {descricaoInterpretada, calorias, nota, confidence}`.
+3. ✓ Prompt/contrato: documentado em `contracts/ai_adapter.md`.
+4. ✓ UX revisão: threshold `confidence < 0.7` dispara aviso e destaca campos editáveis.
+5. ✓ Segurança: chaves NÃO armazenadas no app; integração real requer proxy/backend (fora do MVP).
 
-Deliverable: `research.md` com decisões e alternativas.
+Entregável: `research.md` — concluído.
 
-## Phase 1 — Design & Contracts
+## Phase 1 — Design & Contracts ✓ Concluído
 
-Tasks:
+1. ✓ `data-model.md` — entidade `Meal` com campos, validações e transições de estado.
+2. ✓ `contracts/ai_adapter.md` — interface Dart com entrada, saída, erros e threshold de confiança.
+3. ✓ `quickstart.md` — cenários de validação manual dos fluxos US1/US2/US3.
+4. ✓ Design de UI — paleta Material 3 (seed `#2E7D32`) e tokens definidos no plano. Tema exemplo:
+   `app/lib/themes/nutrition_theme.dart` (a criar na implementação).
 
-1. Gerar `data-model.md` com `Meal` entity e regras de validação.
-2. Criar `contracts/ai_adapter.md` descrevendo a interface (entrada/saída/erros/timeouts).
-3. Criar `quickstart.md` com passos de validação manual (fluxos principais).
-4. Design de UI: definir paleta de cores final, tokens Material 3, especificar contrastes e
-  fornecer um pequeno arquivo de tema Flutter de exemplo (ex.: `lib/themes/nutrition_theme.dart`).
+### Re-check Constitution Check (pós Phase 1)
 
-Re‑check Constitution Check após completar Phase 1.
+- **Idioma**: PASS — todos os artefatos em PT-BR.
+- **Simplicidade**: PASS — mock, memória, ChangeNotifier; sem deps extras.
+- **Offline First**: PASS — `speech_to_text` on-device; IA via mock sem internet.
+- **Arquitetura**: PASS — camadas claras em `app/lib/` (features, services, models).
+- **IA/Privacidade**: PASS — chave não armazenada no app; mock documentado.
 
-## Phase 2 — Implementation (outline)
+## Phase 2 — Implementation ✓ Tasks geradas
 
-Not included in /speckit.plan. Expected outputs:
+Todos os entregáveis da Phase 2 ficam em `app/`:
 
-- `tasks.md` com tarefas ordenadas e estimativas de esforço.
-- Implementação do `ai_adapter_mock`, `speech_service` e telas `home`/`add_meal`.
-- Testes unitários e widget tests cobrindo fluxos centrais.
+- ✓ `tasks.md` — 30 tarefas PT-BR ordenadas por dependência.
+- `app/lib/features/home/home_page.dart` — tela Home com total diário e lista.
+- `app/lib/features/home/add_meal_page.dart` — tela Adicionar Refeição.
+- `app/lib/services/ai_adapter/ai_adapter.dart` — interface.
+- `app/lib/services/ai_adapter/ai_adapter_mock.dart` — implementação mock.
+- `app/lib/services/speech/speech_service.dart` — wrapper `speech_to_text`.
+- `app/lib/models/meal.dart` — entidade Meal.
+- `app/lib/themes/nutrition_theme.dart` — tema Material 3.
+- `app/test/` — testes unitários e widget tests.
+
+### Portões de Qualidade (a validar ao concluir cada tarefa)
+
+```bash
+cd app
+dart format .
+flutter analyze
+flutter test
+```
 
 ---
 

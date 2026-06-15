@@ -1,90 +1,105 @@
-description: "Tarefas geradas para implementação da feature"
 ---
-
+description: "Tarefas de implementação da feature 001 — Home e adicionar refeição com IA"
+feature_dir: specs/001-home-adicionar-refeicao-ia
+app_dir: app
+---
 
 # Tarefas: Home e adicionar refeição com estimativa calórica por IA
 
-**Input**: Documentos em [specs/001-home-adicionar-refeicao-ia](specs/001-home-adicionar-refeicao-ia)
+**Feature**: `001-home-adicionar-refeicao-ia` | **Plano**: [plan.md](plan.md) | **Spec**: [spec.md](spec.md)
 
-## Fase 0: Ambiente e Ferramentas (pré-requisito)
+> Todo código de aplicação fica em `app/`. Comandos de qualidade: `cd app && dart format . && flutter analyze && flutter test`.
 
-- [ ] T001 Instalar Flutter local (ou garantir `flutter` no PATH) e verificar com `flutter --version`
-- [ ] T002 Instalar Android SDK platform-tools (`adb`) e expor `ANDROID_SDK_ROOT`/`PATH` (ver `docs/setup.md`)
-- [ ] T003 Instalar `cmdline-tools` (sdkmanager, avdmanager) e `emulator` no Android SDK
-- [ ] T004 Validar ambiente com `flutter doctor -v` e adicionar evidências em `specs/001-home-adicionar-refeicao-ia/docs/environment-proof.md`
+---
 
 ## Fase 1: Setup (Estrutura do Projeto)
 
-- [ ] T005 Criar esqueleto do app Flutter: `lib/main.dart`, `pubspec.yaml`, `analysis_options.yaml`
-- [ ] T006 Criar tema e tokens: `lib/themes/nutrition_theme.dart` (Material 3 ColorScheme)
-- [ ] T007 [P] Criar pastas de teste `test/unit/` e `test/widget/` e adicionar configuração básica de testes
+- [ ] T001 Atualizar `app/pubspec.yaml` adicionando dependências: `speech_to_text`, `uuid` e `provider` (ou `flutter` built-in `ChangeNotifier`) com versões compatíveis com Flutter 3.x
+- [ ] T002 Criar tema e tokens: `app/lib/themes/nutrition_theme.dart` com `ColorScheme.fromSeed(seedColor: Color(0xFF2E7D32))` e tokens `secondary`, `background`, `success`, `warning`
+- [ ] T003 [P] Criar estrutura de pastas em `app/lib/`: `features/home/`, `features/home/widgets/`, `services/ai_adapter/`, `services/speech/`, `services/repository/`, `models/`, `themes/`
+- [ ] T004 [P] Criar pastas `app/test/unit/` e `app/test/widget/` e garantir que `app/test/widget_test.dart` gerado pelo `flutter create` compila sem erros
 
 ## Fase 2: Fundacionais (pré-requisitos bloqueantes)
 
-- [ ] T008 Criar modelo `lib/models/meal.dart` com campos: `id`, `descricao`, `calorias`, `timestamp`, `origem`, `ai_confidence`, `nota`
-- [ ] T009 [P] Definir interface `AiAdapter` em `lib/services/ai_adapter/ai_adapter.dart`
-- [ ] T010 [P] Implementar mock `AiAdapter` em `lib/services/ai_adapter/ai_adapter_mock.dart` (para testes/MVP)
-- [ ] T011 [P] Criar abstração de transcrição `lib/services/speech/speech_service.dart` (hooks para transcrição on-device)
-- [ ] T012 [P] Implementar repositório em memória `lib/services/repository/in_memory_repository.dart` com operações CRUD para `Meal`
-- [ ] T013 Implementar `lib/features/home/view_model.dart` (ChangeNotifier) integrando modelo, repositório e `AiAdapter`
+- [ ] T005 Criar modelo `app/lib/models/meal.dart` com campos `id` (uuid), `descricao`, `calorias` (int), `timestamp`, `origem` (enum `texto`|`audio`), `aiConfidence` (double?), `nota` (String?); incluir construtor `const`, `copyWith` e validações
+- [ ] T006 [P] Definir interface `AiAdapter` em `app/lib/services/ai_adapter/ai_adapter.dart` conforme contrato em `specs/001-home-adicionar-refeicao-ia/contracts/ai_adapter.md` (`estimateCalories(String) → Future<AiEstimate>`, classes `AiEstimate` e `AiAdapterException`)
+- [ ] T007 [P] Implementar `app/lib/services/ai_adapter/ai_adapter_mock.dart`: mapear palavras-chave comuns → estimativas fixas; `confidence: 0.9` para reconhecidos, `0.5` para desconhecidos, `0.3`+`calorias: 0` quando sem palavras-chave; delay simulado de 300ms
+- [ ] T008 [P] Criar `app/lib/services/speech/speech_service.dart` com métodos `startListening()`, `stopListening()`, `onResult(String transcricao)` encapsulando o pacote `speech_to_text`; expor estado `isListening`
+- [ ] T009 [P] Implementar `app/lib/services/repository/in_memory_repository.dart` com operações `add(Meal)`, `getAll()`, `remove(String id)` e total diário `getTotalCaloriesHoje()`
+- [ ] T010 Implementar `app/lib/features/home/view_model.dart` (`ChangeNotifier`) integrando `InMemoryRepository` e `AiAdapter`; expor `meals`, `totalHoje`, `isLoading`, `estimate`, `lowConfidence` (threshold `< 0.7`), `errorMessage`
 
-**Checkpoint**: Completar Fundacionais antes de iniciar as histórias de usuário.
+**Checkpoint**: executar `flutter analyze` em `app/` sem erros antes de iniciar histórias de usuário.
 
-## Fase 3: História de Usuário 1 - Registrar refeição por texto (Prioridade: P1) 🎯 MVP
+---
 
-Objetivo: Adicionar refeição via texto, pedir estimativa IA, revisar e salvar localmente.
+## Fase 3: US1 — Registrar refeição por texto (P1) 🎯 MVP
 
-Teste independente: Abrir Home → Adicionar refeição → digitar texto → solicitar estimativa → revisar → confirmar → verificar lista e total.
+**Objetivo**: Digitar descrição → solicitar estimativa IA → revisar/editar → salvar → ver lista e total.
 
-- [ ] T014 [US1] Implementar formulário `lib/features/home/widgets/meal_form.dart` (campos: descricao, calorias editáveis)
-- [ ] T015 [US1] Implementar página de adicionar `lib/features/home/add_meal_page.dart` com entrada de texto e botão enviar
-- [ ] T016 [US1] Implementar lógica de solicitação de estimativa via `AiAdapter` e preencher campos de revisão em `lib/features/home/view_model.dart`
-- [ ] T017 [US1] Implementar listagem `lib/features/home/home_page.dart` e cálculo de total diário
-- [ ] T018 [US1] Adicionar teste de widget `test/widget/us1_add_meal_test.dart` cobrindo fluxo de texto (incluir mocks do `AiAdapter`)
+**Teste independente**: Home (vazio) → "Adicionar refeição" → digitar texto → botão estimar → revisar → confirmar → lista atualizada + total correto.
 
-## Fase 4: História de Usuário 2 - Registrar refeição por áudio (Prioridade: P1)
+- [ ] T011 [US1] Criar `app/lib/features/home/widgets/meal_form.dart`: campos `TextField` para `descricao` (multilinha) e `calorias` (numérico), ambos editáveis; emitir callback `onChanged`
+- [ ] T012 [US1] Criar `app/lib/features/home/add_meal_page.dart`: modo texto com `MealForm`, botão "Estimar com IA" que chama `viewModel`, exibir `CircularProgressIndicator` enquanto `isLoading`; botões "Confirmar" e "Cancelar"
+- [ ] T013 [US1] Conectar confirmação em `add_meal_page.dart` ao `viewModel.addMeal(meal)` e navegar de volta à Home após sucesso
+- [ ] T014 [US1] Criar `app/lib/features/home/home_page.dart`: `AppBar` com título "Calorie Counter", card de total diário no topo (`FR-001`), `ListView` de refeições com nome e calorias (`FR-002`), estado vazio com mensagem, `FloatingActionButton` para adicionar (`FR-003`, `FR-004`)
+- [ ] T015 [US1] Integrar `HomeViewModel` via `ChangeNotifierProvider` em `app/lib/main.dart`; configurar roteamento `MaterialApp` entre `HomePage` e `AddMealPage`
+- [ ] T016 [US1] Adicionar `app/test/widget/us1_text_flow_test.dart`: testar (1) Home exibe estado vazio, (2) adicionar refeição por texto preenche lista, (3) total é recalculado; usar `AiAdapterMock`
 
-Objetivo: Gravar áudio on-device, transcrever localmente, pedir estimativa IA e salvar após revisão.
+---
 
-Teste independente: Gravar → transcrever → solicitar estimativa → revisar → confirmar.
+## Fase 4: US2 — Registrar refeição por áudio (P1)
 
-- [ ] T019 [US2] Integrar `lib/services/speech/speech_service.dart` em `lib/features/home/add_meal_page.dart` (gravar/parar)
-- [ ] T020 [US2] Implementar fluxo de transcrição on-device e preencher `meal_form` a partir da transcrição em `lib/features/home/view_model.dart`
-- [ ] T021 [US2] Adicionar tratamento de permissões e instruções de uso em `lib/features/home/add_meal_page.dart` (microfone)
-- [ ] T022 [US2] Adicionar teste de widget `test/widget/us2_audio_flow_test.dart` validando fluxo de áudio com transcrição mockada
+**Objetivo**: Gravar áudio on-device → transcrever → estimar calorias → revisar → salvar.
 
-## Fase 5: História de Usuário 3 - Revisar e editar sugestão da IA (Prioridade: P2)
+**Teste independente**: botão microfone → gravação → parar → transcrição em `MealForm` → estimar → confirmar → lista atualizada.
 
-Objetivo: Permitir revisão/edição da sugestão, exibir aviso de baixa confiança e permitir salvar mesmo assim.
+- [ ] T017 [US2] Adicionar permissão de microfone em `app/android/app/src/main/AndroidManifest.xml` (`RECORD_AUDIO`) e em `app/ios/Runner/Info.plist` (`NSMicrophoneUsageDescription`)
+- [ ] T018 [US2] Integrar `SpeechService` em `app/lib/features/home/add_meal_page.dart`: botão de microfone (ícone gravando/parado), preencher `MealForm.descricao` ao receber transcrição via `onResult`
+- [ ] T019 [US2] Implementar tratamento de permissão negada em `add_meal_page.dart`: exibir `SnackBar` ou `AlertDialog` com instrução para habilitar o microfone nas configurações (`FR-006`)
+- [ ] T020 [US2] Adicionar `app/test/widget/us2_audio_flow_test.dart`: testar fluxo com `SpeechService` mockado retornando transcrição fixa; validar preenchimento do formulário e sequência estimativa → confirmação
 
-Teste independente: Receber sugestão → editar campos → salvar → verificar lista.
+---
 
-- [ ] T023 [US3] Implementar diálogo de revisão `lib/features/home/widgets/review_suggestion_dialog.dart` (edição de descricao e calorias)
-- [ ] T024 [US3] Implementar componente/aviso `lib/features/home/widgets/confidence_warning.dart` e lógica de threshold em `lib/features/home/view_model.dart`
-- [ ] T025 [US3] Implementar fluxo que permite salvar apesar de baixa confiança (com aviso) em `lib/features/home/view_model.dart`
-- [ ] T026 [US3] Adicionar testes unitários `test/unit/us3_review_tests.dart` cobrindo edição e baixa confiança
+## Fase 5: US3 — Revisar e editar sugestão da IA (P2)
 
-## Fase N: Polish & Questões Transversais
+**Objetivo**: Exibir sugestão da IA em campos editáveis, avisar quando `confidence < 0.7`, permitir salvar após revisão.
 
-- [ ] T027 [P] Atualizar `specs/001-home-adicionar-refeicao-ia/quickstart.md` com passos de validação
-- [ ] T028 Limpeza de código, aplicar `dart format` e resolver `analysis` warnings
-- [ ] T029 Adicionar verificações de acessibilidade/contraste e variante de alto contraste em `lib/themes/nutrition_theme.dart`
-- [ ] T030 Documentar considerações de privacidade e chaves de IA em `specs/001-home-adicionar-refeicao-ia/research.md`
+**Teste independente**: sugestão de baixa confiança → aviso visível → editar calorias → confirmar → lista com valor editado.
+
+- [ ] T021 [US3] Criar `app/lib/features/home/widgets/confidence_warning.dart`: widget condicional que exibe banner/card de aviso quando `confidence < 0.7`, destacando campos editáveis (`FR-011`)
+- [ ] T022 [US3] Criar `app/lib/features/home/widgets/review_suggestion_dialog.dart`: exibir `descricaoInterpretada`, `calorias`, `nota` e `confidence`; campos `descricao` e `calorias` editáveis; botões "Salvar" e "Cancelar"
+- [ ] T023 [US3] Integrar `ConfidenceWarning` e `ReviewSuggestionDialog` em `add_meal_page.dart`: abrir diálogo após estimativa retornar; exibir aviso quando `viewModel.lowConfidence == true`
+- [ ] T024 [US3] Garantir que `calorias == 0` force edição manual antes de habilitar "Salvar" (desabilitar botão enquanto `calorias <= 0`)
+- [ ] T025 [US3] Adicionar `app/test/unit/us3_viewmodel_test.dart`: testar (1) `lowConfidence` true quando `confidence < 0.7`, (2) edição de calorias atualiza estado, (3) `calorias == 0` impede confirmação sem edição
+
+---
+
+## Fase 6: Polish & Qualidade
+
+- [ ] T026 [P] Executar `cd app && dart format . && flutter analyze` e resolver todos os warnings/hints; garantir zero erros de análise
+- [ ] T027 Validar contrastes de acessibilidade em `app/lib/themes/nutrition_theme.dart` (mínimo AA 4.5:1 para texto normal); ajustar cores se necessário e adicionar variante de alto contraste
+- [ ] T028 Garantir tratamento de edge cases: entrada ambígua (`confidence < 0.3` → forçar edição), áudio inaudível (`onError` no `SpeechService` → mensagem de erro), texto > 1000 chars → truncar visualmente na lista
+- [ ] T029 Executar suite completa `flutter test` em `app/` e garantir todos os testes passando; adicionar cobertura mínima dos fluxos US1/US2/US3
+
+---
 
 ## Dependências & Ordem de Execução
 
-- Setup (Fase 1) → Fundacionais (Fase 2) → Histórias de usuário (Fase 3+) → Polish
-- Dentro de cada história: modelos → serviços → viewmodels → UI → testes
+```
+Fase 1 (Setup) → Fase 2 (Fundacionais) → Fase 3 (US1) → Fase 4 (US2) + Fase 5 (US3) → Fase 6 (Polish)
+```
 
-## Oportunidades de paralelismo
+- Dentro de cada fase: modelos/interfaces → serviços/mocks → view model → UI → testes
+- US2 e US3 podem ser desenvolvidas em paralelo após US1 estar completa
 
-- T007, T009, T010, T011 e T012 podem ser implementadas em paralelo (tarefas de infra e mocks)
-- Depois de Fundacionais, US1, US2 e US3 podem ser trabalhadas em paralelo por membros diferentes da equipe
+## Oportunidades de Paralelismo
 
-## Estratégia de implementação
+- `T003`, `T004`, `T006`, `T007`, `T008`, `T009` — paralelas (infraestrutura independente)
+- `T017`, `T018`, `T019` (US2) + `T021`, `T022`, `T023` (US3) — paralelas entre si após Fase 2
 
-- MVP: completar Fase 1 + Fase 2, entregar US1 como primeiro incremento (validar independentemente)
-- Em seguida, adicionar US2 (áudio) e US3 (revisão) e finalizar Polish
+## Escopo do MVP (Sugestão)
+
+Fase 1 + Fase 2 + **Fase 3 (US1)** = app utilizável e validável de forma independente.
 
 ---
 
