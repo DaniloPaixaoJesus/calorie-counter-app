@@ -95,34 +95,34 @@ specs/001-home-adicionar-refeicao-ia/
 └── tasks.md             # Fase 2 — gerado por /speckit.tasks
 ```
 
-### Source Code (proposta minimalista para Flutter)
+### Source Code (proposta minimalista para Flutter em /app)
 
 ```text
-lib/
-├── main.dart
-├── features/
-│   └── home/
-│       ├── home_page.dart
-+      ├── add_meal_page.dart
-+      ├── widgets/
-+      └── view_model.dart  # ChangeNotifier / ValueNotifier
-├── services/
-│   ├── ai_adapter/
-│   │   ├── ai_adapter.dart   # interface/abstração
-│   │   └── ai_adapter_mock.dart
-│   └── speech/
-│       └── speech_service.dart
-└── models/
-    └── meal.dart
-
-test/
-├── unit/
-└── widget/
+app/
+├── lib/
+│   ├── main.dart
+│   ├── features/
+│   │   └── home/
+│   │       ├── home_page.dart
+│   │       ├── add_meal_page.dart
+│   │       ├── widgets/
+│   │       └── view_model.dart  # ChangeNotifier / ValueNotifier
+│   ├── services/
+│   │   ├── ai_adapter/
+│   │   │   ├── ai_adapter.dart   # interface/abstração
+│   │   │   └── ai_adapter_mock.dart
+│   │   └── speech/
+│   │       └── speech_service.dart
+│   └── models/
+│       └── meal.dart
+└── test/
+    ├── unit/
+    └── widget/
 ```
 
-**Structure Decision**: projeto Flutter com feature module `home` e serviços desacoplados
-(`ai_adapter`, `speech`). O adaptador IA é apenas uma interface pública com implementação
-mock no MVP.
+**Structure Decision**: monorepo com todo código da aplicação Flutter concentrado em `app/`.
+O módulo `home` e os serviços desacoplados (`ai_adapter`, `speech`) vivem em `app/lib/`.
+O adaptador IA permanece como interface pública com implementação mock no MVP.
 
 ## Complexity Tracking
 
