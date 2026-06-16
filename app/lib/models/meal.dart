@@ -25,16 +25,29 @@ class Meal {
     required String descricao,
     required int calorias,
     required MealOrigem origem,
+    required DateTime dataSelecionada,
     double? aiConfidence,
     String? nota,
   }) {
     assert(descricao.isNotEmpty, 'descricao não pode ser vazia');
     assert(calorias >= 0, 'calorias deve ser não-negativo');
+
+    // Ajustar timestamp para a data selecionada combinada com hora local atual
+    final agora = DateTime.now();
+    final timestampAjustado = DateTime(
+      dataSelecionada.year,
+      dataSelecionada.month,
+      dataSelecionada.day,
+      agora.hour,
+      agora.minute,
+      agora.second,
+    );
+
     return Meal(
       id: const Uuid().v4(),
       descricao: descricao,
       calorias: calorias,
-      timestamp: DateTime.now(),
+      timestamp: timestampAjustado,
       origem: origem,
       aiConfidence: aiConfidence,
       nota: nota,

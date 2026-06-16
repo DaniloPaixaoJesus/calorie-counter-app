@@ -81,6 +81,7 @@ class _AddMealPageState extends State<AddMealPage> {
       descricao: _descricao.isNotEmpty ? _descricao : 'Sem descrição',
       calorias: _calorias,
       origem: _isListening ? MealOrigem.audio : MealOrigem.texto,
+      dataSelecionada: vm.dataSelecionada,
       aiConfidence: vm.estimate?.confidence,
       nota: vm.estimate?.nota,
     );

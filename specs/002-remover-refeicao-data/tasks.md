@@ -11,8 +11,9 @@
 | Phase | Objetivo | Tasks | Status |
 |-------|----------|-------|--------|
 | Phase 0 | Setup & Infrastructure | T001-T005, T001a | not-started |
-| Phase 1 | Foundational (ViewModel Extension) | T006-T012 | not-started |
-| Phase 2 | User Story 1 (Navegação por Data) | T013-T025 | not-started |
+| Phase 0 | Setup & Infrastructure | T001-T005, T001a | completed |
+| Phase 1 | Foundational (ViewModel Extension) | T006-T012 | completed |
+| Phase 2 | User Story 1 (Navegação por Data) | T013-T025 | in-progress |
 | Phase 3 | User Story 2 (Remoção com Confirmação) | T026-T035, T031a | not-started |
 | Phase 4 | User Story 3 (Estado Vazio) | T036-T040 | not-started |
 | Phase 5 | Polish & Validation | T041-T047 | not-started |

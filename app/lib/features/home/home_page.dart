@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'view_model.dart';
 import 'add_meal_page.dart';
+import 'widgets/date_navigation_bar.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -9,13 +10,15 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<HomeViewModel>();
-    final meals = vm.meals;
+    final meals = vm.mealsDoDia; // Feature 002: Filter by selected date
 
     return Scaffold(
       appBar: AppBar(title: const Text('Calorie Counter')),
       body: Column(
         children: [
-          // FR-001: total diário
+          // Feature 002: Date Navigation Bar (T016-T018)
+          const DateNavigationBar(),
+          // T019: Total label for selected date
           Container(
             width: double.infinity,
             margin: const EdgeInsets.all(16),
@@ -26,7 +29,7 @@ class HomePage extends StatelessWidget {
             ),
             child: Column(
               children: [
-                const Text('Total hoje', style: TextStyle(fontSize: 14)),
+                const Text('Total', style: TextStyle(fontSize: 14)),
                 const SizedBox(height: 4),
                 Text(
                   '${vm.totalHoje} kcal',
@@ -62,7 +65,7 @@ class HomePage extends StatelessWidget {
                 : ListView.separated(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     itemCount: meals.length,
-                    separatorBuilder: (_, __) => const Divider(),
+                    separatorBuilder: (context, index) => const Divider(),
                     itemBuilder: (ctx, i) {
                       final meal = meals[i];
                       // truncar visualmente descrições longas na lista
