@@ -24,7 +24,9 @@ app_dir: app
 - [X] T005 Criar modelo `app/lib/models/meal.dart` com campos `id` (uuid), `descricao`, `calorias` (int), `timestamp`, `origem` (enum `texto`|`audio`), `aiConfidence` (double?), `nota` (String?); incluir construtor `const`, `copyWith` e validações
 - [X] T006 [P] Definir interface `AiAdapter` em `app/lib/services/ai_adapter/ai_adapter.dart` conforme contrato em `specs/001-home-adicionar-refeicao-ia/contracts/ai_adapter.md` (`estimateCalories(String) → Future<AiEstimate>`, classes `AiEstimate` e `AiAdapterException`)
 - [X] T007 [P] Implementar `app/lib/services/ai_adapter/ai_adapter_mock.dart`: mapear palavras-chave comuns → estimativas fixas; `confidence: 0.9` para reconhecidos, `0.5` para desconhecidos, `0.3`+`calorias: 0` quando sem palavras-chave; delay simulado de 300ms
-- [X] T008 [P] Criar `app/lib/services/speech/speech_service.dart` com métodos `startListening()`, `stopListening()`, `onResult(String transcricao)` encapsulando o pacote `speech_to_text`; expor estado `isListening`
+- [X] T008 [P] Definir interface `AudioTranscriptionAdapter` em `app/lib/services/audio_transcription/audio_transcription_adapter.dart` conforme contrato em `specs/001-home-adicionar-refeicao-ia/contracts/audio_transcription_adapter.md` (métodos `startListening()`, `stopListening()`, propriedade `transcriptionStream: Stream<TranscriptionEvent>`, tipos `TranscriptionResult`, `TranscriptionError`)
+- [X] T008a [P] Implementar `app/lib/services/audio_transcription/offline_audio_transcription_adapter.dart`: encapsular `speech_to_text`, emitir `TranscriptionResult` continuamente enquanto usuário fala, `isFinal: true` ao fim, estimar `confidence` de resultado, tratar erros via `TranscriptionError`
+- [X] T008b [P] Criar stub `app/lib/services/audio_transcription/aiapi_audio_transcription_adapter.dart`: implementar interface `AudioTranscriptionAdapter`, lançar `NotImplementedError` em `startListening()` com mensagem "API de IA não implementada neste MVP"; serve como placeholder para futuras integrações
 - [X] T009 [P] Implementar `app/lib/services/repository/in_memory_repository.dart` com operações `add(Meal)`, `getAll()`, `remove(String id)` e total diário `getTotalCaloriesHoje()`
 - [X] T010 Implementar `app/lib/features/home/view_model.dart` (`ChangeNotifier`) integrando `InMemoryRepository` e `AiAdapter`; expor `meals`, `totalHoje`, `isLoading`, `estimate`, `lowConfidence` (threshold `< 0.7`), `errorMessage`
 
@@ -54,9 +56,9 @@ app_dir: app
 **Teste independente**: botão microfone → gravação → parar → transcrição em `MealForm` → estimar → confirmar → lista atualizada.
 
 - [ ] T017 [US2] Adicionar permissão de microfone em `app/android/app/src/main/AndroidManifest.xml` (`RECORD_AUDIO`) e em `app/ios/Runner/Info.plist` (`NSMicrophoneUsageDescription`)
-- [ ] T018 [US2] Integrar `SpeechService` em `app/lib/features/home/add_meal_page.dart`: botão de microfone (ícone gravando/parado), preencher `MealForm.descricao` ao receber transcrição via `onResult`
-- [ ] T019 [US2] Implementar tratamento de permissão negada em `add_meal_page.dart`: exibir `SnackBar` ou `AlertDialog` com instrução para habilitar o microfone nas configurações (`FR-006`)
-- [ ] T020 [US2] Adicionar `app/test/widget/us2_audio_flow_test.dart`: testar fluxo com `SpeechService` mockado retornando transcrição fixa; validar preenchimento do formulário e sequência estimativa → confirmação
+- [ ] T018 [US2] Integrar `AudioTranscriptionAdapter` (implementação `OfflineAudioTranscriptionAdapter`) em `app/lib/features/home/add_meal_page.dart`: botão de microfone (ícone gravando/parado), chamar `startListening()`, escutar `transcriptionStream`, preencher `MealForm.descricao` ao receber `TranscriptionResult.text`, parar com `stopListening()`
+- [ ] T019 [US2] Implementar tratamento de erros de transcrição em `add_meal_page.dart`: capturar `TranscriptionError` no stream, exibir `SnackBar` ou `AlertDialog` com mensagem específica (permissão negada, sem áudio, timeout, etc.); guiar usuário para habilitar microfone se necessário (`FR-006`)
+- [ ] T020 [US2] Adicionar `app/test/widget/us2_audio_flow_test.dart`: testar fluxo com `OfflineAudioTranscriptionAdapter` mockado retornando `TranscriptionResult` com `isFinal: false` e depois `isFinal: true`; validar preenchimento do formulário e sequência estimativa → confirmação
 
 ---
 
@@ -94,7 +96,7 @@ Fase 1 (Setup) → Fase 2 (Fundacionais) → Fase 3 (US1) → Fase 4 (US2) + Fas
 
 ## Oportunidades de Paralelismo
 
-- `T003`, `T004`, `T006`, `T007`, `T008`, `T009` — paralelas (infraestrutura independente)
+- `T003`, `T004`, `T006`, `T007`, `T008`, `T008a`, `T008b`, `T009` — paralelas (infraestrutura independente)
 - `T017`, `T018`, `T019` (US2) + `T021`, `T022`, `T023` (US3) — paralelas entre si após Fase 2
 
 ## Escopo do MVP (Sugestão)

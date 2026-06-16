@@ -36,6 +36,17 @@ Estende a Home (feature 001) com:
 - **Remoção com confirmação**: long-press ou ícone de deletar em cada item; dialog simples "Tem certeza?" antes de remover.
 - **Consistência visual**: reusar paleta de cores e tokens Material 3 da feature 001; estado vazio exibe mensagem clara por data.
 
+### Registro complementar (transcrição de áudio)
+
+Para constar no plano técnico da spec 002: a alteração da estratégia de transcrição de áudio já foi implementada e testada nesta spec, mantendo aderência a simplicidade, MVP First, Offline First e desacoplamento da lógica de negócio.
+
+Diretrizes comportamentais registradas:
+
+- A gravação de áudio possui limite máximo de 30 segundos.
+- O usuário precisa clicar explicitamente para parar a gravação.
+- A interface deve exibir timer regressivo durante a gravação (30s até 0s).
+- O texto transcrito deve ser exibido apenas após o término da gravação.
+
 ## Arquitetura de Decisão (Phase 0)
 
 ### AD-001: Representação da data selecionada
@@ -137,6 +148,22 @@ factory Meal.create({
   );
 }
 ```
+
+### AD-005: Regra de captura de áudio com limite e exibição pós-finalização
+
+**Decisão**: A captura de áudio adota limite técnico de 30 segundos, parada manual pelo usuário e exibição da transcrição apenas após o encerramento da gravação.
+
+**Rationale**:
+- Mantém fluxo simples e previsível para o MVP.
+- Reduz risco de captura excessiva e ambiguidade de estado na UI.
+- Melhora clareza da experiência com timer regressivo explícito.
+- Preserva desacoplamento entre UI e mecanismo de transcrição.
+
+**Regra de UX/Aplicação**:
+- Início da gravação: inicia contador regressivo de 30 segundos.
+- Durante gravação: somente timer e estado de captura são exibidos.
+- Encerramento: ocorre por ação explícita do usuário ou por atingir 30 segundos.
+- Pós-encerramento: exibir transcrição final consolidada; não exibir texto parcial durante captura.
 
 ## Constitution Check
 

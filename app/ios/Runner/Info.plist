@@ -66,5 +66,9 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	
+	<!-- Microphone usage description required for audio recording -->
+	<key>NSMicrophoneUsageDescription</key>
+	<string>O app precisa acessar o microfone para transcrever áudio da refeição.</string>
 </dict>
 </plist>

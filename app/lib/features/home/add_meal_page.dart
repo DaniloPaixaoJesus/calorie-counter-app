@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:calorie_counter_app/models/meal.dart';
-import 'package:calorie_counter_app/services/speech/speech_service.dart';
+// import 'package:calorie_counter_app/services/speech/speech_service.dart';
+import 'package:calorie_counter_app/services/audio_transcription/audio_transcription_adapter.dart';
+import 'package:calorie_counter_app/services/audio_transcription/offline_audio_transcription_adapter.dart';
 import 'widgets/meal_form.dart';
 import 'widgets/confidence_warning.dart';
 import 'view_model.dart';
@@ -18,7 +20,8 @@ class _AddMealPageState extends State<AddMealPage> {
   /// Duração máxima da gravação de áudio.
   static const Duration _maxRecordingDuration = Duration(seconds: 30);
 
-  final SpeechService _speech = SpeechService();
+  // Usamos o adaptador de transcrição abstrato (MVP: offline)
+  final AudioTranscriptionAdapter _adapter = OfflineAudioTranscriptionAdapter();
   String _descricao = '';
   int _calorias = 0;
   bool _isListening = false;
@@ -29,7 +32,7 @@ class _AddMealPageState extends State<AddMealPage> {
   @override
   void dispose() {
     _countdownTimer?.cancel();
-    _speech.dispose();
+    _adapter.dispose();
     super.dispose();
   }
 
@@ -51,7 +54,7 @@ class _AddMealPageState extends State<AddMealPage> {
 
   Future<void> _pararGravacao() async {
     _countdownTimer?.cancel();
-    await _speech.stopListening();
+    await _adapter.stopListening();
     if (mounted) {
       setState(() => _isListening = false);
     }
@@ -63,40 +66,26 @@ class _AddMealPageState extends State<AddMealPage> {
       return;
     }
 
-    final ok = await _speech.initialize(
-      onError: (error) {
-        if (mounted) {
-          _countdownTimer?.cancel();
-          setState(() => _isListening = false);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Erro no reconhecimento de voz: $error')),
-          );
-        }
-      },
-      onStatus: (status) {
-        if (mounted && (status == 'notListening' || status == 'done')) {
-          _countdownTimer?.cancel();
-          setState(() => _isListening = false);
-        }
-      },
-    );
-    if (!ok && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Microfone indisponível. Habilite nas configurações do dispositivo.',
-          ),
-        ),
-      );
-      return;
-    }
+    await _adapter.initialize(onError: (error) {
+      if (mounted) {
+        _countdownTimer?.cancel();
+        setState(() => _isListening = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro no reconhecimento de voz: $error')),
+        );
+      }
+    }, onStatus: (status) {
+      if (mounted && (status == 'notListening' || status == 'done')) {
+        _countdownTimer?.cancel();
+        setState(() => _isListening = false);
+      }
+    });
 
     setState(() => _isListening = true);
     _iniciarTimer();
-    await _speech.startListening(
+    await _adapter.startListening(
       maxDuration: _maxRecordingDuration,
       onResult: (transcricao, isFinal) {
-        // partialResults está desabilitado: o texto só chega no resultado final.
         if (mounted && isFinal) {
           setState(() {
             _descricao = transcricao;

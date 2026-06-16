@@ -67,6 +67,40 @@ consistente com Material 3 tokens. Diretrizes iniciais (MVP):
 Racional: paleta verde + tom quente (laranja) comunica saúde e apetite controlado; tokens
 facilitam substituição e testes de contraste.
 
+## Arquitetura de Decisão (Phase 0/1)
+
+### AD-001: Abstração de Transcrição de Áudio
+
+**Decisão**: Criar `AudioTranscriptionAdapter` como interface desacoplada, seguindo o mesmo padrão de `AiAdapter`.
+
+**Rationale**:
+- Permite trocar entre transcrição offline (MVP) e APIs de IA futuras sem alterar UI/widgets.
+- Alinhado com Constituição: Arquitetura preparada para evolução e Offline First.
+- Transcrição é camada técnica; deve estar em `infrastructure`, não em `presentation`.
+
+**Implementações**:
+1. `OfflineAudioTranscriptionAdapter` — `speech_to_text` on-device (MVP).
+2. `AiApiAudioTranscriptionAdapter` — stub para futura integração com Whisper/Google Cloud Speech (não implementado).
+
+**Estrutura**:
+```
+app/lib/services/audio_transcription/
+├── audio_transcription_adapter.dart        # interface + tipos
+├── offline_audio_transcription_adapter.dart # implementação MVP
+└── aiapi_audio_transcription_adapter.dart  # stub (futura)
+```
+
+**Interface**:
+- `startListening() → Future<void>` — inicia captura de áudio
+- `stopListening() → Future<void>` — encerra captura
+- `transcriptionStream → Stream<TranscriptionEvent>` — emite `TranscriptionResult` ou `TranscriptionError`
+- `isListening → bool` — estado atual
+- `statusMessage → String` — descrição do estado
+
+Implementação offline emite resultados continuamente enquanto usuário fala, com `isFinal: true` ao fim.
+
+**Documentação**: Contrato completo em `contracts/audio_transcription_adapter.md`.
+
 ## Constitution Check
 
 Gates avaliadas contra `.specify/memory/constitution.md` v2.1.0:
@@ -92,7 +126,8 @@ specs/001-home-adicionar-refeicao-ia/
 ├── data-model.md                # Fase 1 — entidades e tipos ✓
 ├── quickstart.md                # Fase 1 — validação rápida/como testar ✓
 ├── contracts/
-│   └── ai_adapter.md            # Fase 1 — contrato interface AiAdapter ✓
+│   ├── ai_adapter.md            # Fase 1 — contrato interface AiAdapter ✓
+│   └── audio_transcription_adapter.md # Fase 1 — contrato interface AudioTranscriptionAdapter ✓
 └── tasks.md                     # Fase 2 — gerado por /speckit.tasks ✓
 ```
 
@@ -112,8 +147,12 @@ app/
 │   │   ├── ai_adapter/
 │   │   │   ├── ai_adapter.dart   # interface/abstração
 │   │   │   └── ai_adapter_mock.dart
-│   │   └── speech/
-│   │       └── speech_service.dart
+│   │   ├── audio_transcription/
+│   │   │   ├── audio_transcription_adapter.dart        # interface/abstração
+│   │   │   ├── offline_audio_transcription_adapter.dart # implementação MVP
+│   │   │   └── aiapi_audio_transcription_adapter.dart  # stub (futura)
+│   │   └── repository/
+│   │       └── in_memory_repository.dart
 │   └── models/
 │       └── meal.dart
 └── test/
@@ -132,20 +171,23 @@ de IA, degradabilidade) estão tratadas por tarefas no Phase 0/1.
 
 ## Phase 0 — Research ✓ Concluído
 
-1. ✓ Transcrição de áudio: decisão por `speech_to_text` on-device no MVP.
-2. ✓ Interface `AiAdapter` definida: `estimateCalories(text) → {descricaoInterpretada, calorias, nota, confidence}`.
-3. ✓ Prompt/contrato: documentado em `contracts/ai_adapter.md`.
-4. ✓ UX revisão: threshold `confidence < 0.7` dispara aviso e destaca campos editáveis.
-5. ✓ Segurança: chaves NÃO armazenadas no app; integração real requer proxy/backend (fora do MVP).
+1. ✓ Transcrição de áudio: decisão por abstração `AudioTranscriptionAdapter` com implementação offline `OfflineAudioTranscriptionAdapter` via `speech_to_text` no MVP.
+2. ✓ Interface `AudioTranscriptionAdapter` definida: `startListening()`, `stopListening()`, `transcriptionStream` emitindo `TranscriptionResult` com `{text, isFinal, confidence}`.
+3. ✓ Contrato documentado em `contracts/audio_transcription_adapter.md` com erros, threshold de confiança e plano para futuras APIs de IA.
+4. ✓ Interface `AiAdapter` definida: `estimateCalories(text) → {descricaoInterpretada, calorias, nota, confidence}`.
+5. ✓ Prompt/contrato AiAdapter: documentado em `contracts/ai_adapter.md`.
+6. ✓ UX revisão: threshold `confidence < 0.7` dispara aviso e destaca campos editáveis.
+7. ✓ Segurança: chaves NÃO armazenadas no app; integração real requer proxy/backend (fora do MVP).
 
-Entregável: `research.md` — concluído.
+Entregável: `research.md` — concluído com análise de decisões arquiteturais.
 
 ## Phase 1 — Design & Contracts ✓ Concluído
 
 1. ✓ `data-model.md` — entidade `Meal` com campos, validações e transições de estado.
 2. ✓ `contracts/ai_adapter.md` — interface Dart com entrada, saída, erros e threshold de confiança.
-3. ✓ `quickstart.md` — cenários de validação manual dos fluxos US1/US2/US3.
-4. ✓ Design de UI — paleta Material 3 (seed `#2E7D32`) e tokens definidos no plano. Tema exemplo:
+3. ✓ `contracts/audio_transcription_adapter.md` — interface de transcrição com suporte a offline e futuras APIs de IA.
+4. ✓ `quickstart.md` — cenários de validação manual dos fluxos US1/US2/US3.
+5. ✓ Design de UI — paleta Material 3 (seed `#2E7D32`) e tokens definidos no plano. Tema exemplo:
    `app/lib/themes/nutrition_theme.dart` (a criar na implementação).
 
 ### Re-check Constitution Check (pós Phase 1)
@@ -165,7 +207,10 @@ Todos os entregáveis da Phase 2 ficam em `app/`:
 - `app/lib/features/home/add_meal_page.dart` — tela Adicionar Refeição.
 - `app/lib/services/ai_adapter/ai_adapter.dart` — interface.
 - `app/lib/services/ai_adapter/ai_adapter_mock.dart` — implementação mock.
-- `app/lib/services/speech/speech_service.dart` — wrapper `speech_to_text`.
+- `app/lib/services/audio_transcription/audio_transcription_adapter.dart` — interface de transcrição.
+- `app/lib/services/audio_transcription/offline_audio_transcription_adapter.dart` — implementação offline (MVP).
+- `app/lib/services/audio_transcription/aiapi_audio_transcription_adapter.dart` — stub para futuras APIs.
+- `app/lib/services/repository/in_memory_repository.dart` — repositório em memória.
 - `app/lib/models/meal.dart` — entidade Meal.
 - `app/lib/themes/nutrition_theme.dart` — tema Material 3.
 - `app/test/` — testes unitários e widget tests.

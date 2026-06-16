@@ -12,9 +12,21 @@
 
 ## Findings & Decisions
 
-1. Transcrição
-   - Opções: `speech_to_text` (on‑device) permite sem conexão; Whisper/Cloud oferecem melhor acurácia mas requerem internet.
-   - Decisão: usar `speech_to_text` em MVP quando disponível; aceitar transcrição via adaptador (mock) para testes automatizados. Documentar como alternativa se equipe optar por chamar API externa.
+1. **Transcrição de áudio com abstração**
+   - Opção 1: Acoplar diretamente a `speech_to_text` (simples mas inflexível).
+   - Opção 2: Criar `AudioTranscriptionAdapter` como interface, permitir múltiplas implementações (offline, API de IA).
+   - **Decisão**: Opção 2. Implementar `OfflineAudioTranscriptionAdapter` via `speech_to_text` no MVP; dejar `AiApiAudioTranscriptionAdapter` como stub para futura integração (Whisper API, Google Cloud Speech).
+   - **Rationale**: Desacopla UI da implementação. Alinhado com Constituição (Arquitetura preparada para evolução, Offline First). Mesma abordagem que `AiAdapter`.
+   
+2. **Interface de transcrição**
+   - `AudioTranscriptionAdapter` expõe:
+     - `startListening()` → inicia captura
+     - `stopListening()` → encerra captura
+     - `Stream<TranscriptionEvent>` → emite `TranscriptionResult` ou `TranscriptionError`
+     - `isListening` → estado booleano
+     - `statusMessage` → descrição em língua natural
+   - Emite resultados continuamente (`isFinal: false` durante fala, `isFinal: true` ao fim).
+   - Suporta threshold de confiança (0.7 é limite para aviso de revisão).
 
 2. IA / Estimativa calórica
    - Definir `AiAdapter` com método `estimateCalories(text) -> {description, calories, note, confidence}`.
