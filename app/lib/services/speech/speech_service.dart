@@ -21,9 +21,15 @@ class SpeechService {
 
   /// Inicia escuta. [onResult] é chamado com o texto transcrito.
   /// [onStatus] notifica mudanças de estado (ex: 'notListening', 'done').
+  ///
+  /// A escuta não para automaticamente por silêncio: só termina quando o
+  /// usuário solicita ([stopListening]) ou ao atingir [maxDuration].
+  /// Os resultados parciais ficam desabilitados, portanto o texto só é
+  /// entregue ao final da gravação.
   Future<void> startListening({
     required void Function(String text, bool isFinal) onResult,
     void Function(String status)? onStatus,
+    Duration maxDuration = const Duration(seconds: 30),
   }) async {
     if (!_initialized) await initialize();
     if (!_initialized) return;
@@ -37,8 +43,10 @@ class SpeechService {
       },
       listenOptions: SpeechListenOptions(
         localeId: 'pt_BR',
-        partialResults: true,
-        pauseFor: const Duration(seconds: 3),
+        partialResults: false,
+        // Mantém a escuta ativa durante silêncios; só para ao atingir o limite.
+        listenFor: maxDuration,
+        pauseFor: maxDuration,
       ),
     );
   }

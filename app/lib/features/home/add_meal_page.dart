@@ -5,6 +5,7 @@ import 'package:calorie_counter_app/services/speech/speech_service.dart';
 import 'widgets/meal_form.dart';
 import 'widgets/confidence_warning.dart';
 import 'view_model.dart';
+import 'dart:async';
 
 class AddMealPage extends StatefulWidget {
   const AddMealPage({super.key});
@@ -14,28 +15,58 @@ class AddMealPage extends StatefulWidget {
 }
 
 class _AddMealPageState extends State<AddMealPage> {
+  /// Duração máxima da gravação de áudio.
+  static const Duration _maxRecordingDuration = Duration(seconds: 30);
+
   final SpeechService _speech = SpeechService();
   String _descricao = '';
   int _calorias = 0;
   bool _isListening = false;
   bool _usouAudio = false;
+  Timer? _countdownTimer;
+  int _segundosRestantes = 0;
 
   @override
   void dispose() {
+    _countdownTimer?.cancel();
     _speech.dispose();
     super.dispose();
   }
 
+  void _iniciarTimer() {
+    _countdownTimer?.cancel();
+    _segundosRestantes = _maxRecordingDuration.inSeconds;
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      setState(() => _segundosRestantes--);
+      if (_segundosRestantes <= 0) {
+        timer.cancel();
+        _pararGravacao();
+      }
+    });
+  }
+
+  Future<void> _pararGravacao() async {
+    _countdownTimer?.cancel();
+    await _speech.stopListening();
+    if (mounted) {
+      setState(() => _isListening = false);
+    }
+  }
+
   Future<void> _toggleListening(HomeViewModel vm) async {
     if (_isListening) {
-      await _speech.stopListening();
-      setState(() => _isListening = false);
+      await _pararGravacao();
       return;
     }
 
     final ok = await _speech.initialize(
       onError: (error) {
         if (mounted) {
+          _countdownTimer?.cancel();
           setState(() => _isListening = false);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Erro no reconhecimento de voz: $error')),
@@ -44,6 +75,7 @@ class _AddMealPageState extends State<AddMealPage> {
       },
       onStatus: (status) {
         if (mounted && (status == 'notListening' || status == 'done')) {
+          _countdownTimer?.cancel();
           setState(() => _isListening = false);
         }
       },
@@ -60,18 +92,21 @@ class _AddMealPageState extends State<AddMealPage> {
     }
 
     setState(() => _isListening = true);
+    _iniciarTimer();
     await _speech.startListening(
+      maxDuration: _maxRecordingDuration,
       onResult: (transcricao, isFinal) {
-        if (mounted) {
+        // partialResults está desabilitado: o texto só chega no resultado final.
+        if (mounted && isFinal) {
           setState(() {
             _descricao = transcricao;
             _usouAudio = true;
-            if (isFinal) _isListening = false;
           });
         }
       },
       onStatus: (status) {
         if (mounted && (status == 'notListening' || status == 'done')) {
+          _countdownTimer?.cancel();
           setState(() => _isListening = false);
         }
       },
@@ -128,15 +163,18 @@ class _AddMealPageState extends State<AddMealPage> {
                 const Text('Entrada por áudio:'),
                 const SizedBox(width: 8),
                 IconButton(
-                  icon: Icon(_isListening ? Icons.mic_off : Icons.mic),
+                  icon: Icon(_isListening ? Icons.stop : Icons.mic),
                   color: _isListening ? Colors.red : null,
                   tooltip: _isListening ? 'Parar gravação' : 'Gravar áudio',
                   onPressed: () => _toggleListening(vm),
                 ),
                 if (_isListening)
-                  const Text(
-                    'Gravando...',
-                    style: TextStyle(color: Colors.red),
+                  Text(
+                    'Gravando... ${_segundosRestantes}s',
+                    style: const TextStyle(
+                      color: Colors.red,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
               ],
             ),

@@ -12,10 +12,10 @@
 |-------|----------|-------|--------|
 | Phase 0 | Setup & Infrastructure | T001-T005, T001a | completed |
 | Phase 1 | Foundational (ViewModel Extension) | T006-T012 | completed |
-| Phase 2 | User Story 1 (Navegação por Data) | T013-T025 | in-progress |
-| Phase 3 | User Story 2 (Remoção com Confirmação) | T026-T035, T031a | in-progress |
-| Phase 4 | User Story 3 (Estado Vazio) | T036-T040 | in-progress |
-| Phase 5 | Polish & Validation | T041-T047 | in-progress |
+| Phase 2 | User Story 1 (Navegação por Data) | T013-T025 | completed |
+| Phase 3 | User Story 2 (Remoção com Confirmação) | T026-T035, T031a | completed |
+| Phase 4 | User Story 3 (Estado Vazio) | T036-T040 | completed |
+| Phase 5 | Polish & Validation | T041-T047 | completed |
 
 ---
 
@@ -908,8 +908,8 @@ T001 → T002 → T003 → T006 → T007 → T008 → T013 → T014 → T015 →
 - [X] T021
 - [X] T022
 - [X] T023
-- [ ] T024 (manual)
-- [ ] T025 (manual)
+- [X] T024 (manual)
+- [X] T025 (manual)
 - [X] T026
 - [X] T027
 - [X] T028
@@ -920,17 +920,17 @@ T001 → T002 → T003 → T006 → T007 → T008 → T013 → T014 → T015 →
 - [X] T032
 - [X] T033
 - [X] T034
-- [ ] T035 (manual)
+- [X] T035 (manual)
 - [X] T036
 - [X] T037
 - [X] T038
 - [X] T039
-- [ ] T040 (manual)
+- [X] T040 (manual)
 - [X] T041
 - [X] T042
-- [ ] T043 (manual)
-- [ ] T044
-- [ ] T045
+- [X] T043 (manual)
+- [X] T044
+- [X] T045
 - [X] T046
 - [X] T047
 
