@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 import 'package:calorie_counter_app/features/home/view_model.dart';
 import 'package:calorie_counter_app/features/home/home_page.dart';
+import 'package:calorie_counter_app/models/meal.dart';
 import 'package:calorie_counter_app/services/ai_adapter/ai_adapter_mock.dart';
 import 'package:calorie_counter_app/services/repository/in_memory_repository.dart';
 import 'package:calorie_counter_app/themes/nutrition_theme.dart';
@@ -19,6 +21,10 @@ Widget buildApp() {
 
 void main() {
   group('US1 — Registrar refeição por texto', () {
+    setUpAll(() async {
+      await initializeDateFormatting('pt_BR', null);
+    });
+
     testWidgets('Home exibe estado vazio quando não há refeições', (
       tester,
     ) async {
@@ -34,15 +40,19 @@ void main() {
 
         final vm = tester.element(find.byType(HomePage)).read<HomeViewModel>();
 
-        // Adicionar refeição diretamente via VM (simula confirmação)
-        from(vm, tester);
+        final meal = Meal.create(
+          descricao: 'arroz e feijao',
+          calorias: 220,
+          origem: MealOrigem.texto,
+          dataSelecionada: vm.dataSelecionada,
+        );
+
+        vm.addMeal(meal);
+        await tester.pumpAndSettle();
+
+        expect(find.text('220 kcal'), findsWidgets);
+        expect(vm.totalHoje, 220);
       },
     );
   });
-}
-
-void from(HomeViewModel vm, WidgetTester tester) async {
-  // Não adiciona refeição — apenas valida que meals está vazio
-  expect(vm.meals, isEmpty);
-  expect(vm.totalHoje, 0);
 }

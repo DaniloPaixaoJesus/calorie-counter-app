@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 /// Formulário de refeição: campos de descrição e calorias editáveis.
-class MealForm extends StatelessWidget {
+class MealForm extends StatefulWidget {
   final String descricao;
   final int calorias;
   final ValueChanged<String> onDescricaoChanged;
@@ -17,12 +17,58 @@ class MealForm extends StatelessWidget {
   });
 
   @override
+  State<MealForm> createState() => _MealFormState();
+}
+
+class _MealFormState extends State<MealForm> {
+  late final TextEditingController _descricaoController;
+  late final TextEditingController _caloriasController;
+
+  @override
+  void initState() {
+    super.initState();
+    _descricaoController = TextEditingController(text: widget.descricao);
+    _caloriasController = TextEditingController(
+      text: widget.calorias == 0 ? '' : widget.calorias.toString(),
+    );
+  }
+
+  @override
+  void didUpdateWidget(MealForm oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    // Sincroniza a descrição quando atualizada externamente (ex: áudio/transcrição)
+    if (widget.descricao != _descricaoController.text) {
+      _descricaoController.value = TextEditingValue(
+        text: widget.descricao,
+        selection: TextSelection.collapsed(offset: widget.descricao.length),
+      );
+    }
+
+    // Sincroniza calorias quando atualizadas externamente (ex: estimativa da IA)
+    final caloriasText = widget.calorias == 0 ? '' : widget.calorias.toString();
+    if (caloriasText != _caloriasController.text) {
+      _caloriasController.value = TextEditingValue(
+        text: caloriasText,
+        selection: TextSelection.collapsed(offset: caloriasText.length),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _descricaoController.dispose();
+    _caloriasController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        TextFormField(
-          initialValue: descricao,
+        TextField(
+          controller: _descricaoController,
           maxLines: 3,
           maxLength: 1000,
           decoration: const InputDecoration(
@@ -30,11 +76,11 @@ class MealForm extends StatelessWidget {
             hintText: 'Ex: arroz, feijão, frango grelhado e salada',
             border: OutlineInputBorder(),
           ),
-          onChanged: onDescricaoChanged,
+          onChanged: widget.onDescricaoChanged,
         ),
         const SizedBox(height: 16),
-        TextFormField(
-          initialValue: calorias == 0 ? '' : calorias.toString(),
+        TextField(
+          controller: _caloriasController,
           keyboardType: TextInputType.number,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           decoration: const InputDecoration(
@@ -42,7 +88,7 @@ class MealForm extends StatelessWidget {
             hintText: 'Edite se necessário',
             border: OutlineInputBorder(),
           ),
-          onChanged: (v) => onCaloriasChanged(int.tryParse(v) ?? 0),
+          onChanged: (v) => widget.onCaloriasChanged(int.tryParse(v) ?? 0),
         ),
       ],
     );

@@ -1,4 +1,3 @@
-
 /// Helper para mockar DateTime.now() em testes de navegação de data
 /// Permite testar lógica de datas sem depender da data real do sistema
 class DateTimeMockHelper {

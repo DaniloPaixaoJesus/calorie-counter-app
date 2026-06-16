@@ -10,13 +10,12 @@
 
 | Phase | Objetivo | Tasks | Status |
 |-------|----------|-------|--------|
-| Phase 0 | Setup & Infrastructure | T001-T005, T001a | not-started |
 | Phase 0 | Setup & Infrastructure | T001-T005, T001a | completed |
 | Phase 1 | Foundational (ViewModel Extension) | T006-T012 | completed |
 | Phase 2 | User Story 1 (Navegação por Data) | T013-T025 | in-progress |
-| Phase 3 | User Story 2 (Remoção com Confirmação) | T026-T035, T031a | not-started |
-| Phase 4 | User Story 3 (Estado Vazio) | T036-T040 | not-started |
-| Phase 5 | Polish & Validation | T041-T047 | not-started |
+| Phase 3 | User Story 2 (Remoção com Confirmação) | T026-T035, T031a | in-progress |
+| Phase 4 | User Story 3 (Estado Vazio) | T036-T040 | in-progress |
+| Phase 5 | Polish & Validation | T041-T047 | in-progress |
 
 ---
 
@@ -880,4 +879,58 @@ T001 → T002 → T003 → T006 → T007 → T008 → T013 → T014 → T015 →
 - ✓ S001: Performance test added (T047, Phase 5)
 
 **Plan Status**: Phase 2 Task Decomposition COMPLETE | 49 tasks defined (45 base + 4 corrections) | Ready for implementation
+
+---
+
+## Execution Tracking (Implementação)
+
+- [X] T001
+- [X] T001a
+- [X] T002
+- [X] T003
+- [X] T004
+- [X] T005
+- [X] T006
+- [X] T007
+- [X] T008
+- [X] T009
+- [X] T010
+- [X] T011
+- [X] T012
+- [X] T013
+- [X] T014
+- [X] T015
+- [X] T016
+- [X] T017
+- [X] T018
+- [X] T019
+- [X] T020
+- [X] T021
+- [X] T022
+- [X] T023
+- [ ] T024 (manual)
+- [ ] T025 (manual)
+- [X] T026
+- [X] T027
+- [X] T028
+- [X] T029
+- [X] T030
+- [X] T031
+- [X] T031a
+- [X] T032
+- [X] T033
+- [X] T034
+- [ ] T035 (manual)
+- [X] T036
+- [X] T037
+- [X] T038
+- [X] T039
+- [ ] T040 (manual)
+- [X] T041
+- [X] T042
+- [ ] T043 (manual)
+- [ ] T044
+- [ ] T045
+- [X] T046
+- [X] T047
 

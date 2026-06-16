@@ -18,6 +18,7 @@ class _AddMealPageState extends State<AddMealPage> {
   String _descricao = '';
   int _calorias = 0;
   bool _isListening = false;
+  bool _usouAudio = false;
 
   @override
   void dispose() {
@@ -32,7 +33,21 @@ class _AddMealPageState extends State<AddMealPage> {
       return;
     }
 
-    final ok = await _speech.initialize();
+    final ok = await _speech.initialize(
+      onError: (error) {
+        if (mounted) {
+          setState(() => _isListening = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Erro no reconhecimento de voz: $error')),
+          );
+        }
+      },
+      onStatus: (status) {
+        if (mounted && (status == 'notListening' || status == 'done')) {
+          setState(() => _isListening = false);
+        }
+      },
+    );
     if (!ok && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -46,12 +61,18 @@ class _AddMealPageState extends State<AddMealPage> {
 
     setState(() => _isListening = true);
     await _speech.startListening(
-      onResult: (transcricao) {
+      onResult: (transcricao, isFinal) {
         if (mounted) {
           setState(() {
             _descricao = transcricao;
-            _isListening = false;
+            _usouAudio = true;
+            if (isFinal) _isListening = false;
           });
+        }
+      },
+      onStatus: (status) {
+        if (mounted && (status == 'notListening' || status == 'done')) {
+          setState(() => _isListening = false);
         }
       },
     );
@@ -80,7 +101,7 @@ class _AddMealPageState extends State<AddMealPage> {
     final meal = Meal.create(
       descricao: _descricao.isNotEmpty ? _descricao : 'Sem descrição',
       calorias: _calorias,
-      origem: _isListening ? MealOrigem.audio : MealOrigem.texto,
+      origem: _usouAudio ? MealOrigem.audio : MealOrigem.texto,
       dataSelecionada: vm.dataSelecionada,
       aiConfidence: vm.estimate?.confidence,
       nota: vm.estimate?.nota,

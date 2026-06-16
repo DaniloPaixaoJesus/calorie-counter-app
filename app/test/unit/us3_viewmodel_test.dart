@@ -34,6 +34,7 @@ void main() {
         descricao: 'arroz e feijão',
         calorias: 220,
         origem: MealOrigem.texto,
+        dataSelecionada: vm.dataSelecionada,
       );
       vm.addMeal(meal);
       expect(vm.meals.length, 1);

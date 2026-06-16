@@ -9,11 +9,11 @@ class HomeViewModel extends ChangeNotifier {
   final AiAdapter _aiAdapter;
   late DateTime dataSelecionada;
 
-    HomeViewModel({
-      required InMemoryRepository repository,
-      required AiAdapter aiAdapter,
-    })  : _repository = repository,
-          _aiAdapter = aiAdapter {
+  HomeViewModel({
+    required InMemoryRepository repository,
+    required AiAdapter aiAdapter,
+  })  : _repository = repository,
+        _aiAdapter = aiAdapter {
     // Initialize dataSelecionada to today (Feature 002)
     dataSelecionada = DateTime.now().toLocalDate();
   }

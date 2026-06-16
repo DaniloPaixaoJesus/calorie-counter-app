@@ -3,9 +3,31 @@ import 'package:provider/provider.dart';
 import 'view_model.dart';
 import 'add_meal_page.dart';
 import 'widgets/date_navigation_bar.dart';
+import 'widgets/date_empty_state.dart';
+import 'widgets/meal_removal_dialog.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
+
+  Future<void> _showRemovalDialog(
+    BuildContext context,
+    HomeViewModel vm,
+    String mealId,
+  ) async {
+    await showDialog<void>(
+      context: context,
+      builder: (context) => MealRemovalDialog(
+        onConfirm: () {
+          Navigator.of(context).pop();
+          vm.confirmarRemocao(mealId);
+        },
+        onCancel: () {
+          Navigator.of(context).pop();
+          vm.cancelarRemocao();
+        },
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -16,6 +38,16 @@ class HomePage extends StatelessWidget {
       appBar: AppBar(title: const Text('Calorie Counter')),
       body: Column(
         children: [
+          if (vm.errorMessage != null && vm.errorMessage!.isNotEmpty)
+            Container(
+              width: double.infinity,
+              color: Colors.red.shade100,
+              padding: const EdgeInsets.all(12),
+              child: Text(
+                vm.errorMessage!,
+                style: TextStyle(color: Colors.red.shade900),
+              ),
+            ),
           // Feature 002: Date Navigation Bar (T016-T018)
           const DateNavigationBar(),
           // T019: Total label for selected date
@@ -44,22 +76,9 @@ class HomePage extends StatelessWidget {
           // FR-002: lista ou estado vazio
           Expanded(
             child: meals.isEmpty
-                ? const Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.restaurant_menu,
-                          size: 64,
-                          color: Colors.grey,
-                        ),
-                        SizedBox(height: 12),
-                        Text(
-                          'Nenhuma refeição registrada.\nToque em + para adicionar.',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                      ],
+                ? Center(
+                    child: DateEmptyStateWidget(
+                      dataSelecionada: vm.dataSelecionada,
                     ),
                   )
                 : ListView.separated(
@@ -87,11 +106,25 @@ class HomePage extends StatelessWidget {
                                 style: const TextStyle(fontSize: 11),
                               )
                             : null,
-                        trailing: Text(
-                          '${meal.calorias} kcal',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              '${meal.calorias} kcal',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            IconButton(
+                              tooltip: 'Remover refeição',
+                              onPressed: () =>
+                                  _showRemovalDialog(context, vm, meal.id),
+                              icon: const Icon(Icons.delete_outline),
+                            ),
+                          ],
                         ),
-                        onLongPress: () => vm.removeMeal(meal.id),
+                        onLongPress: () =>
+                            _showRemovalDialog(context, vm, meal.id),
                       );
                     },
                   ),

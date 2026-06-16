@@ -35,8 +35,7 @@ void main() {
       );
     }
 
-    testWidgets(
-        'T020: Anterior button navigates to previous day correctly',
+    testWidgets('T020: Anterior button navigates to previous day correctly',
         (WidgetTester tester) async {
       await tester.pumpWidget(createHomePageWidget());
 
@@ -58,8 +57,7 @@ void main() {
       expect(viewModel.podeVoltar, true);
     });
 
-    testWidgets(
-        'T020: Próximo button enabled only when date < today',
+    testWidgets('T020: Próximo button enabled only when date < today',
         (WidgetTester tester) async {
       // Go back 2 days
       viewModel.voltarDia();
@@ -83,7 +81,8 @@ void main() {
       expect(viewModel.podeAvancar, false);
     });
 
-    testWidgets('T020: Hoje button returns to today', (WidgetTester tester) async {
+    testWidgets('T020: Hoje button returns to today',
+        (WidgetTester tester) async {
       // Go back 5 days
       for (int i = 0; i < 5; i++) {
         viewModel.voltarDia();
