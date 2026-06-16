@@ -1,5 +1,5 @@
 <!-- SPECKIT START -->
-Plan: specs/002-remover-refeicao-data/plan.md
+Plan: specs/003-design-system-e-layout-material3/plan.md
 
 For additional context about technologies to be used, project structure,
 shell commands, and other important information, read the plan above.
