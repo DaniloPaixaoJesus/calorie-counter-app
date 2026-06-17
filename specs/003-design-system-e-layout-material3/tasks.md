@@ -12,10 +12,10 @@
 
 **Purpose**: Preparar estrutura de arquivos e pontos de extensão para o novo Design System.
 
-- [ ] T001 Criar pasta de design system em `app/lib/design_system/`
-- [ ] T002 Criar arquivo de breakpoints em `app/lib/design_system/layout_breakpoints.dart`
-- [ ] T003 [P] Criar arquivo de catálogo de icon keys suportadas em `app/lib/design_system/icon_key_registry.dart`
-- [ ] T004 [P] Criar arquivo de mapeamento de icon key para `IconData` em `app/lib/utils/meal_icon_mapper.dart`
+- [X] T001 Criar pasta de design system em `app/lib/design_system/`
+- [X] T002 Criar arquivo de breakpoints em `app/lib/design_system/layout_breakpoints.dart`
+- [X] T003 [P] Criar arquivo de catálogo de icon keys suportadas em `app/lib/design_system/icon_key_registry.dart`
+- [X] T004 [P] Criar arquivo de mapeamento de icon key para `IconData` em `app/lib/utils/meal_icon_mapper.dart`
 
 ---
 
@@ -25,12 +25,12 @@
 
 **CRITICAL**: Nenhuma história deve começar antes desta fase.
 
-- [ ] T005 Atualizar tokens de cor, tipografia e esquema Material 3 em `app/lib/themes/nutrition_theme.dart`
-- [ ] T006 [P] Criar tokens de espaçamento em `app/lib/design_system/app_spacing.dart`
-- [ ] T007 [P] Criar tokens de raio e borda em `app/lib/design_system/app_radius.dart`
-- [ ] T008 [P] Criar tokens de elevação em `app/lib/design_system/app_elevation.dart`
-- [ ] T009 Criar componente base de cartão de ação em `app/lib/features/home/widgets/action_choice_card.dart`
-- [ ] T010 Criar componente base de seção/título para telas de fluxo em `app/lib/features/home/widgets/section_header.dart`
+- [X] T005 Atualizar tokens de cor, tipografia e esquema Material 3 em `app/lib/themes/nutrition_theme.dart`
+- [X] T006 [P] Criar tokens de espaçamento em `app/lib/design_system/app_spacing.dart`
+- [X] T007 [P] Criar tokens de raio e borda em `app/lib/design_system/app_radius.dart`
+- [X] T008 [P] Criar tokens de elevação em `app/lib/design_system/app_elevation.dart`
+- [X] T009 Criar componente base de cartão de ação em `app/lib/features/home/widgets/action_choice_card.dart`
+- [X] T010 Criar componente base de seção/título para telas de fluxo em `app/lib/features/home/widgets/section_header.dart`
 
 **Checkpoint**: Base visual e tokens prontos para implementação das histórias.
 
@@ -44,14 +44,14 @@
 
 ### Implementation for User Story 1
 
-- [ ] T011 [P] [US1] Criar shell com navegação inferior (Home/Adicionar) em `app/lib/features/home/home_shell_page.dart`
-- [ ] T012 [US1] Atualizar bootstrap para abrir shell principal em `app/lib/main.dart`
-- [ ] T013 [P] [US1] Criar card de total de calorias reutilizável em `app/lib/features/home/widgets/calorie_total_card.dart`
-- [ ] T014 [P] [US1] Criar item de lista de refeição com layout padronizado em `app/lib/features/home/widgets/meal_list_item.dart`
-- [ ] T015 [US1] Refatorar tela Home para usar `CalorieTotalCard` e `MealListItem` em `app/lib/features/home/home_page.dart`
-- [ ] T016 [US1] Atualizar barra de navegação por data para novo visual em `app/lib/features/home/widgets/date_navigation_bar.dart`
-- [ ] T017 [US1] Atualizar estado vazio com mensagem amigável e tokens de tema em `app/lib/features/home/widgets/date_empty_state.dart`
-- [ ] T018 [US1] Atualizar diálogo de remoção para estilo Material 3 em `app/lib/features/home/widgets/meal_removal_dialog.dart`
+- [X] T011 [P] [US1] Criar shell com navegação inferior (Home/Adicionar) em `app/lib/features/home/home_shell_page.dart`
+- [X] T012 [US1] Atualizar bootstrap para abrir shell principal em `app/lib/main.dart`
+- [X] T013 [P] [US1] Criar card de total de calorias reutilizável em `app/lib/features/home/widgets/calorie_total_card.dart`
+- [X] T014 [P] [US1] Criar item de lista de refeição com layout padronizado em `app/lib/features/home/widgets/meal_list_item.dart`
+- [X] T015 [US1] Refatorar tela Home para usar `CalorieTotalCard` e `MealListItem` em `app/lib/features/home/home_page.dart`
+- [X] T016 [US1] Atualizar barra de navegação por data para novo visual em `app/lib/features/home/widgets/date_navigation_bar.dart`
+- [X] T017 [US1] Atualizar estado vazio com mensagem amigável e tokens de tema em `app/lib/features/home/widgets/date_empty_state.dart`
+- [X] T018 [US1] Atualizar diálogo de remoção para estilo Material 3 em `app/lib/features/home/widgets/meal_removal_dialog.dart`
 
 **Checkpoint**: Home modernizada e navegável de forma independente.
 
@@ -65,14 +65,14 @@
 
 ### Implementation for User Story 2
 
-- [ ] T019 [P] [US2] Criar tela de escolha de entrada (texto/áudio) em `app/lib/features/home/add_meal_entry_page.dart`
-- [ ] T020 [US2] Integrar aba Adicionar da navegação inferior para abrir `AddMealEntryPage` em `app/lib/features/home/home_shell_page.dart`
-- [ ] T021 [P] [US2] Criar widget de indicador visual de gravação em `app/lib/features/home/widgets/audio_recording_indicator.dart`
-- [ ] T022 [US2] Atualizar fluxo de gravação com layout novo e timer em `app/lib/features/home/add_meal_page.dart`
-- [ ] T023 [P] [US2] Criar tela de revisão de estimativa em `app/lib/features/home/review_estimate_page.dart`
-- [ ] T024 [US2] Mover confirmação final para `ReviewEstimatePage` com retorno de dados em `app/lib/features/home/add_meal_page.dart`
-- [ ] T025 [US2] Atualizar formulário para estilo/tokens e legibilidade em `app/lib/features/home/widgets/meal_form.dart`
-- [ ] T026 [US2] Atualizar componente de aviso de confiança para nova linguagem visual em `app/lib/features/home/widgets/confidence_warning.dart`
+- [X] T019 [P] [US2] Criar tela de escolha de entrada (texto/áudio) em `app/lib/features/home/add_meal_entry_page.dart`
+- [X] T020 [US2] Integrar aba Adicionar da navegação inferior para abrir `AddMealEntryPage` em `app/lib/features/home/home_shell_page.dart`
+- [X] T021 [P] [US2] Criar widget de indicador visual de gravação em `app/lib/features/home/widgets/audio_recording_indicator.dart`
+- [X] T022 [US2] Atualizar fluxo de gravação com layout novo e timer em `app/lib/features/home/add_meal_page.dart`
+- [X] T023 [P] [US2] Criar tela de revisão de estimativa em `app/lib/features/home/review_estimate_page.dart`
+- [X] T024 [US2] Mover confirmação final para `ReviewEstimatePage` com retorno de dados em `app/lib/features/home/add_meal_page.dart`
+- [X] T025 [US2] Atualizar formulário para estilo/tokens e legibilidade em `app/lib/features/home/widgets/meal_form.dart`
+- [X] T026 [US2] Atualizar componente de aviso de confiança para nova linguagem visual em `app/lib/features/home/widgets/confidence_warning.dart`
 
 **Checkpoint**: Fluxo Adicionar completo e consistente sem depender das demais histórias.
 
@@ -86,13 +86,13 @@
 
 ### Implementation for User Story 3
 
-- [ ] T027 [P] [US3] Estender `AiEstimate` para `iconKey` e `observacao` em `app/lib/services/ai_adapter/ai_adapter.dart`
-- [ ] T028 [US3] Atualizar implementação mock para retornar `iconKey` considerando descrição e horário em `app/lib/services/ai_adapter/ai_adapter_mock.dart`
-- [ ] T029 [P] [US3] Estender modelo `Meal` com campo `iconKey` e validação de fallback em `app/lib/models/meal.dart`
-- [ ] T030 [US3] Atualizar `HomeViewModel` para normalizar `iconKey` e manter `observacao` da IA em `app/lib/features/home/view_model.dart`
-- [ ] T031 [US3] Atualizar confirmação de salvamento para persistir `iconKey` em `app/lib/features/home/add_meal_page.dart`
-- [ ] T032 [US3] Atualizar renderização da lista para usar ícone por `iconKey` em `app/lib/features/home/home_page.dart`
-- [ ] T033 [US3] Implementar fallback centralizado de icon key inválida/ausente em `app/lib/utils/meal_icon_mapper.dart`
+- [X] T027 [P] [US3] Estender `AiEstimate` para `iconKey` e `observacao` em `app/lib/services/ai_adapter/ai_adapter.dart`
+- [X] T028 [US3] Atualizar implementação mock para retornar `iconKey` considerando descrição e horário em `app/lib/services/ai_adapter/ai_adapter_mock.dart`
+- [X] T029 [P] [US3] Estender modelo `Meal` com campo `iconKey` e validação de fallback em `app/lib/models/meal.dart`
+- [X] T030 [US3] Atualizar `HomeViewModel` para normalizar `iconKey` e manter `observacao` da IA em `app/lib/features/home/view_model.dart`
+- [X] T031 [US3] Atualizar confirmação de salvamento para persistir `iconKey` em `app/lib/features/home/add_meal_page.dart`
+- [X] T032 [US3] Atualizar renderização da lista para usar ícone por `iconKey` em `app/lib/features/home/home_page.dart`
+- [X] T033 [US3] Implementar fallback centralizado de icon key inválida/ausente em `app/lib/utils/meal_icon_mapper.dart`
 
 **Checkpoint**: Regra de icon key da IA funcional para texto e áudio com fallback garantido.
 
@@ -102,12 +102,12 @@
 
 **Purpose**: Fechamentos finais de consistência, acessibilidade e qualidade.
 
-- [ ] T034 [P] Ajustar semântica e acessibilidade de botões/listas/diálogos em `app/lib/features/home/home_page.dart`
-- [ ] T035 [P] Ajustar semântica e acessibilidade no fluxo de adicionar em `app/lib/features/home/add_meal_page.dart`
-- [ ] T036 Atualizar guia de validação com evidências finais em `specs/003-design-system-e-layout-material3/quickstart.md`
-- [ ] T037 Executar formatação e ajustes de estilo em `app/lib/`
-- [ ] T038 Executar análise estática e corrigir alertas em `app/lib/`
-- [ ] T039 Executar suíte de testes existente e corrigir regressões em `app/test/`
+- [X] T034 [P] Ajustar semântica e acessibilidade de botões/listas/diálogos em `app/lib/features/home/home_page.dart`
+- [X] T035 [P] Ajustar semântica e acessibilidade no fluxo de adicionar em `app/lib/features/home/add_meal_page.dart`
+- [X] T036 Atualizar guia de validação com evidências finais em `specs/003-design-system-e-layout-material3/quickstart.md`
+- [X] T037 Executar formatação e ajustes de estilo em `app/lib/`
+- [X] T038 Executar análise estática e corrigir alertas em `app/lib/`
+- [X] T039 Executar suíte de testes existente e corrigir regressões em `app/test/`
 
 ---
 

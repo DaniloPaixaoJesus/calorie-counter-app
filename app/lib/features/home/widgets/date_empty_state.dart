@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:calorie_counter_app/design_system/app_spacing.dart';
 
 class DateEmptyStateWidget extends StatelessWidget {
   final DateTime dataSelecionada;
@@ -17,12 +18,24 @@ class DateEmptyStateWidget extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Icon(Icons.restaurant_menu, size: 64, color: Colors.grey),
-        const SizedBox(height: 12),
+        Icon(
+          Icons.restaurant_menu,
+          size: 64,
+          color: Theme.of(context).colorScheme.primary,
+        ),
+        const SizedBox(height: AppSpacing.md),
         Text(
           'Nenhuma refeicao em $dataFormatada',
           textAlign: TextAlign.center,
-          style: const TextStyle(color: Colors.grey),
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Text(
+          'Toque em Adicionar para registrar sua primeira refeicao do dia.',
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
         ),
       ],
     );

@@ -25,7 +25,9 @@ class OfflineAudioTranscriptionAdapter implements AudioTranscriptionAdapter {
   }
 
   @override
-  Future<void> initialize({void Function(String error)? onError, void Function(String status)? onStatus}) async {
+  Future<void> initialize(
+      {void Function(String error)? onError,
+      void Function(String status)? onStatus}) async {
     if (_initialized) return;
     try {
       _initialized = await _speech.initialize(
@@ -38,10 +40,14 @@ class OfflineAudioTranscriptionAdapter implements AudioTranscriptionAdapter {
   }
 
   @override
-  Future<void> startListening({required void Function(String text, bool isFinal) onResult, void Function(String status)? onStatus, Duration maxDuration = const Duration(seconds: 30)}) async {
+  Future<void> startListening(
+      {required void Function(String text, bool isFinal) onResult,
+      void Function(String status)? onStatus,
+      Duration maxDuration = const Duration(seconds: 30)}) async {
     if (!_initialized) await initialize();
     if (!_initialized) {
-      _controller.add(const TranscriptionError(code: 'not_initialized', message: 'Speech not initialized'));
+      _controller.add(const TranscriptionError(
+          code: 'not_initialized', message: 'Speech not initialized'));
       return;
     }
 
@@ -51,7 +57,8 @@ class OfflineAudioTranscriptionAdapter implements AudioTranscriptionAdapter {
         if (texto.isNotEmpty) {
           // `speech_to_text` nem sempre expõe confiança; usar 0.0 como fallback.
           final confidence = 0.0;
-          final ev = TranscriptionResult(text: texto, isFinal: result.finalResult, confidence: confidence);
+          final ev = TranscriptionResult(
+              text: texto, isFinal: result.finalResult, confidence: confidence);
           _controller.add(ev);
           onResult(ev.text, ev.isFinal);
         }
@@ -70,7 +77,8 @@ class OfflineAudioTranscriptionAdapter implements AudioTranscriptionAdapter {
     try {
       await _speech.stop();
     } catch (e) {
-      _controller.add(TranscriptionError(code: 'stop_error', message: e.toString()));
+      _controller
+          .add(TranscriptionError(code: 'stop_error', message: e.toString()));
     }
   }
 }

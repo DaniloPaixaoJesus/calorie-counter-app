@@ -63,6 +63,14 @@ flutter analyze
 flutter test
 ```
 
+## Evidencias finais
+
+Validacao executada em 2026-06-16:
+
+- `dart format` aplicado nos arquivos alterados de `app/lib/` e `app/test/`.
+- `flutter analyze`: sem issues.
+- `flutter test`: todos os testes passaram.
+
 ## Referências
 
 - `contracts/design-system.md`

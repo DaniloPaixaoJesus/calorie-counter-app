@@ -1,4 +1,5 @@
 import 'package:uuid/uuid.dart';
+import 'package:calorie_counter_app/design_system/icon_key_registry.dart';
 
 enum MealOrigem { texto, audio }
 
@@ -10,6 +11,7 @@ class Meal {
   final MealOrigem origem;
   final double? aiConfidence;
   final String? nota;
+  final String iconKey;
 
   const Meal({
     required this.id,
@@ -19,6 +21,7 @@ class Meal {
     required this.origem,
     this.aiConfidence,
     this.nota,
+    this.iconKey = IconKeyRegistry.defaultKey,
   });
 
   factory Meal.create({
@@ -28,6 +31,7 @@ class Meal {
     required DateTime dataSelecionada,
     double? aiConfidence,
     String? nota,
+    String? iconKey,
   }) {
     assert(descricao.isNotEmpty, 'descricao não pode ser vazia');
     assert(calorias >= 0, 'calorias deve ser não-negativo');
@@ -51,6 +55,7 @@ class Meal {
       origem: origem,
       aiConfidence: aiConfidence,
       nota: nota,
+      iconKey: IconKeyRegistry.normalize(iconKey),
     );
   }
 
@@ -59,6 +64,7 @@ class Meal {
     int? calorias,
     double? aiConfidence,
     String? nota,
+    String? iconKey,
   }) {
     return Meal(
       id: id,
@@ -68,6 +74,7 @@ class Meal {
       origem: origem,
       aiConfidence: aiConfidence ?? this.aiConfidence,
       nota: nota ?? this.nota,
+      iconKey: IconKeyRegistry.normalize(iconKey ?? this.iconKey),
     );
   }
 }

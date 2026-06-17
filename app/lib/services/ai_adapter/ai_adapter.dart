@@ -10,15 +10,20 @@ abstract class AiAdapter {
 class AiEstimate {
   final String descricaoInterpretada;
   final int calorias;
-  final String? nota;
+  final String? observacao;
   final double confidence;
+  final String iconKey;
 
   const AiEstimate({
     required this.descricaoInterpretada,
     required this.calorias,
-    this.nota,
+    this.observacao,
     required this.confidence,
+    required this.iconKey,
   });
+
+  // Compatibilidade com código legado que ainda usa `nota`.
+  String? get nota => observacao;
 }
 
 class AiAdapterException implements Exception {

@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:calorie_counter_app/models/meal.dart';
+import 'package:calorie_counter_app/design_system/icon_key_registry.dart';
 import 'package:calorie_counter_app/services/ai_adapter/ai_adapter.dart';
 import 'package:calorie_counter_app/services/repository/in_memory_repository.dart';
 import 'package:calorie_counter_app/utils/datetime_extensions.dart';
@@ -69,7 +70,14 @@ class HomeViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _estimate = await _aiAdapter.estimateCalories(descricao);
+      final raw = await _aiAdapter.estimateCalories(descricao);
+      _estimate = AiEstimate(
+        descricaoInterpretada: raw.descricaoInterpretada,
+        calorias: raw.calorias,
+        observacao: raw.observacao,
+        confidence: raw.confidence,
+        iconKey: IconKeyRegistry.normalize(raw.iconKey),
+      );
     } on AiAdapterException catch (e) {
       _errorMessage = e.message;
     } catch (_) {

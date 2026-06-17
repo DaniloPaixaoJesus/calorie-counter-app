@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:calorie_counter_app/design_system/app_spacing.dart';
 
 /// Formulário de refeição: campos de descrição e calorias editáveis.
 class MealForm extends StatefulWidget {
@@ -72,21 +73,19 @@ class _MealFormState extends State<MealForm> {
           maxLines: 3,
           maxLength: 1000,
           decoration: const InputDecoration(
-            labelText: 'Descrição da refeição',
-            hintText: 'Ex: arroz, feijão, frango grelhado e salada',
-            border: OutlineInputBorder(),
+            labelText: 'Descricao da refeicao',
+            hintText: 'Ex: arroz, feijao, frango grelhado e salada',
           ),
           onChanged: widget.onDescricaoChanged,
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
         TextField(
           controller: _caloriasController,
           keyboardType: TextInputType.number,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           decoration: const InputDecoration(
             labelText: 'Calorias (kcal)',
-            hintText: 'Edite se necessário',
-            border: OutlineInputBorder(),
+            hintText: 'Edite se necessario',
           ),
           onChanged: (v) => widget.onCaloriasChanged(int.tryParse(v) ?? 0),
         ),

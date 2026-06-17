@@ -1,16 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:calorie_counter_app/design_system/app_spacing.dart';
+import 'package:calorie_counter_app/design_system/layout_breakpoints.dart';
 import 'package:calorie_counter_app/models/meal.dart';
-// import 'package:calorie_counter_app/services/speech/speech_service.dart';
 import 'package:calorie_counter_app/services/audio_transcription/audio_transcription_adapter.dart';
 import 'package:calorie_counter_app/services/audio_transcription/offline_audio_transcription_adapter.dart';
 import 'widgets/meal_form.dart';
 import 'widgets/confidence_warning.dart';
+import 'widgets/audio_recording_indicator.dart';
+import 'widgets/section_header.dart';
+import 'review_estimate_page.dart';
 import 'view_model.dart';
 import 'dart:async';
 
 class AddMealPage extends StatefulWidget {
-  const AddMealPage({super.key});
+  final bool startWithAudio;
+
+  const AddMealPage({super.key, this.startWithAudio = false});
 
   @override
   State<AddMealPage> createState() => _AddMealPageState();
@@ -28,6 +34,18 @@ class _AddMealPageState extends State<AddMealPage> {
   bool _usouAudio = false;
   Timer? _countdownTimer;
   int _segundosRestantes = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.startWithAudio) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        final vm = context.read<HomeViewModel>();
+        _toggleListening(vm);
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -128,97 +146,152 @@ class _AddMealPageState extends State<AddMealPage> {
       origem: _usouAudio ? MealOrigem.audio : MealOrigem.texto,
       dataSelecionada: vm.dataSelecionada,
       aiConfidence: vm.estimate?.confidence,
-      nota: vm.estimate?.nota,
+      nota: vm.estimate?.observacao,
+      iconKey: vm.estimate?.iconKey,
     );
     vm.addMeal(meal);
     Navigator.of(context).pop();
+  }
+
+  Future<void> _revisarEConfirmar(HomeViewModel vm) async {
+    final estimate = vm.estimate;
+    if (estimate == null || _calorias <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Estime as calorias antes de confirmar.')),
+      );
+      return;
+    }
+
+    final result = await Navigator.of(context).push<ReviewEstimateResult>(
+      MaterialPageRoute(
+        builder: (_) => ReviewEstimatePage(
+          descricaoInterpretada: estimate.descricaoInterpretada,
+          calorias: _calorias,
+          confidence: estimate.confidence,
+          observacao: estimate.observacao,
+          iconKey: estimate.iconKey,
+        ),
+      ),
+    );
+
+    if (result == null) return;
+    setState(() {
+      _descricao = result.descricao;
+      _calorias = result.calorias;
+    });
+    _confirmar(vm);
   }
 
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<HomeViewModel>();
     final estimate = vm.estimate;
+    final horizontalPadding =
+        LayoutBreakpoints.isSmall(context) ? AppSpacing.md : AppSpacing.lg;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Adicionar Refeição')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Entrada por áudio
-            Row(
+      appBar: AppBar(title: const Text('Adicionar Refeicao')),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: LayoutBreakpoints.contentMaxWidth(context),
+          ),
+          child: SingleChildScrollView(
+            padding: EdgeInsets.all(horizontalPadding),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Text('Entrada por áudio:'),
-                const SizedBox(width: 8),
-                IconButton(
-                  icon: Icon(_isListening ? Icons.stop : Icons.mic),
-                  color: _isListening ? Colors.red : null,
-                  tooltip: _isListening ? 'Parar gravação' : 'Gravar áudio',
-                  onPressed: () => _toggleListening(vm),
+                const SectionHeader(
+                  title: 'Fale o que voce comeu',
+                  subtitle: 'Descreva sua refeicao com detalhes',
                 ),
-                if (_isListening)
-                  Text(
-                    'Gravando... ${_segundosRestantes}s',
-                    style: const TextStyle(
-                      color: Colors.red,
-                      fontWeight: FontWeight.bold,
+                const SizedBox(height: AppSpacing.xl),
+                Semantics(
+                  label: _isListening ? 'Parar gravacao' : 'Iniciar gravacao',
+                  button: true,
+                  child: IconButton.filled(
+                    iconSize: 32,
+                    onPressed: () => _toggleListening(vm),
+                    icon: Icon(
+                      _isListening ? Icons.stop_rounded : Icons.mic_rounded,
                     ),
                   ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                AudioRecordingIndicator(
+                  isRecording: _isListening,
+                  secondsLeft: _segundosRestantes,
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                Row(
+                  children: [
+                    const Text('Entrada por audio:'),
+                    const SizedBox(width: AppSpacing.sm),
+                    if (_isListening)
+                      Text(
+                        'Gravando... ${_segundosRestantes}s',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.error,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.md),
+                if (estimate != null)
+                  ConfidenceWarning(confidence: estimate.confidence),
+                MealForm(
+                  descricao: _descricao,
+                  calorias: _calorias,
+                  onDescricaoChanged: (v) => setState(() => _descricao = v),
+                  onCaloriasChanged: (v) => setState(() => _calorias = v),
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                if (estimate?.observacao != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                    child: Text(
+                      'IA: ${estimate!.observacao}',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                    ),
+                  ),
+                if (vm.errorMessage != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                    child: Text(
+                      vm.errorMessage!,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                    ),
+                  ),
+                ElevatedButton.icon(
+                  onPressed: vm.isLoading ? null : () => _estimar(vm),
+                  icon: vm.isLoading
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.auto_awesome),
+                  label: const Text('Estimar com IA'),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                FilledButton(
+                  onPressed:
+                      _calorias > 0 ? () => _revisarEConfirmar(vm) : null,
+                  child: const Text('Revisar e confirmar'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Cancelar'),
+                ),
               ],
             ),
-            const SizedBox(height: 12),
-            // Aviso de baixa confiança
-            if (estimate != null)
-              ConfidenceWarning(confidence: estimate.confidence),
-            // Formulário
-            MealForm(
-              descricao: _descricao,
-              calorias: _calorias,
-              onDescricaoChanged: (v) => setState(() => _descricao = v),
-              onCaloriasChanged: (v) => setState(() => _calorias = v),
-            ),
-            const SizedBox(height: 16),
-            // Nota da IA
-            if (estimate?.nota != null)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: Text(
-                  'IA: ${estimate!.nota}',
-                  style: TextStyle(color: Colors.grey.shade700, fontSize: 12),
-                ),
-              ),
-            // Erro
-            if (vm.errorMessage != null)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: Text(
-                  vm.errorMessage!,
-                  style: const TextStyle(color: Colors.red),
-                ),
-              ),
-            // Botões
-            ElevatedButton.icon(
-              onPressed: vm.isLoading ? null : () => _estimar(vm),
-              icon: vm.isLoading
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.auto_awesome),
-              label: const Text('Estimar com IA'),
-            ),
-            const SizedBox(height: 8),
-            FilledButton(
-              onPressed: _calorias > 0 ? () => _confirmar(vm) : null,
-              child: const Text('Confirmar'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancelar'),
-            ),
-          ],
+          ),
         ),
       ),
     );

@@ -15,7 +15,8 @@ void main() {
       );
     });
 
-    test('confirmarRemocao multiplas vezes remove apenas uma vez e nao quebra', () {
+    test('confirmarRemocao multiplas vezes remove apenas uma vez e nao quebra',
+        () {
       final meal = Meal.create(
         descricao: 'refeicao',
         calorias: 180,

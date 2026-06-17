@@ -1,4 +1,5 @@
 import 'ai_adapter.dart';
+import 'package:calorie_counter_app/design_system/icon_key_registry.dart';
 
 /// Implementação mock do AiAdapter para MVP e testes.
 /// Threshold de confiança: < 0.7 → aviso ao usuário.
@@ -21,6 +22,34 @@ class AiAdapterMock implements AiAdapter {
     'peixe': 140,
     'iogurte': 59,
   };
+
+  String _inferIconKey(String lowerDescription) {
+    final hour = DateTime.now().hour;
+    if (lowerDescription.contains('café') ||
+        lowerDescription.contains('pão') ||
+        lowerDescription.contains('ovo') ||
+        hour < 11) {
+      return IconKeyRegistry.breakfast;
+    }
+    if (lowerDescription.contains('suco') ||
+        lowerDescription.contains('água') ||
+        lowerDescription.contains('agua') ||
+        lowerDescription.contains('café')) {
+      return IconKeyRegistry.drink;
+    }
+    if (lowerDescription.contains('bolo') ||
+        lowerDescription.contains('doce') ||
+        lowerDescription.contains('sorvete')) {
+      return IconKeyRegistry.dessert;
+    }
+    if (lowerDescription.contains('lanche') || hour >= 16 && hour < 19) {
+      return IconKeyRegistry.snack;
+    }
+    if (hour >= 19) {
+      return IconKeyRegistry.dinner;
+    }
+    return IconKeyRegistry.lunch;
+  }
 
   @override
   Future<AiEstimate> estimateCalories(String descricao) async {
@@ -48,21 +77,24 @@ class AiAdapterMock implements AiAdapter {
       return AiEstimate(
         descricaoInterpretada: descricao,
         calorias: 0,
-        nota: 'Não foi possível reconhecer os alimentos. Edite manualmente.',
+        observacao:
+            'Não foi possível reconhecer os alimentos. Quantidade não informada; assumido valor padrão.',
         confidence: 0.3,
+        iconKey: IconKeyRegistry.defaultKey,
       );
     }
 
     final confidence = matched.length >= 2 ? 0.9 : 0.75;
-    final nota = matched.length == 1
+    final observacao = matched.length == 1
         ? 'Estimativa baseada em porção média de ${matched.first}'
         : 'Estimativa combinada: ${matched.join(', ')}';
 
     return AiEstimate(
       descricaoInterpretada: descricao,
       calorias: total,
-      nota: nota,
+      observacao: observacao,
       confidence: confidence,
+      iconKey: _inferIconKey(lower),
     );
   }
 }

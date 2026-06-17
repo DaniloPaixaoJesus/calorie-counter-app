@@ -22,12 +22,17 @@ class AiApiAudioTranscriptionAdapter implements AudioTranscriptionAdapter {
   }
 
   @override
-  Future<void> initialize({void Function(String error)? onError, void Function(String status)? onStatus}) async {
+  Future<void> initialize(
+      {void Function(String error)? onError,
+      void Function(String status)? onStatus}) async {
     _initialized = true;
   }
 
   @override
-  Future<void> startListening({required void Function(String text, bool isFinal) onResult, void Function(String status)? onStatus, Duration maxDuration = const Duration(seconds: 30)}) async {
+  Future<void> startListening(
+      {required void Function(String text, bool isFinal) onResult,
+      void Function(String status)? onStatus,
+      Duration maxDuration = const Duration(seconds: 30)}) async {
     throw UnimplementedError('API de IA não implementada no MVP');
   }
 
