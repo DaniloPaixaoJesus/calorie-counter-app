@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="160" y1="80" x2="820" y2="950" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#53ae69"/>
+      <stop offset="0.47" stop-color="#1b6f3b"/>
+      <stop offset="1" stop-color="#04421f"/>
+    </linearGradient>
+    <linearGradient id="leaf" x1="610" y1="150" x2="840" y2="390" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#f4ffbc"/>
+      <stop offset="1" stop-color="#8ed876"/>
+    </linearGradient>
+    <linearGradient id="swoosh" x1="230" y1="250" x2="780" y2="810" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fafff0"/>
+      <stop offset="0.7" stop-color="#d3f7bf"/>
+      <stop offset="1" stop-color="#70cb64"/>
+    </linearGradient>
+    <filter id="softShadow" x="-18%" y="-18%" width="136%" height="136%">
+      <feDropShadow dx="0" dy="24" stdDeviation="28" flood-color="#00140a" flood-opacity="0.36"/>
+    </filter>
+    <filter id="markShadow" x="-18%" y="-18%" width="136%" height="136%">
+      <feDropShadow dx="0" dy="11" stdDeviation="10" flood-color="#001209" flood-opacity="0.42"/>
+    </filter>
+  </defs>
+
+  <rect width="1024" height="1024" fill="#054621"/>
+  <rect x="64" y="64" width="896" height="896" rx="205" fill="url(#bg)" filter="url(#softShadow)"/>
+
+  <path
+    d="M287 350C214 479 244 650 359 753C478 859 655 865 782 764C665 891 463 905 326 785C190 664 161 461 257 309C280 272 308 241 340 216C319 255 301 299 287 350Z"
+    fill="url(#swoosh)"
+    filter="url(#markShadow)"/>
+
+  <path
+    d="M360 305C360 266 388 245 427 245H505L685 730H600L505 428V666C505 706 478 730 429 730C385 730 360 704 360 666V305Z"
+    fill="#ffffff"
+    filter="url(#markShadow)"/>
+  <path
+    d="M625 300H713C740 300 755 315 755 342V688C755 715 740 730 713 730H600L505 428V245H535L625 538V300Z"
+    fill="#ffffff"
+    filter="url(#markShadow)"/>
+
+  <path
+    d="M604 388C612 294 690 191 858 152C842 229 855 288 826 336C796 386 746 405 699 398L604 388Z"
+    fill="url(#leaf)"
+    filter="url(#markShadow)"/>
+  <path
+    d="M602 388C670 302 742 229 815 184"
+    fill="none"
+    stroke="#085f2f"
+    stroke-width="12"
+    stroke-linecap="round"/>
+  <path
+    d="M602 388C626 344 648 306 672 276"
+    fill="none"
+    stroke="#085f2f"
+    stroke-width="8"
+    stroke-linecap="round"/>
+</svg>

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:calorie_counter_app/design_system/app_elevation.dart';
 import 'package:calorie_counter_app/design_system/app_radius.dart';
 
-/// Tema Material 3 para o Calorie Counter.
+/// Tema Material 3 para o Nutrity.
 class NutritionTheme {
   NutritionTheme._();
 
