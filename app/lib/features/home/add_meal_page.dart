@@ -15,8 +15,9 @@ import 'dart:async';
 
 class AddMealPage extends StatefulWidget {
   final bool startWithAudio;
+  final VoidCallback? onMealSaved;
 
-  const AddMealPage({super.key, this.startWithAudio = false});
+  const AddMealPage({super.key, this.startWithAudio = false, this.onMealSaved});
 
   @override
   State<AddMealPage> createState() => _AddMealPageState();
@@ -133,7 +134,7 @@ class _AddMealPageState extends State<AddMealPage> {
     }
   }
 
-  void _confirmar(HomeViewModel vm) {
+  Future<void> _confirmar(HomeViewModel vm) async {
     if (_calorias <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Informe as calorias antes de salvar.')),
@@ -149,8 +150,10 @@ class _AddMealPageState extends State<AddMealPage> {
       nota: vm.estimate?.observacao,
       iconKey: vm.estimate?.iconKey,
     );
-    vm.addMeal(meal);
+    await vm.addMeal(meal);
+    if (!mounted) return;
     Navigator.of(context).pop();
+    widget.onMealSaved?.call();
   }
 
   Future<void> _revisarEConfirmar(HomeViewModel vm) async {
@@ -179,7 +182,7 @@ class _AddMealPageState extends State<AddMealPage> {
       _descricao = result.descricao;
       _calorias = result.calorias;
     });
-    _confirmar(vm);
+    await _confirmar(vm);
   }
 
   @override

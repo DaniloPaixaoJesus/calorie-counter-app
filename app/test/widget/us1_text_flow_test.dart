@@ -13,7 +13,7 @@ Widget buildApp() {
   return ChangeNotifierProvider(
     create: (_) => HomeViewModel(
       repository: InMemoryRepository(),
-      aiAdapter: AiAdapterMock(),
+      aiAdapter: AiAdapterMock(responseDelay: Duration.zero),
     ),
     child: MaterialApp(theme: NutritionTheme.light, home: const HomePage()),
   );

@@ -8,7 +8,7 @@ void main() {
   test('transicao entre datas em volume MVP fica abaixo de 500ms', () {
     final vm = HomeViewModel(
       repository: InMemoryRepository(),
-      aiAdapter: AiAdapterMock(),
+      aiAdapter: AiAdapterMock(responseDelay: Duration.zero),
     );
 
     for (int i = 0; i < 100; i++) {

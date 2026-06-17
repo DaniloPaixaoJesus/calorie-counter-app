@@ -4,6 +4,12 @@ import 'package:calorie_counter_app/design_system/icon_key_registry.dart';
 /// Implementação mock do AiAdapter para MVP e testes.
 /// Threshold de confiança: < 0.7 → aviso ao usuário.
 class AiAdapterMock implements AiAdapter {
+  static const defaultResponseDelay = Duration(seconds: 5);
+
+  final Duration responseDelay;
+
+  const AiAdapterMock({this.responseDelay = defaultResponseDelay});
+
   static const _keywords = <String, int>{
     'arroz': 130,
     'feijão': 90,
@@ -60,7 +66,7 @@ class AiAdapterMock implements AiAdapter {
       throw const AiAdapterException('Descrição muito longa (máx 1.000 chars)');
     }
 
-    await Future.delayed(const Duration(milliseconds: 300));
+    await Future.delayed(responseDelay);
 
     final lower = descricao.toLowerCase();
     int total = 0;

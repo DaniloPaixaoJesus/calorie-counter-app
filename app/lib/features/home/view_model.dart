@@ -2,16 +2,16 @@ import 'package:flutter/foundation.dart';
 import 'package:calorie_counter_app/models/meal.dart';
 import 'package:calorie_counter_app/design_system/icon_key_registry.dart';
 import 'package:calorie_counter_app/services/ai_adapter/ai_adapter.dart';
-import 'package:calorie_counter_app/services/repository/in_memory_repository.dart';
+import 'package:calorie_counter_app/services/repository/meal_repository.dart';
 import 'package:calorie_counter_app/utils/datetime_extensions.dart';
 
 class HomeViewModel extends ChangeNotifier {
-  final InMemoryRepository _repository;
+  final MealRepository _repository;
   final AiAdapter _aiAdapter;
   late DateTime dataSelecionada;
 
   HomeViewModel({
-    required InMemoryRepository repository,
+    required MealRepository repository,
     required AiAdapter aiAdapter,
   })  : _repository = repository,
         _aiAdapter = aiAdapter {
@@ -88,15 +88,15 @@ class HomeViewModel extends ChangeNotifier {
     }
   }
 
-  void addMeal(Meal meal) {
-    _repository.add(meal);
+  Future<void> addMeal(Meal meal) async {
+    await _repository.add(meal);
     _estimate = null;
     _errorMessage = null;
     notifyListeners();
   }
 
-  void removeMeal(String id) {
-    _repository.remove(id);
+  Future<void> removeMeal(String id) async {
+    await _repository.remove(id);
     notifyListeners();
   }
 
@@ -133,7 +133,7 @@ class HomeViewModel extends ChangeNotifier {
     }
   }
 
-  void confirmarRemocao(String mealId) {
+  Future<void> confirmarRemocao(String mealId) async {
     final meal = getMealById(mealId);
     if (meal == null) {
       _errorMessage = 'Refeição não encontrada';
@@ -152,7 +152,7 @@ class HomeViewModel extends ChangeNotifier {
       return;
     }
 
-    _repository.remove(mealId);
+    await _repository.remove(mealId);
     _errorMessage = null;
     notifyListeners();
   }

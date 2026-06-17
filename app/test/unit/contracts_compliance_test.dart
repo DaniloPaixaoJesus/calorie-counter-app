@@ -8,7 +8,7 @@ void main() {
   test('HomeViewModel interface compliance with contracts', () {
     final vm = HomeViewModel(
       repository: InMemoryRepository(),
-      aiAdapter: AiAdapterMock(),
+      aiAdapter: AiAdapterMock(responseDelay: Duration.zero),
     );
 
     expect(vm.podeVoltar, isA<bool>());

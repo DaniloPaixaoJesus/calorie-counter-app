@@ -13,15 +13,15 @@ class HomeShellPage extends StatefulWidget {
 class _HomeShellPageState extends State<HomeShellPage> {
   int _currentIndex = 0;
 
-  final List<Widget> _pages = const [
-    HomePage(),
-    AddMealEntryPage(),
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final pages = [
+      const HomePage(),
+      AddMealEntryPage(onMealSaved: () => setState(() => _currentIndex = 0)),
+    ];
+
     return Scaffold(
-      body: IndexedStack(index: _currentIndex, children: _pages),
+      body: IndexedStack(index: _currentIndex, children: pages),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
         onDestinationSelected: (index) => setState(() => _currentIndex = index),

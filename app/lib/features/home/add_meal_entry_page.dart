@@ -6,7 +6,9 @@ import 'package:calorie_counter_app/features/home/widgets/section_header.dart';
 import 'package:flutter/material.dart';
 
 class AddMealEntryPage extends StatelessWidget {
-  const AddMealEntryPage({super.key});
+  final VoidCallback? onMealSaved;
+
+  const AddMealEntryPage({super.key, this.onMealSaved});
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +36,9 @@ class AddMealEntryPage extends StatelessWidget {
                   title: 'Digitar texto',
                   subtitle: 'Descreva o que voce comeu',
                   onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const AddMealPage()),
+                    MaterialPageRoute(
+                      builder: (_) => AddMealPage(onMealSaved: onMealSaved),
+                    ),
                   ),
                 ),
                 const SizedBox(height: AppSpacing.lg),
@@ -44,7 +48,10 @@ class AddMealEntryPage extends StatelessWidget {
                   subtitle: 'Fale o que voce comeu',
                   onTap: () => Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (_) => const AddMealPage(startWithAudio: true),
+                      builder: (_) => AddMealPage(
+                        startWithAudio: true,
+                        onMealSaved: onMealSaved,
+                      ),
                     ),
                   ),
                 ),

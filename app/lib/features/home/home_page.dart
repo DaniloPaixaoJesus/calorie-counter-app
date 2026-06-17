@@ -22,9 +22,9 @@ class HomePage extends StatelessWidget {
       context: context,
       builder: (context) => MealRemovalDialog(
         meal: meal,
-        onConfirm: () {
+        onConfirm: () async {
           Navigator.of(context).pop();
-          vm.confirmarRemocao(mealId);
+          await vm.confirmarRemocao(mealId);
         },
         onCancel: () {
           Navigator.of(context).pop();

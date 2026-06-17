@@ -77,4 +77,35 @@ class Meal {
       iconKey: IconKeyRegistry.normalize(iconKey ?? this.iconKey),
     );
   }
+
+  Map<String, Object?> toMap() {
+    return {
+      'id': id,
+      'descricao': descricao,
+      'calorias': calorias,
+      'timestamp': timestamp.toIso8601String(),
+      'origem': origem.name,
+      'aiConfidence': aiConfidence,
+      'nota': nota,
+      'iconKey': iconKey,
+    };
+  }
+
+  factory Meal.fromMap(Map<String, Object?> map) {
+    final origemName = map['origem'] as String? ?? MealOrigem.texto.name;
+
+    return Meal(
+      id: map['id'] as String,
+      descricao: map['descricao'] as String,
+      calorias: (map['calorias'] as num).toInt(),
+      timestamp: DateTime.parse(map['timestamp'] as String),
+      origem: MealOrigem.values.firstWhere(
+        (value) => value.name == origemName,
+        orElse: () => MealOrigem.texto,
+      ),
+      aiConfidence: (map['aiConfidence'] as num?)?.toDouble(),
+      nota: map['nota'] as String?,
+      iconKey: IconKeyRegistry.normalize(map['iconKey'] as String?),
+    );
+  }
 }

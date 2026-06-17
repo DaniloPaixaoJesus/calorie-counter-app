@@ -11,7 +11,7 @@ void main() {
     setUp(() {
       vm = HomeViewModel(
         repository: InMemoryRepository(),
-        aiAdapter: AiAdapterMock(),
+        aiAdapter: AiAdapterMock(responseDelay: Duration.zero),
       );
     });
 

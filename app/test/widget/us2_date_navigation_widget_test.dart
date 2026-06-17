@@ -21,7 +21,7 @@ void main() {
 
     setUp(() {
       repository = InMemoryRepository();
-      aiAdapter = AiAdapterMock();
+      aiAdapter = AiAdapterMock(responseDelay: Duration.zero);
       viewModel = HomeViewModel(repository: repository, aiAdapter: aiAdapter);
     });
 

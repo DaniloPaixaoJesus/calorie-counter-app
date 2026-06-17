@@ -18,7 +18,7 @@ void main() {
       ChangeNotifierProvider(
         create: (_) => HomeViewModel(
           repository: InMemoryRepository(),
-          aiAdapter: AiAdapterMock(),
+          aiAdapter: AiAdapterMock(responseDelay: Duration.zero),
         ),
         child: MaterialApp(
           theme: NutritionTheme.light,
@@ -30,5 +30,47 @@ void main() {
     expect(find.byType(NavigationBar), findsOneWidget);
     expect(find.text('Home'), findsOneWidget);
     expect(find.text('Adicionar'), findsOneWidget);
+  });
+
+  testWidgets('salvar refeicao volta para Home e atualiza lista', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      ChangeNotifierProvider(
+        create: (_) => HomeViewModel(
+          repository: InMemoryRepository(),
+          aiAdapter: AiAdapterMock(responseDelay: Duration.zero),
+        ),
+        child: MaterialApp(
+          theme: NutritionTheme.light,
+          home: const HomeShellPage(),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Adicionar'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Digitar texto'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.bySemanticsLabel('Descricao da refeicao'),
+      'arroz feijão frango',
+    );
+    await tester.tap(find.text('Estimar com IA'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 350));
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.text('Revisar e confirmar'));
+    await tester.tap(find.text('Revisar e confirmar'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Confirmar'));
+    await tester.tap(find.text('Confirmar'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Adicionar Refeicao'), findsNothing);
+    expect(find.text('385 kcal'), findsWidgets);
+    expect(find.text('arroz feijão frango'), findsOneWidget);
   });
 }
