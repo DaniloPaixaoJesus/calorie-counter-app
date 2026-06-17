@@ -17,6 +17,11 @@ BFF_PROFILES_ACTIVE=local
 LOG_LEVEL_ROOT=INFO
 JPA_SHOW_SQL=true
 
+APP_API_SECURITY_ENABLED=true
+APP_API_KEY=
+APP_API_KEY_HEADER=X-App-Api-Key
+APP_API_RATE_LIMIT_PER_MINUTE=30
+
 AI_DEFAULT_PROVIDER=mock
 OPENAI_API_KEY=
 OPENAI_BASE_URL=https://api.openai.com
@@ -26,7 +31,7 @@ OPENAI_TIMEOUT_SECONDS=20
 CNARH_40_BASE_URL=http://localhost:9001
 ```
 
-O `.env` não deve ser versionado. Para usar o provider real da OpenAI, preencha `OPENAI_API_KEY` localmente e altere `AI_DEFAULT_PROVIDER=openai-gpt`, ou envie `"provider": "openai-gpt"` na requisição.
+O `.env` não deve ser versionado. Preencha `APP_API_KEY` com um segredo compartilhado entre o app e o BFF. Para usar o provider real da OpenAI, preencha `OPENAI_API_KEY` localmente e altere `AI_DEFAULT_PROVIDER=openai-gpt`, ou envie `"provider": "openai-gpt"` na requisição.
 
 ## Executar
 
@@ -83,6 +88,7 @@ Provider mock:
 ```bash
 curl -X POST http://localhost:8080/bff-service/ai/meal-estimates \
   -H "Content-Type: application/json" \
+  -H "X-App-Api-Key: $APP_API_KEY" \
   -d '{
     "descricao": "arroz, feijão e frango grelhado",
     "provider": "mock"
@@ -94,6 +100,7 @@ Provider OpenAI GPT:
 ```bash
 curl -X POST http://localhost:8080/bff-service/ai/meal-estimates \
   -H "Content-Type: application/json" \
+  -H "X-App-Api-Key: $APP_API_KEY" \
   -d '{
     "descricao": "banana, ovo mexido e pão francês",
     "provider": "openai-gpt"
@@ -106,6 +113,16 @@ curl -X POST http://localhost:8080/bff-service/ai/meal-estimates \
 - `openai-gpt`: usa a OpenAI Responses API em `/v1/responses`.
 
 Para adicionar novos providers, implemente `AiProviderAdapter` e registre a classe como bean Spring.
+
+## Segurança do endpoint de IA
+
+As rotas `/ai/**` exigem o header configurado em `APP_API_KEY_HEADER`:
+
+```http
+X-App-Api-Key: <APP_API_KEY>
+```
+
+Também há rate limit em memória por API key + IP do cliente. O limite padrão é `APP_API_RATE_LIMIT_PER_MINUTE=30`.
 
 ## Testes
 
