@@ -1,0 +1,55 @@
+package br.com.nutrity.vfpsolution.domain.service.ai;
+
+import br.com.nutrity.vfpsolution.config.ai.AiProviderProperties;
+import br.com.nutrity.vfpsolution.domain.ai.AiProviderAdapter;
+import br.com.nutrity.vfpsolution.domain.dto.ai.MealEstimateDto;
+import br.com.nutrity.vfpsolution.domain.entityrequest.ai.MealEstimateRequest;
+import br.com.nutrity.vfpsolution.domain.exception.BusinessException;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+@Service
+public class MealEstimateService {
+
+    private final AiProviderProperties properties;
+    private final Map<String, AiProviderAdapter> adapters;
+
+    public MealEstimateService(AiProviderProperties properties, List<AiProviderAdapter> adapters) {
+        this.properties = properties;
+        this.adapters = adapters.stream()
+                .collect(Collectors.toMap(adapter -> normalize(adapter.provider()), Function.identity()));
+    }
+
+    public MealEstimateDto estimate(MealEstimateRequest request) {
+        String provider = normalize(firstNonBlank(request.provider(), properties.getDefaultProvider()));
+        AiProviderAdapter adapter = adapters.get(provider);
+
+        if (adapter == null) {
+            throw new BusinessException("Provider de IA não suportado: " + provider);
+        }
+
+        var estimate = adapter.estimateCalories(request.descricao().trim());
+
+        return new MealEstimateDto(
+                estimate.descricaoInterpretada(),
+                estimate.calorias(),
+                estimate.observacao(),
+                estimate.confidence(),
+                estimate.iconKey(),
+                adapter.provider()
+        );
+    }
+
+    private String firstNonBlank(String value, String fallback) {
+        return value == null || value.isBlank() ? fallback : value;
+    }
+
+    private String normalize(String value) {
+        return value == null ? "" : value.trim().toLowerCase(Locale.ROOT);
+    }
+}

@@ -55,6 +55,15 @@ cloud:
 boiler-plate-domain:
   properties: some-business-rule-value-here
 
+nutrity:
+  ai:
+    default-provider: ${AI_DEFAULT_PROVIDER:mock}
+    openai:
+      api-key: ${OPENAI_API_KEY:}
+      base-url: ${OPENAI_BASE_URL:https://api.openai.com}
+      model: ${OPENAI_MODEL:gpt-4.1-mini}
+      timeout-seconds: ${OPENAI_TIMEOUT_SECONDS:20}
+
 feign-client:
   cnarh40:
     baseUrl: ${CNARH_40_BASE_URL:http://localhost:9001}
