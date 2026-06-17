@@ -1,0 +1,12 @@
+version: '2'
+services:
+  external-service-mocks:
+    image: node:14-debian
+    user: root
+    ports:
+      - 9001:9001
+    volumes:
+      - ./:/mock
+    working_dir: /mock
+    command: [sh, -c, "npm install && npm start"]
+    

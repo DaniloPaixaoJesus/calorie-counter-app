@@ -1,0 +1,11 @@
+version: '2'
+services:
+  external-service-mocks:
+    extends:
+      file: ./mock/mock.yml
+      service: external-service-mocks
+
+networks:
+  bff-service-network:
+    external: true
+

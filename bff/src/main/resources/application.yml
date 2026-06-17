@@ -1,0 +1,83 @@
+server:
+  port: ${PORT:8080}
+  servlet:
+    context-path: /${spring.application.name}
+  tomcat: # Para expor métricas do tomcat
+    mbeanregistry:
+      enabled: true
+spring:
+  profiles:
+    active: ${BFF_PROFILES_ACTIVE:local}
+  application:
+    name: bff-service
+    version: 0.0.1
+  mvc:
+    throw-exception-if-no-handler-found: true
+  #Database properties
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+    
+  h2:
+    console:
+      enabled: true
+      path: /h2
+  jpa:
+    showSql: ${JPA_SHOW_SQL:true}
+    hibernate:
+      ddl-auto: create-drop
+  
+  sql:
+    init:
+      platform: h2
+
+feign:
+  client:
+    config:
+      default:
+        loggerLevel: full
+        request-interceptor: br.com.nutrity.vfpsolution.config.loginterceptor.FeignLoggingInterceptor
+
+logging:
+    level:
+        br.com.nutrity.vfpsolution: ${LOG_LEVEL_ROOT:INFO}
+
+# Cloud properties
+cloud:
+  service-name:
+    context:
+      property: some-cloud-setup-value-here
+
+
+# Domain business rule properties
+boiler-plate-domain:
+  properties: some-business-rule-value-here
+
+feign-client:
+  cnarh40:
+    baseUrl: ${CNARH_40_BASE_URL:http://localhost:9001}
+
+# Management/Metrics
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus,metrics,shutdown,info
+  endpoint:
+    health:
+      show-details: always
+      probes: 
+        enabled: true
+    prometheus: # Contexto /actuator/prometheus
+      enabled: true
+    shutdown: # Contexto /actuator/shutdown
+      enabled: true
+    metrics:
+      enabled: true
+  health:
+    livenessstate: # /actuator/health/liveness
+      enabled: true
+    readinessstate: # /actuator/health/readiness
+      enabled: true
