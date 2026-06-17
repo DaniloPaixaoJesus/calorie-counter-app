@@ -12,7 +12,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
 import java.time.Duration;
-import java.util.List;
 import java.util.Map;
 
 @Component
@@ -25,6 +24,7 @@ public class OpenAiGptProviderAdapter implements AiProviderAdapter {
             iconKey deve ser um destes valores: default, protein, grain, legume, vegetable, fruit.
             calorias deve ser inteiro >= 0 e confidence deve estar entre 0.0 e 1.0.
             Quando não houver informação suficiente, use calorias 0, confidence baixo e iconKey default.
+            Não use Markdown, não use bloco de código e não inclua texto antes ou depois do JSON.
             """;
 
     private final AiProviderProperties.OpenAi properties;
@@ -56,14 +56,14 @@ public class OpenAiGptProviderAdapter implements AiProviderAdapter {
 
         try {
             JsonNode response = restClient.post()
-                    .uri("/v1/chat/completions")
+                    .uri("/v1/responses")
                     .contentType(MediaType.APPLICATION_JSON)
                     .header("Authorization", "Bearer " + properties.getApiKey())
                     .body(requestBody(descricao))
                     .retrieve()
                     .body(JsonNode.class);
 
-            String content = response.path("choices").path(0).path("message").path("content").asText();
+            String content = sanitizeJsonContent(extractOutputText(response));
             JsonNode estimate = objectMapper.readTree(content);
 
             return new AiMealEstimate(
@@ -84,12 +84,47 @@ public class OpenAiGptProviderAdapter implements AiProviderAdapter {
         return Map.of(
                 "model", properties.getModel(),
                 "temperature", 0.2,
-                "response_format", Map.of("type", "json_object"),
-                "messages", List.of(
-                        Map.of("role", "system", "content", SYSTEM_PROMPT),
-                        Map.of("role", "user", "content", descricao)
-                )
+                "input", SYSTEM_PROMPT + "\nDescrição da refeição: " + descricao
         );
+    }
+
+    private String extractOutputText(JsonNode response) {
+        String outputText = response.path("output_text").asText(null);
+        if (outputText != null && !outputText.isBlank()) {
+            return outputText;
+        }
+
+        for (JsonNode outputItem : response.path("output")) {
+            for (JsonNode contentItem : outputItem.path("content")) {
+                if ("output_text".equals(contentItem.path("type").asText())) {
+                    String text = contentItem.path("text").asText(null);
+                    if (text != null && !text.isBlank()) {
+                        return text;
+                    }
+                }
+            }
+        }
+
+        throw new BusinessException("Resposta inválida da OpenAI: output_text ausente");
+    }
+
+    private String sanitizeJsonContent(String content) {
+        String sanitized = content.trim();
+
+        if (sanitized.startsWith("```")) {
+            sanitized = sanitized
+                    .replaceFirst("^```(?:json)?\\s*", "")
+                    .replaceFirst("\\s*```$", "")
+                    .trim();
+        }
+
+        int objectStart = sanitized.indexOf('{');
+        int objectEnd = sanitized.lastIndexOf('}');
+        if (objectStart >= 0 && objectEnd > objectStart) {
+            sanitized = sanitized.substring(objectStart, objectEnd + 1);
+        }
+
+        return sanitized;
     }
 
     private String textValue(JsonNode node, String field, String fallback) {
