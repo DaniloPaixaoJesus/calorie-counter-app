@@ -3,6 +3,7 @@ package br.com.nutrity.vfpsolution.config;
 import br.com.nutrity.vfpsolution.config.security.AppApiKeyFilter;
 import br.com.nutrity.vfpsolution.config.security.AppApiSecurityProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -23,6 +24,13 @@ public class SecurityConfig {
     @Bean
     public AppApiKeyFilter appApiKeyFilter(AppApiSecurityProperties properties) {
         return new AppApiKeyFilter(properties);
+    }
+
+    @Bean
+    public FilterRegistrationBean<AppApiKeyFilter> appApiKeyFilterRegistration(AppApiKeyFilter appApiKeyFilter) {
+        FilterRegistrationBean<AppApiKeyFilter> registration = new FilterRegistrationBean<>(appApiKeyFilter);
+        registration.setEnabled(false);
+        return registration;
     }
 
     @Bean

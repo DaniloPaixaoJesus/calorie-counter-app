@@ -1,0 +1,17 @@
+.git/
+.idea/
+.mvn/
+target/
+mock-docker/
+
+.env
+.env*
+
+*.log
+*.tmp
+*.class
+*.jar
+
+README.md
+mvnw
+mvnw.cmd

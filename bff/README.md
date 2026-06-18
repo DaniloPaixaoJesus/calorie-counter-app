@@ -131,3 +131,91 @@ Na pasta `bff/`:
 ```bash
 mvn test
 ```
+
+## Docker
+
+Build local:
+
+```bash
+docker build -t calorie-counter-bff .
+```
+
+Execução local:
+
+```bash
+docker run --rm -p 8080:8080 \
+  -e APP_API_KEY="$APP_API_KEY" \
+  -e AI_DEFAULT_PROVIDER=mock \
+  calorie-counter-bff
+```
+
+Com Docker Compose:
+
+```bash
+cd bff
+docker compose up --build
+```
+
+Se estiver usando o binário legado:
+
+```bash
+cd bff
+docker-compose up --build
+```
+
+A aplicação ficará disponível em:
+
+```text
+http://localhost:8080/bff-service
+```
+
+## Deploy no Google Cloud Run
+
+O deploy usa:
+
+- Cloud Build para criar a imagem a partir do `Dockerfile`
+- Artifact Registry para armazenar a imagem Docker
+- Cloud Run para publicar o serviço
+- Secret Manager para `APP_API_KEY` e `OPENAI_API_KEY`
+
+Pré-requisitos:
+
+```bash
+gcloud init
+gcloud config set project <PROJECT_ID>
+```
+
+Crie os secrets uma vez:
+
+```bash
+printf '%s' '<sua-app-api-key>' | \
+  gcloud secrets create app-api-key --data-file=- --project <PROJECT_ID>
+
+printf '%s' '<sua-openai-api-key>' | \
+  gcloud secrets create openai-api-key --data-file=- --project <PROJECT_ID>
+```
+
+Execute o deploy a partir da raiz do repositório:
+
+```bash
+PROJECT_ID=<PROJECT_ID> \
+REGION=southamerica-east1 \
+SERVICE_NAME=bff-service \
+AR_REPOSITORY=calorie-counter \
+AI_DEFAULT_PROVIDER=openai-gpt \
+bff/scripts/deploy-cloud-run.sh
+```
+
+Variáveis úteis:
+
+```bash
+ALLOW_UNAUTHENTICATED=true
+MEMORY=512Mi
+CPU=1
+TIMEOUT=60s
+MAX_INSTANCES=3
+APP_API_KEY_SECRET_NAME=app-api-key
+OPENAI_API_KEY_SECRET_NAME=openai-api-key
+```
+
+O Cloud Run injeta a variável `PORT`; o BFF usa `server.port=${PORT:8080}` e já está pronto para esse contrato.
