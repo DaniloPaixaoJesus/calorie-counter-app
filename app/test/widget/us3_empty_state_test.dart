@@ -40,15 +40,33 @@ void main() {
       await tester.pumpWidget(buildApp());
 
       expect(find.byIcon(Icons.restaurant_menu), findsOneWidget);
-      expect(find.textContaining('Nenhuma refeicao em'), findsOneWidget);
+      expect(find.text('Nenhuma refeicao registrada'), findsOneWidget);
     });
 
-    testWidgets('mensagem contem data correta', (tester) async {
+    testWidgets('estado vazio nao exibe data no texto principal', (
+      tester,
+    ) async {
       await tester.pumpWidget(buildApp());
 
-      final expectedDate =
-          DateFormat('d de MMMM', 'pt_BR').format(vm.dataSelecionada);
-      expect(find.text('Nenhuma refeicao em $expectedDate'), findsOneWidget);
+      expect(find.textContaining('Nenhuma refeicao em'), findsNothing);
+    });
+
+    testWidgets(
+        'estado vazio mantem a data e permite navegar para dias anteriores', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildApp());
+
+      final formatador = DateFormat('d MMM yyyy', 'pt_BR');
+      expect(find.text(formatador.format(vm.dataSelecionada)), findsOneWidget);
+
+      for (var i = 0; i < 3; i++) {
+        await tester.tap(find.byIcon(Icons.arrow_back));
+        await tester.pumpAndSettle();
+      }
+
+      expect(find.text(formatador.format(vm.dataSelecionada)), findsOneWidget);
+      expect(find.byIcon(Icons.arrow_back), findsOneWidget);
     });
 
     testWidgets('icone renderizado no estado vazio', (tester) async {

@@ -70,5 +70,7 @@
 	<!-- Microphone usage description required for audio recording -->
 	<key>NSMicrophoneUsageDescription</key>
 	<string>O app precisa acessar o microfone para transcrever áudio da refeição.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>O app precisa usar reconhecimento de fala para transformar o áudio da refeição em texto.</string>
 </dict>
 </plist>

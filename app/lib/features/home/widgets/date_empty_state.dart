@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:calorie_counter_app/design_system/app_spacing.dart';
 
 class DateEmptyStateWidget extends StatelessWidget {
@@ -12,9 +11,6 @@ class DateEmptyStateWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dataFormatada =
-        DateFormat('d de MMMM', 'pt_BR').format(dataSelecionada);
-
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -25,7 +21,7 @@ class DateEmptyStateWidget extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.md),
         Text(
-          'Nenhuma refeicao em $dataFormatada',
+          'Nenhuma refeicao registrada',
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.titleMedium,
         ),

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:calorie_counter_app/design_system/layout_breakpoints.dart';
 import 'package:calorie_counter_app/design_system/app_spacing.dart';
 import 'package:calorie_counter_app/models/meal.dart';
+import 'package:calorie_counter_app/utils/adaptive_page_route.dart';
 import 'edit_meal_page.dart';
 import 'view_model.dart';
 import 'widgets/date_navigation_bar.dart';
@@ -40,7 +40,8 @@ class HomePage extends StatelessWidget {
   Future<void> _openEditMealPage(BuildContext context, Meal meal) async {
     final vm = context.read<HomeViewModel>();
     await Navigator.of(context).push(
-      MaterialPageRoute(
+      adaptivePageRoute(
+        context: context,
         builder: (_) => ChangeNotifierProvider.value(
           value: vm,
           child: EditMealPage(meal: meal),
@@ -55,9 +56,6 @@ class HomePage extends StatelessWidget {
     final meals = vm.mealsDoDia;
     final horizontalPadding =
         LayoutBreakpoints.isSmall(context) ? AppSpacing.md : AppSpacing.lg;
-    final datePrefix = vm.eHoje ? 'Hoje,' : 'Data,';
-    final formattedDate =
-        DateFormat("d 'de' MMMM 'de' y", 'pt_BR').format(vm.dataSelecionada);
 
     return Material(
       color: Colors.transparent,
@@ -69,32 +67,6 @@ class HomePage extends StatelessWidget {
             ),
             child: Column(
               children: [
-                Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: horizontalPadding,
-                    vertical: AppSpacing.md,
-                  ),
-                  child: Row(
-                    children: [
-                      Text(
-                        datePrefix,
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(width: AppSpacing.xs),
-                      Expanded(
-                        child: Text(
-                          formattedDate,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style:
-                              Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
                 const DateNavigationBar(),
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: horizontalPadding),

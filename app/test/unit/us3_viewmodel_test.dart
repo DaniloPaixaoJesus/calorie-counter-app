@@ -3,6 +3,7 @@ import 'package:calorie_counter_app/features/home/view_model.dart';
 import 'package:calorie_counter_app/models/meal.dart';
 import 'package:calorie_counter_app/services/ai_adapter/ai_adapter.dart';
 import 'package:calorie_counter_app/services/ai_adapter/ai_adapter_mock.dart';
+import 'package:calorie_counter_app/services/estimate_quota/in_memory_estimate_quota_repository.dart';
 import 'package:calorie_counter_app/services/repository/in_memory_repository.dart';
 
 void main() {
@@ -86,7 +87,7 @@ void main() {
       expect(vm.estimateErrorMessage, isNull);
     });
 
-    test('limita estimativas de calorias a 60 chamadas por dia', () async {
+    test('limita estimativas de calorias a 30 chamadas por dia', () async {
       for (var i = 0; i < HomeViewModel.dailyEstimateLimit; i++) {
         await vm.requestEstimate('arroz feijão frango');
       }
@@ -104,12 +105,33 @@ void main() {
     });
 
     test('avisa quando faltam apenas 10 estimativas no dia', () async {
-      for (var i = 0; i < 50; i++) {
+      for (var i = 0; i < 20; i++) {
         await vm.requestEstimate('arroz feijão frango');
       }
 
       expect(vm.remainingDailyEstimates, 10);
       expect(vm.shouldWarnEstimateQuota, isTrue);
+    });
+
+    test('mantem contador diario ao recriar ViewModel com mesma quota',
+        () async {
+      final quotaRepository = InMemoryEstimateQuotaRepository();
+      final firstVm = HomeViewModel(
+        repository: InMemoryRepository(),
+        aiAdapter: AiAdapterMock(responseDelay: Duration.zero),
+        estimateQuotaRepository: quotaRepository,
+      );
+
+      await firstVm.requestEstimate('arroz feijão frango');
+      await firstVm.requestEstimate('banana');
+
+      final secondVm = HomeViewModel(
+        repository: InMemoryRepository(),
+        aiAdapter: AiAdapterMock(responseDelay: Duration.zero),
+        estimateQuotaRepository: quotaRepository,
+      );
+
+      expect(secondVm.remainingDailyEstimates, 28);
     });
   });
 }

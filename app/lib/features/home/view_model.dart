@@ -2,23 +2,27 @@ import 'package:flutter/foundation.dart';
 import 'package:calorie_counter_app/models/meal.dart';
 import 'package:calorie_counter_app/design_system/icon_key_registry.dart';
 import 'package:calorie_counter_app/services/ai_adapter/ai_adapter.dart';
+import 'package:calorie_counter_app/services/estimate_quota/estimate_quota_repository.dart';
+import 'package:calorie_counter_app/services/estimate_quota/in_memory_estimate_quota_repository.dart';
 import 'package:calorie_counter_app/services/repository/meal_repository.dart';
 import 'package:calorie_counter_app/utils/datetime_extensions.dart';
 
 class HomeViewModel extends ChangeNotifier {
-  static const int dailyEstimateLimit = 60;
+  static const int dailyEstimateLimit = 30;
 
   final MealRepository _repository;
   final AiAdapter _aiAdapter;
+  final EstimateQuotaRepository _estimateQuotaRepository;
   late DateTime dataSelecionada;
-  DateTime _estimateQuotaDate = DateTime.now().toLocalDate();
-  int _estimateRequestsUsedToday = 0;
 
   HomeViewModel({
     required MealRepository repository,
     required AiAdapter aiAdapter,
+    EstimateQuotaRepository? estimateQuotaRepository,
   })  : _repository = repository,
-        _aiAdapter = aiAdapter {
+        _aiAdapter = aiAdapter,
+        _estimateQuotaRepository =
+            estimateQuotaRepository ?? InMemoryEstimateQuotaRepository() {
     // Initialize dataSelecionada to today (Feature 002)
     dataSelecionada = DateTime.now().toLocalDate();
   }
@@ -65,8 +69,11 @@ class HomeViewModel extends ChangeNotifier {
   bool get lowConfidence => _estimate != null && _estimate!.confidence < 0.7;
 
   int get remainingDailyEstimates {
-    _resetEstimateQuotaIfNeeded();
-    return dailyEstimateLimit - _estimateRequestsUsedToday;
+    final usedToday = _estimateQuotaRepository
+        .getForDate(DateTime.now().toLocalDate())
+        .usedCount;
+    final remaining = dailyEstimateLimit - usedToday;
+    return remaining < 0 ? 0 : remaining;
   }
 
   bool get canRequestEstimate => remainingDailyEstimates > 0;
@@ -85,7 +92,6 @@ class HomeViewModel extends ChangeNotifier {
   String? get errorMessage => _estimateErrorMessage ?? _homeErrorMessage;
 
   Future<void> requestEstimate(String descricao) async {
-    _resetEstimateQuotaIfNeeded();
     if (!canRequestEstimate) {
       _estimateErrorMessage =
           'Limite diário de estimativas atingido. Tente novamente amanhã.';
@@ -96,7 +102,7 @@ class HomeViewModel extends ChangeNotifier {
     _isLoading = true;
     _estimateErrorMessage = null;
     _estimate = null;
-    _estimateRequestsUsedToday++;
+    await _estimateQuotaRepository.increment(DateTime.now().toLocalDate());
     notifyListeners();
 
     try {
@@ -214,12 +220,5 @@ class HomeViewModel extends ChangeNotifier {
 
   void cancelarRemocao() {
     // No-op; dialog fechado pelo widget
-  }
-
-  void _resetEstimateQuotaIfNeeded() {
-    final today = DateTime.now().toLocalDate();
-    if (_estimateQuotaDate == today) return;
-    _estimateQuotaDate = today;
-    _estimateRequestsUsedToday = 0;
   }
 }

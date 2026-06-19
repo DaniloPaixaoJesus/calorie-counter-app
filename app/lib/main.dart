@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:calorie_counter_app/features/home/view_model.dart';
 import 'package:calorie_counter_app/features/home/home_shell_page.dart';
 import 'package:calorie_counter_app/services/ai_adapter/bff_ai_adapter.dart';
+import 'package:calorie_counter_app/services/estimate_quota/sqlite_estimate_quota_repository.dart';
 import 'package:calorie_counter_app/services/repository/sqlite_meal_repository.dart';
 import 'package:calorie_counter_app/themes/nutrition_theme.dart';
 
@@ -11,12 +12,14 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('pt_BR', null);
   final repository = await SqliteMealRepository.open();
+  final estimateQuotaRepository = await SqliteEstimateQuotaRepository.open();
 
   runApp(
     ChangeNotifierProvider(
       create: (_) => HomeViewModel(
         repository: repository,
         aiAdapter: BffAiAdapter(),
+        estimateQuotaRepository: estimateQuotaRepository,
       ),
       child: const CalorieCounterApp(),
     ),

@@ -3,6 +3,7 @@ import 'package:calorie_counter_app/design_system/layout_breakpoints.dart';
 import 'package:calorie_counter_app/features/home/add_meal_page.dart';
 import 'package:calorie_counter_app/features/home/widgets/action_choice_card.dart';
 import 'package:calorie_counter_app/features/home/widgets/section_header.dart';
+import 'package:calorie_counter_app/utils/adaptive_page_route.dart';
 import 'package:flutter/material.dart';
 
 class AddMealEntryPage extends StatelessWidget {
@@ -36,7 +37,8 @@ class AddMealEntryPage extends StatelessWidget {
                   title: 'Digitar texto',
                   subtitle: 'Descreva o que voce comeu',
                   onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(
+                    adaptivePageRoute(
+                      context: context,
                       builder: (_) => AddMealPage(onMealSaved: onMealSaved),
                     ),
                   ),
@@ -47,7 +49,8 @@ class AddMealEntryPage extends StatelessWidget {
                   title: 'Gravar audio',
                   subtitle: 'Fale o que voce comeu',
                   onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(
+                    adaptivePageRoute(
+                      context: context,
                       builder: (_) => AddMealPage(
                         startWithAudio: true,
                         onMealSaved: onMealSaved,

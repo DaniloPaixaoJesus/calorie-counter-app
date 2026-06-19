@@ -5,6 +5,7 @@ import 'package:calorie_counter_app/design_system/layout_breakpoints.dart';
 import 'package:calorie_counter_app/models/meal.dart';
 import 'package:calorie_counter_app/services/audio_transcription/audio_transcription_adapter.dart';
 import 'package:calorie_counter_app/services/audio_transcription/offline_audio_transcription_adapter.dart';
+import 'package:calorie_counter_app/utils/adaptive_page_route.dart';
 import 'widgets/meal_form.dart';
 import 'widgets/confidence_warning.dart';
 import 'widgets/audio_recording_indicator.dart';
@@ -166,7 +167,8 @@ class _AddMealPageState extends State<AddMealPage> {
     }
 
     final result = await Navigator.of(context).push<ReviewEstimateResult>(
-      MaterialPageRoute(
+      adaptivePageRoute(
+        context: context,
         builder: (_) => ReviewEstimatePage(
           descricaoInterpretada: estimate.descricaoInterpretada,
           calorias: _calorias,
@@ -211,10 +213,10 @@ class _AddMealPageState extends State<AddMealPage> {
                 ),
                 const SizedBox(height: AppSpacing.xl),
                 Semantics(
-                  label: _isListening ? 'Parar gravacao' : 'Iniciar gravacao',
+                  label: _isListening ? 'Parar gravacao' : 'Gravar audio',
                   button: true,
-                  child: IconButton.filled(
-                    style: IconButton.styleFrom(
+                  child: FilledButton.icon(
+                    style: FilledButton.styleFrom(
                       backgroundColor: _isListening
                           ? Theme.of(context).colorScheme.error
                           : Theme.of(context).colorScheme.errorContainer,
@@ -222,9 +224,9 @@ class _AddMealPageState extends State<AddMealPage> {
                           ? Theme.of(context).colorScheme.onError
                           : Theme.of(context).colorScheme.error,
                     ),
-                    iconSize: 32,
                     onPressed: () => _toggleListening(vm),
                     icon: const Icon(Icons.mic_rounded),
+                    label: Text(_isListening ? 'Parar' : 'Gravar audio'),
                   ),
                 ),
                 const SizedBox(height: AppSpacing.md),

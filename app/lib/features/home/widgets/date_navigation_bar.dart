@@ -8,7 +8,12 @@ import '../view_model.dart';
 /// Widget para navegação de data (Feature 002 - US1)
 /// Exibe data selecionada formatada em PT-BR e botões de navegação
 class DateNavigationBar extends StatelessWidget {
-  const DateNavigationBar({super.key});
+  final bool showDateLabel;
+
+  const DateNavigationBar({
+    super.key,
+    this.showDateLabel = true,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -34,16 +39,18 @@ class DateNavigationBar extends StatelessWidget {
               icon: const Icon(Icons.arrow_back),
               label: const Text('Anterior'),
             ),
-            const SizedBox(width: AppSpacing.md),
-            SizedBox(
-              width: LayoutBreakpoints.isSmall(context) ? 112 : 136,
-              child: Text(
-                dataFormatada,
-                textAlign: TextAlign.center,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.titleMedium,
+            if (showDateLabel) ...[
+              const SizedBox(width: AppSpacing.md),
+              SizedBox(
+                width: LayoutBreakpoints.isSmall(context) ? 112 : 136,
+                child: Text(
+                  dataFormatada,
+                  textAlign: TextAlign.center,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
               ),
-            ),
+            ],
             const SizedBox(width: AppSpacing.md),
             ElevatedButton.icon(
               onPressed: vm.podeAvancar ? vm.avancarDia : null,
