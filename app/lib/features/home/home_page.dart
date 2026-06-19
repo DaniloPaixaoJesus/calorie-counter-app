@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:calorie_counter_app/design_system/layout_breakpoints.dart';
 import 'package:calorie_counter_app/design_system/app_spacing.dart';
@@ -55,6 +56,8 @@ class HomePage extends StatelessWidget {
     final horizontalPadding =
         LayoutBreakpoints.isSmall(context) ? AppSpacing.md : AppSpacing.lg;
     final datePrefix = vm.eHoje ? 'Hoje,' : 'Data,';
+    final formattedDate =
+        DateFormat("d 'de' MMMM 'de' y", 'pt_BR').format(vm.dataSelecionada);
 
     return Material(
       color: Colors.transparent,
@@ -80,9 +83,7 @@ class HomePage extends StatelessWidget {
                       const SizedBox(width: AppSpacing.xs),
                       Expanded(
                         child: Text(
-                          MaterialLocalizations.of(context).formatMediumDate(
-                            vm.dataSelecionada,
-                          ),
+                          formattedDate,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style:
@@ -100,19 +101,6 @@ class HomePage extends StatelessWidget {
                   child: CalorieTotalCard(totalCalorias: vm.totalHoje),
                 ),
                 const SizedBox(height: AppSpacing.md),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      'Refeicoes',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                          ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.sm),
                 if (vm.homeErrorMessage != null &&
                     vm.homeErrorMessage!.isNotEmpty)
                   Padding(

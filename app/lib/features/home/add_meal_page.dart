@@ -189,6 +189,7 @@ class _AddMealPageState extends State<AddMealPage> {
   Widget build(BuildContext context) {
     final vm = context.watch<HomeViewModel>();
     final estimate = vm.estimate;
+    final remainingEstimates = vm.remainingDailyEstimates;
     final horizontalPadding =
         LayoutBreakpoints.isSmall(context) ? AppSpacing.md : AppSpacing.lg;
 
@@ -223,9 +224,7 @@ class _AddMealPageState extends State<AddMealPage> {
                     ),
                     iconSize: 32,
                     onPressed: () => _toggleListening(vm),
-                    icon: Icon(
-                      _isListening ? Icons.stop_rounded : Icons.mic_rounded,
-                    ),
+                    icon: const Icon(Icons.mic_rounded),
                   ),
                 ),
                 const SizedBox(height: AppSpacing.md),
@@ -258,6 +257,35 @@ class _AddMealPageState extends State<AddMealPage> {
                   onCaloriasChanged: (v) => setState(() => _calorias = v),
                 ),
                 const SizedBox(height: AppSpacing.lg),
+                Row(
+                  children: [
+                    Icon(
+                      vm.shouldWarnEstimateQuota
+                          ? Icons.warning_amber_rounded
+                          : Icons.info_outline_rounded,
+                      size: 16,
+                      color: vm.shouldWarnEstimateQuota
+                          ? const Color(0xFF7A4D00)
+                          : Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(width: AppSpacing.xs),
+                    Expanded(
+                      child: Text(
+                        remainingEstimates == 0
+                            ? 'Limite diário de estimativas atingido.'
+                            : '$remainingEstimates estimativas restantes hoje',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: vm.shouldWarnEstimateQuota
+                                  ? const Color(0xFF7A4D00)
+                                  : Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                            ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.md),
                 if (estimate?.observacao != null)
                   Padding(
                     padding: const EdgeInsets.only(bottom: AppSpacing.md),
@@ -324,7 +352,9 @@ class _AddMealPageState extends State<AddMealPage> {
                     ),
                   ),
                 ElevatedButton.icon(
-                  onPressed: vm.isLoading ? null : () => _estimar(vm),
+                  onPressed: vm.isLoading || !vm.canRequestEstimate
+                      ? null
+                      : () => _estimar(vm),
                   icon: vm.isLoading
                       ? const SizedBox(
                           width: 16,

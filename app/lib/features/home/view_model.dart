@@ -6,9 +6,13 @@ import 'package:calorie_counter_app/services/repository/meal_repository.dart';
 import 'package:calorie_counter_app/utils/datetime_extensions.dart';
 
 class HomeViewModel extends ChangeNotifier {
+  static const int dailyEstimateLimit = 60;
+
   final MealRepository _repository;
   final AiAdapter _aiAdapter;
   late DateTime dataSelecionada;
+  DateTime _estimateQuotaDate = DateTime.now().toLocalDate();
+  int _estimateRequestsUsedToday = 0;
 
   HomeViewModel({
     required MealRepository repository,
@@ -60,6 +64,18 @@ class HomeViewModel extends ChangeNotifier {
   /// Confiança abaixo de 0.7 dispara aviso ao usuário (FR-011).
   bool get lowConfidence => _estimate != null && _estimate!.confidence < 0.7;
 
+  int get remainingDailyEstimates {
+    _resetEstimateQuotaIfNeeded();
+    return dailyEstimateLimit - _estimateRequestsUsedToday;
+  }
+
+  bool get canRequestEstimate => remainingDailyEstimates > 0;
+
+  bool get shouldWarnEstimateQuota {
+    final remaining = remainingDailyEstimates;
+    return remaining > 0 && remaining <= 10;
+  }
+
   String? _estimateErrorMessage;
   String? get estimateErrorMessage => _estimateErrorMessage;
 
@@ -69,9 +85,18 @@ class HomeViewModel extends ChangeNotifier {
   String? get errorMessage => _estimateErrorMessage ?? _homeErrorMessage;
 
   Future<void> requestEstimate(String descricao) async {
+    _resetEstimateQuotaIfNeeded();
+    if (!canRequestEstimate) {
+      _estimateErrorMessage =
+          'Limite diário de estimativas atingido. Tente novamente amanhã.';
+      notifyListeners();
+      return;
+    }
+
     _isLoading = true;
     _estimateErrorMessage = null;
     _estimate = null;
+    _estimateRequestsUsedToday++;
     notifyListeners();
 
     try {
@@ -189,5 +214,12 @@ class HomeViewModel extends ChangeNotifier {
 
   void cancelarRemocao() {
     // No-op; dialog fechado pelo widget
+  }
+
+  void _resetEstimateQuotaIfNeeded() {
+    final today = DateTime.now().toLocalDate();
+    if (_estimateQuotaDate == today) return;
+    _estimateQuotaDate = today;
+    _estimateRequestsUsedToday = 0;
   }
 }

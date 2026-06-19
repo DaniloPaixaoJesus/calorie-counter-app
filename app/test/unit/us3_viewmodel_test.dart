@@ -85,6 +85,32 @@ void main() {
       expect(vm.errorMessage, isNull);
       expect(vm.estimateErrorMessage, isNull);
     });
+
+    test('limita estimativas de calorias a 60 chamadas por dia', () async {
+      for (var i = 0; i < HomeViewModel.dailyEstimateLimit; i++) {
+        await vm.requestEstimate('arroz feijão frango');
+      }
+
+      expect(vm.remainingDailyEstimates, 0);
+      expect(vm.canRequestEstimate, isFalse);
+
+      await vm.requestEstimate('banana e ovo');
+
+      expect(vm.remainingDailyEstimates, 0);
+      expect(
+        vm.estimateErrorMessage,
+        'Limite diário de estimativas atingido. Tente novamente amanhã.',
+      );
+    });
+
+    test('avisa quando faltam apenas 10 estimativas no dia', () async {
+      for (var i = 0; i < 50; i++) {
+        await vm.requestEstimate('arroz feijão frango');
+      }
+
+      expect(vm.remainingDailyEstimates, 10);
+      expect(vm.shouldWarnEstimateQuota, isTrue);
+    });
   });
 }
 

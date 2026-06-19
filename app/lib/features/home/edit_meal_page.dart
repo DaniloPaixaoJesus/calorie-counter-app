@@ -4,7 +4,9 @@ import 'package:calorie_counter_app/features/home/view_model.dart';
 import 'package:calorie_counter_app/features/home/widgets/meal_form.dart';
 import 'package:calorie_counter_app/features/home/widgets/section_header.dart';
 import 'package:calorie_counter_app/models/meal.dart';
+import 'package:calorie_counter_app/utils/meal_icon_mapper.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 class EditMealPage extends StatefulWidget {
@@ -19,6 +21,7 @@ class EditMealPage extends StatefulWidget {
 class _EditMealPageState extends State<EditMealPage> {
   late String _descricao;
   late int _calorias;
+  bool _isEditing = false;
 
   @override
   void initState() {
@@ -54,6 +57,123 @@ class _EditMealPageState extends State<EditMealPage> {
     Navigator.of(context).pop();
   }
 
+  Widget _infoRow(BuildContext context, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text(value, style: Theme.of(context).textTheme.bodyLarge),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetails(BuildContext context) {
+    final meal = widget.meal;
+    final colorScheme = Theme.of(context).colorScheme;
+    final iconData = MealIconMapper.toIconData(meal.iconKey);
+    final date = DateFormat('dd/MM/yyyy HH:mm', 'pt_BR').format(meal.timestamp);
+    final confidence = meal.aiConfidence == null
+        ? 'Nao informada'
+        : '${(meal.aiConfidence! * 100).toStringAsFixed(0)}%';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  backgroundColor: colorScheme.primaryContainer,
+                  child: Icon(iconData, color: colorScheme.primary),
+                ),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        meal.descricao,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: AppSpacing.xs),
+                      Text(
+                        '${meal.calorias} kcal',
+                        style: Theme.of(context)
+                            .textTheme
+                            .headlineSmall
+                            ?.copyWith(fontWeight: FontWeight.w700),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.lg),
+        _infoRow(context, 'Descricao', meal.descricao),
+        _infoRow(context, 'Calorias', '${meal.calorias} kcal'),
+        _infoRow(context, 'Origem',
+            meal.origem == MealOrigem.audio ? 'Audio' : 'Texto'),
+        _infoRow(context, 'Data e hora', date),
+        _infoRow(context, 'Confianca da IA', confidence),
+        _infoRow(context, 'Icone', meal.iconKey),
+        _infoRow(
+          context,
+          'Observacao',
+          meal.nota == null || meal.nota!.trim().isEmpty
+              ? 'Sem observacao'
+              : meal.nota!,
+        ),
+        const SizedBox(height: AppSpacing.md),
+        FilledButton.icon(
+          onPressed: () => setState(() => _isEditing = true),
+          icon: const Icon(Icons.edit_outlined),
+          label: const Text('Editar'),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEditForm(BuildContext context, HomeViewModel vm) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        MealForm(
+          descricao: _descricao,
+          calorias: _calorias,
+          onDescricaoChanged: (value) {
+            setState(() => _descricao = value);
+          },
+          onCaloriasChanged: (value) {
+            setState(() => _calorias = value);
+          },
+        ),
+        const SizedBox(height: AppSpacing.lg),
+        FilledButton.icon(
+          onPressed: () => _salvar(vm),
+          icon: const Icon(Icons.save_outlined),
+          label: const Text('Salvar alteracoes'),
+        ),
+        TextButton(
+          onPressed: () => setState(() => _isEditing = false),
+          child: const Text('Voltar aos detalhes'),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<HomeViewModel>();
@@ -72,31 +192,24 @@ class _EditMealPageState extends State<EditMealPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SectionHeader(
-                  title: 'Ajuste sua refeicao',
-                  subtitle: 'Edite descricao e calorias antes de salvar',
+                SectionHeader(
+                  title:
+                      _isEditing ? 'Editar refeicao' : 'Detalhes da refeicao',
+                  subtitle: _isEditing
+                      ? 'Altere descricao e calorias antes de salvar'
+                      : 'Revise as informacoes registradas',
                 ),
                 const SizedBox(height: AppSpacing.xl),
-                MealForm(
-                  descricao: _descricao,
-                  calorias: _calorias,
-                  onDescricaoChanged: (value) {
-                    setState(() => _descricao = value);
-                  },
-                  onCaloriasChanged: (value) {
-                    setState(() => _calorias = value);
-                  },
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                FilledButton.icon(
-                  onPressed: () => _salvar(vm),
-                  icon: const Icon(Icons.save_outlined),
-                  label: const Text('Salvar alteracoes'),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('Cancelar'),
-                ),
+                if (_isEditing)
+                  _buildEditForm(context, vm)
+                else
+                  _buildDetails(context),
+                const SizedBox(height: AppSpacing.md),
+                if (!_isEditing)
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text('Voltar'),
+                  ),
               ],
             ),
           ),

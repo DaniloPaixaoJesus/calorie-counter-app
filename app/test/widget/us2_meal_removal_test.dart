@@ -63,6 +63,12 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Editar refeicao'), findsOneWidget);
+      expect(find.text('Detalhes da refeicao'), findsOneWidget);
+      expect(find.text('Observacao'), findsOneWidget);
+
+      await tester.ensureVisible(find.text('Editar'));
+      await tester.tap(find.text('Editar'));
+      await tester.pumpAndSettle();
 
       await tester.enterText(
         find.bySemanticsLabel('Descricao da refeicao'),
