@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:calorie_counter_app/design_system/layout_breakpoints.dart';
 import 'package:calorie_counter_app/design_system/app_spacing.dart';
+import 'package:calorie_counter_app/models/meal.dart';
+import 'edit_meal_page.dart';
 import 'view_model.dart';
 import 'widgets/date_navigation_bar.dart';
 import 'widgets/date_empty_state.dart';
@@ -30,6 +32,18 @@ class HomePage extends StatelessWidget {
           Navigator.of(context).pop();
           vm.cancelarRemocao();
         },
+      ),
+    );
+  }
+
+  Future<void> _openEditMealPage(BuildContext context, Meal meal) async {
+    final vm = context.read<HomeViewModel>();
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => ChangeNotifierProvider.value(
+          value: vm,
+          child: EditMealPage(meal: meal),
+        ),
       ),
     );
   }
@@ -140,6 +154,7 @@ class HomePage extends StatelessWidget {
                             final meal = meals[i];
                             return MealListItem(
                               meal: meal,
+                              onTap: () => _openEditMealPage(context, meal),
                               onRemoveTap: () =>
                                   _showRemovalDialog(context, vm, meal.id),
                               onLongPress: () =>

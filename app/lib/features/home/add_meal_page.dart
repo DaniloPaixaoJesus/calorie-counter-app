@@ -213,6 +213,14 @@ class _AddMealPageState extends State<AddMealPage> {
                   label: _isListening ? 'Parar gravacao' : 'Iniciar gravacao',
                   button: true,
                   child: IconButton.filled(
+                    style: IconButton.styleFrom(
+                      backgroundColor: _isListening
+                          ? Theme.of(context).colorScheme.error
+                          : Theme.of(context).colorScheme.errorContainer,
+                      foregroundColor: _isListening
+                          ? Theme.of(context).colorScheme.onError
+                          : Theme.of(context).colorScheme.error,
+                    ),
                     iconSize: 32,
                     onPressed: () => _toggleListening(vm),
                     icon: Icon(

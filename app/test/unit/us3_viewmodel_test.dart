@@ -42,6 +42,27 @@ void main() {
       expect(vm.totalHoje, 220);
     });
 
+    test('updateMeal edita refeicao existente sem duplicar', () async {
+      final meal = Meal.create(
+        descricao: 'arroz e feijão',
+        calorias: 220,
+        origem: MealOrigem.texto,
+        dataSelecionada: vm.dataSelecionada,
+      );
+      await vm.addMeal(meal);
+
+      await vm.updateMeal(
+        meal.copyWith(
+          descricao: 'arroz, feijão e ovo',
+          calorias: 310,
+        ),
+      );
+
+      expect(vm.meals.length, 1);
+      expect(vm.meals.single.descricao, 'arroz, feijão e ovo');
+      expect(vm.totalHoje, 310);
+    });
+
     test('calorias == 0 indicam necessidade de edição manual', () async {
       await vm.requestEstimate('xyzabc');
       expect(vm.estimate?.calorias, 0);

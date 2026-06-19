@@ -5,12 +5,14 @@ import 'package:flutter/material.dart';
 
 class MealListItem extends StatelessWidget {
   final Meal meal;
+  final VoidCallback onTap;
   final VoidCallback onRemoveTap;
   final VoidCallback onLongPress;
 
   const MealListItem({
     super.key,
     required this.meal,
+    required this.onTap,
     required this.onRemoveTap,
     required this.onLongPress,
   });
@@ -59,6 +61,7 @@ class MealListItem extends StatelessWidget {
             ),
           ],
         ),
+        onTap: onTap,
         onLongPress: onLongPress,
       ),
     );

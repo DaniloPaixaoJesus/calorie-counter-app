@@ -54,6 +54,31 @@ void main() {
       expect(find.text('Cancelar'), findsOneWidget);
     });
 
+    testWidgets('tap no registro abre edicao e salva alteracoes', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildApp());
+
+      await tester.tap(find.text('prato teste'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Editar refeicao'), findsOneWidget);
+
+      await tester.enterText(
+        find.bySemanticsLabel('Descricao da refeicao'),
+        'prato editado',
+      );
+      await tester.enterText(find.bySemanticsLabel('Calorias (kcal)'), '320');
+      await tester.tap(find.text('Salvar alteracoes'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Editar refeicao'), findsNothing);
+      expect(find.text('prato editado'), findsOneWidget);
+      expect(find.text('320 kcal'), findsWidgets);
+      expect(vm.mealsDoDia.single.descricao, 'prato editado');
+      expect(vm.totalHoje, 320);
+    });
+
     testWidgets('cancelar fecha dialog sem remover', (tester) async {
       await tester.pumpWidget(buildApp());
 

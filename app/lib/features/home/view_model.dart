@@ -103,6 +103,12 @@ class HomeViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> updateMeal(Meal meal) async {
+    await _repository.update(meal);
+    _homeErrorMessage = null;
+    notifyListeners();
+  }
+
   Future<void> removeMeal(String id) async {
     await _repository.remove(id);
     notifyListeners();

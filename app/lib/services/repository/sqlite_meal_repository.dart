@@ -58,6 +58,20 @@ class SqliteMealRepository implements MealRepository {
   }
 
   @override
+  Future<void> update(Meal meal) async {
+    await _database.update(
+      _tableMeals,
+      meal.toMap(),
+      where: 'id = ?',
+      whereArgs: [meal.id],
+    );
+    final index = _cache.indexWhere((existing) => existing.id == meal.id);
+    if (index == -1) return;
+    _cache[index] = meal;
+    _cache.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+  }
+
+  @override
   List<Meal> getAll() => List.unmodifiable(_cache);
 
   @override

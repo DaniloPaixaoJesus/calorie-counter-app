@@ -14,6 +14,16 @@ class InMemoryRepository implements MealRepository {
     return SynchronousFuture<void>(null);
   }
 
+  @override
+  Future<void> update(Meal meal) {
+    final index = _meals.indexWhere((m) => m.id == meal.id);
+    if (index == -1) {
+      return SynchronousFuture<void>(null);
+    }
+    _meals[index] = meal;
+    return SynchronousFuture<void>(null);
+  }
+
   /// Retorna todas as refeições registradas.
   @override
   List<Meal> getAll() => List.unmodifiable(_meals);
