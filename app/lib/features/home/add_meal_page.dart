@@ -261,13 +261,57 @@ class _AddMealPageState extends State<AddMealPage> {
                           ),
                     ),
                   ),
-                if (vm.errorMessage != null)
+                if (vm.estimateErrorMessage != null &&
+                    vm.estimateErrorMessage!.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                    child: Text(
-                      vm.errorMessage!,
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.error,
+                    child: Semantics(
+                      label: 'Aviso de erro da estimativa',
+                      liveRegion: true,
+                      child: Material(
+                        color: Theme.of(context).colorScheme.errorContainer,
+                        borderRadius: BorderRadius.circular(12),
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(
+                            AppSpacing.md,
+                            AppSpacing.sm,
+                            AppSpacing.xs,
+                            AppSpacing.sm,
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(
+                                Icons.error_outline_rounded,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onErrorContainer,
+                              ),
+                              const SizedBox(width: AppSpacing.sm),
+                              Expanded(
+                                child: Text(
+                                  vm.estimateErrorMessage!,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.copyWith(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onErrorContainer,
+                                      ),
+                                ),
+                              ),
+                              IconButton(
+                                tooltip: 'Fechar aviso',
+                                onPressed: vm.clearEstimateError,
+                                icon: const Icon(Icons.close_rounded),
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onErrorContainer,
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
                   ),

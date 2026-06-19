@@ -3,7 +3,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 import 'package:calorie_counter_app/features/home/view_model.dart';
 import 'package:calorie_counter_app/features/home/home_shell_page.dart';
-import 'package:calorie_counter_app/services/ai_adapter/ai_adapter_mock.dart';
+import 'package:calorie_counter_app/services/ai_adapter/bff_ai_adapter.dart';
 import 'package:calorie_counter_app/services/repository/sqlite_meal_repository.dart';
 import 'package:calorie_counter_app/themes/nutrition_theme.dart';
 
@@ -16,7 +16,7 @@ Future<void> main() async {
     ChangeNotifierProvider(
       create: (_) => HomeViewModel(
         repository: repository,
-        aiAdapter: AiAdapterMock(),
+        aiAdapter: BffAiAdapter(),
       ),
       child: const CalorieCounterApp(),
     ),

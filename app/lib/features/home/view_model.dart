@@ -60,12 +60,17 @@ class HomeViewModel extends ChangeNotifier {
   /// Confiança abaixo de 0.7 dispara aviso ao usuário (FR-011).
   bool get lowConfidence => _estimate != null && _estimate!.confidence < 0.7;
 
-  String? _errorMessage;
-  String? get errorMessage => _errorMessage;
+  String? _estimateErrorMessage;
+  String? get estimateErrorMessage => _estimateErrorMessage;
+
+  String? _homeErrorMessage;
+  String? get homeErrorMessage => _homeErrorMessage;
+
+  String? get errorMessage => _estimateErrorMessage ?? _homeErrorMessage;
 
   Future<void> requestEstimate(String descricao) async {
     _isLoading = true;
-    _errorMessage = null;
+    _estimateErrorMessage = null;
     _estimate = null;
     notifyListeners();
 
@@ -79,9 +84,11 @@ class HomeViewModel extends ChangeNotifier {
         iconKey: IconKeyRegistry.normalize(raw.iconKey),
       );
     } on AiAdapterException catch (e) {
-      _errorMessage = e.message;
+      _estimateErrorMessage = e.statusCode == null
+          ? e.message
+          : 'HTTP ${e.statusCode} - ${e.message}';
     } catch (_) {
-      _errorMessage = 'Erro inesperado ao estimar calorias.';
+      _estimateErrorMessage = 'Erro inesperado ao estimar calorias.';
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -91,7 +98,8 @@ class HomeViewModel extends ChangeNotifier {
   Future<void> addMeal(Meal meal) async {
     await _repository.add(meal);
     _estimate = null;
-    _errorMessage = null;
+    _estimateErrorMessage = null;
+    _homeErrorMessage = null;
     notifyListeners();
   }
 
@@ -102,7 +110,23 @@ class HomeViewModel extends ChangeNotifier {
 
   void clearEstimate() {
     _estimate = null;
-    _errorMessage = null;
+    _estimateErrorMessage = null;
+    notifyListeners();
+  }
+
+  void clearError() {
+    _estimateErrorMessage = null;
+    _homeErrorMessage = null;
+    notifyListeners();
+  }
+
+  void clearEstimateError() {
+    _estimateErrorMessage = null;
+    notifyListeners();
+  }
+
+  void clearHomeError() {
+    _homeErrorMessage = null;
     notifyListeners();
   }
 
@@ -136,7 +160,7 @@ class HomeViewModel extends ChangeNotifier {
   Future<void> confirmarRemocao(String mealId) async {
     final meal = getMealById(mealId);
     if (meal == null) {
-      _errorMessage = 'Refeição não encontrada';
+      _homeErrorMessage = 'Refeição não encontrada';
       notifyListeners();
       return;
     }
@@ -147,13 +171,13 @@ class HomeViewModel extends ChangeNotifier {
     if (!(meal.timestamp.year == yyyy &&
         meal.timestamp.month == mm &&
         meal.timestamp.day == dd)) {
-      _errorMessage = 'Refeição não pertence à data selecionada';
+      _homeErrorMessage = 'Refeição não pertence à data selecionada';
       notifyListeners();
       return;
     }
 
     await _repository.remove(mealId);
-    _errorMessage = null;
+    _homeErrorMessage = null;
     notifyListeners();
   }
 

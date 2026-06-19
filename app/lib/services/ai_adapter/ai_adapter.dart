@@ -28,7 +28,9 @@ class AiEstimate {
 
 class AiAdapterException implements Exception {
   final String message;
-  const AiAdapterException(this.message);
+  final int? statusCode;
+
+  const AiAdapterException(this.message, {this.statusCode});
 
   @override
   String toString() => 'AiAdapterException: $message';

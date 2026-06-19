@@ -29,6 +29,8 @@ void main() {
       expect(vm.mealsDoDia, isEmpty);
       expect(vm.totalHoje, 0);
       expect(vm.errorMessage, isNull);
+      expect(vm.homeErrorMessage, isNull);
+      expect(vm.estimateErrorMessage, isNull);
     });
 
     test('rejeita remocao de refeicao de outro dia', () {
@@ -45,12 +47,16 @@ void main() {
 
       expect(vm.meals.length, 1);
       expect(vm.errorMessage, 'Refeição não pertence à data selecionada');
+      expect(vm.homeErrorMessage, 'Refeição não pertence à data selecionada');
+      expect(vm.estimateErrorMessage, isNull);
     });
 
     test('rejeita remocao de refeicao inexistente', () {
       vm.confirmarRemocao('id-inexistente');
 
       expect(vm.errorMessage, 'Refeição não encontrada');
+      expect(vm.homeErrorMessage, 'Refeição não encontrada');
+      expect(vm.estimateErrorMessage, isNull);
     });
 
     test('totalHoje atualizado apos remocao', () {

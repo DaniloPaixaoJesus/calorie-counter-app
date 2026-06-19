@@ -99,7 +99,8 @@ class HomePage extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: AppSpacing.sm),
-                if (vm.errorMessage != null && vm.errorMessage!.isNotEmpty)
+                if (vm.homeErrorMessage != null &&
+                    vm.homeErrorMessage!.isNotEmpty)
                   Padding(
                     padding:
                         EdgeInsets.symmetric(horizontal: horizontalPadding),
@@ -108,7 +109,7 @@ class HomePage extends StatelessWidget {
                       child: Padding(
                         padding: const EdgeInsets.all(AppSpacing.md),
                         child: Text(
-                          vm.errorMessage!,
+                          vm.homeErrorMessage!,
                           style: TextStyle(
                             color:
                                 Theme.of(context).colorScheme.onErrorContainer,

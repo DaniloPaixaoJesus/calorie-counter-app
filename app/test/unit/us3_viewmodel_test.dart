@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:calorie_counter_app/features/home/view_model.dart';
 import 'package:calorie_counter_app/models/meal.dart';
+import 'package:calorie_counter_app/services/ai_adapter/ai_adapter.dart';
 import 'package:calorie_counter_app/services/ai_adapter/ai_adapter_mock.dart';
 import 'package:calorie_counter_app/services/repository/in_memory_repository.dart';
 
@@ -45,5 +46,35 @@ void main() {
       await vm.requestEstimate('xyzabc');
       expect(vm.estimate?.calorias, 0);
     });
+
+    test('erro HTTP da API exibe código e pode ser fechado', () async {
+      final vm = HomeViewModel(
+        repository: InMemoryRepository(),
+        aiAdapter: const _FailingAiAdapter(),
+      );
+
+      await vm.requestEstimate('arroz e feijão');
+
+      expect(vm.errorMessage, 'HTTP 503 - Serviço indisponível');
+      expect(vm.estimateErrorMessage, 'HTTP 503 - Serviço indisponível');
+      expect(vm.homeErrorMessage, isNull);
+
+      vm.clearEstimateError();
+
+      expect(vm.errorMessage, isNull);
+      expect(vm.estimateErrorMessage, isNull);
+    });
   });
+}
+
+class _FailingAiAdapter implements AiAdapter {
+  const _FailingAiAdapter();
+
+  @override
+  Future<AiEstimate> estimateCalories(String descricao) async {
+    throw const AiAdapterException(
+      'Serviço indisponível',
+      statusCode: 503,
+    );
+  }
 }
