@@ -63,10 +63,11 @@ Request:
 
 ```json
 {
-  "descricao": "arroz, feijão e frango grelhado",
-  "provider": "mock"
+  "descricao": "arroz, feijão e frango grelhado"
 }
 ```
+
+O campo `provider` é opcional. Quando ausente, o BFF usa `AI_DEFAULT_PROVIDER`.
 
 Response:
 
@@ -90,8 +91,7 @@ curl -X POST http://localhost:8080/bff-service/ai/meal-estimates \
   -H "Content-Type: application/json" \
   -H "X-App-Api-Key: $APP_API_KEY" \
   -d '{
-    "descricao": "arroz, feijão e frango grelhado",
-    "provider": "mock"
+    "descricao": "arroz, feijão e frango grelhado"
   }'
 ```
 
@@ -104,6 +104,17 @@ curl -X POST http://localhost:8080/bff-service/ai/meal-estimates \
   -d '{
     "descricao": "banana, ovo mexido e pão francês",
     "provider": "openai-gpt"
+  }'
+```
+
+Exemplo equivalente ao app publicado:
+
+```bash
+curl --location 'https://nutrity-bff-695228964694.southamerica-east1.run.app/bff-service/ai/meal-estimates' \
+  --header "X-App-Api-Key: $APP_API_KEY" \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "descricao": "pao frances com ovo frito e xicara de cafe com leite"
   }'
 ```
 
@@ -123,6 +134,8 @@ X-App-Api-Key: <APP_API_KEY>
 ```
 
 Também há rate limit em memória por API key + IP do cliente. O limite padrão é `APP_API_RATE_LIMIT_PER_MINUTE=30`.
+
+O app mobile também aplica um limite local de 60 estimativas por dia para ajudar no controle de uso durante o MVP.
 
 ## Testes
 

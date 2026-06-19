@@ -1,12 +1,12 @@
 # Calorie Counter App
 
-Aplicativo Flutter para registrar refeicoes e acompanhar o total diario de calorias. O MVP permite adicionar refeicoes por texto ou audio, estimar calorias com uma camada de IA mockada, revisar a sugestao antes de salvar, navegar por datas e remover registros com confirmacao.
+Aplicativo Flutter para registrar refeicoes e acompanhar o total diario de calorias. O MVP permite adicionar refeicoes por texto ou audio, estimar calorias via BFF com IA, revisar a sugestao antes de salvar, editar registros, navegar por datas e remover refeicoes com confirmacao.
 
 ## Visao Geral
 
-O projeto esta organizado como um monorepo. A aplicacao principal fica em `app/`, enquanto as especificacoes funcionais ficam em `specs/`.
+O projeto esta organizado como um monorepo. A aplicacao principal fica em `app/`, o backend BFF Java fica em `bff/`, e as especificacoes funcionais ficam em `specs/`.
 
-O app foi desenhado para funcionar inicialmente sem backend e sem autenticacao. Os dados sao mantidos em memoria durante a execucao do app, com a arquitetura preparada para trocar a persistencia e a integracao real de IA no futuro.
+O app usa persistencia local SQLite e consome o BFF publicado no Google Cloud Run para estimativas de calorias. O BFF protege as rotas de IA com `X-App-Api-Key` e integra providers de IA por adapters.
 
 ## Funcionalidades
 
@@ -17,9 +17,12 @@ O app foi desenhado para funcionar inicialmente sem backend e sem autenticacao. 
 - Adicao de refeicao por texto.
 - Adicao de refeicao por audio com transcricao on-device via `speech_to_text`.
 - Estimativa calorica por IA usando adaptador mock no MVP.
+- Estimativa calorica por IA via BFF Java e OpenAI GPT.
 - Revisao da estimativa antes de salvar.
 - Edicao de descricao e calorias antes da confirmacao.
+- Edicao de refeicao salva, com tela de detalhes e opcao de alterar descricao/calorias.
 - Indicacao de confianca baixa da IA.
+- Limite local de 60 estimativas por dia, com contador decrescente e aviso nas ultimas 10.
 - Icone de refeicao inferido pela IA.
 - Remocao de refeicao com dialogo de confirmacao.
 - Tema visual baseado em Material 3.
@@ -33,7 +36,9 @@ O app foi desenhado para funcionar inicialmente sem backend e sem autenticacao. 
 - `speech_to_text` para entrada por audio
 - `intl` para formatacao de datas
 - `uuid` para identificadores de refeicao
+- `sqflite` para persistencia local
 - `flutter_test` para testes unitarios e de widget
+- Java 21 + Spring Boot no BFF
 
 ## Estrutura
 
@@ -49,6 +54,7 @@ O app foi desenhado para funcionar inicialmente sem backend e sem autenticacao. 
 │   │   └── utils/               # Utilitarios de data e icones
 │   ├── test/                    # Testes unitarios e de widget
 │   └── pubspec.yaml
+├── bff/                         # Backend for Frontend Java/Spring Boot
 ├── docs/                        # Guias de ambiente
 ├── scripts/                     # Scripts auxiliares
 └── specs/                       # Especificacoes, planos, contratos e tarefas
@@ -70,6 +76,15 @@ Para rodar em um dispositivo especifico:
 flutter devices
 flutter run -d <device-id>
 ```
+
+Para gerar APK release:
+
+```bash
+cd app
+flutter build apk --release
+```
+
+O APK fica em `app/build/app/outputs/flutter-apk/app-release.apk`.
 
 Mais detalhes de ambiente estao em `docs/setup.md`.
 
@@ -99,9 +114,10 @@ O app usa uma separacao simples entre UI, estado, dominio e servicos.
 
 - `HomeViewModel` concentra o estado da Home, estimativas, navegacao por data, total diario e remocao.
 - `Meal` representa uma refeicao com descricao, calorias, data/hora, origem, confianca da IA, nota e chave de icone.
-- `InMemoryRepository` armazena refeicoes em memoria no MVP.
+- `SqliteMealRepository` armazena refeicoes localmente no app.
 - `AiAdapter` define o contrato de estimativa calorica.
-- `AiAdapterMock` simula a IA com palavras-chave e retorna calorias, observacao, confianca e icone.
+- `BffAiAdapter` chama o BFF Java para estimativas reais.
+- `AiAdapterMock` continua disponivel para testes e desenvolvimento isolado.
 - `AudioTranscriptionAdapter` define o contrato de transcricao.
 - `OfflineAudioTranscriptionAdapter` usa reconhecimento de voz local/on-device.
 
@@ -115,7 +131,7 @@ As principais especificacoes do produto estao em:
 
 ## Status Atual
 
-O projeto esta em fase de MVP. A UI principal, fluxo de adicao, estimativa mockada, navegacao por data, remocao e testes ja existem. Persistencia local definitiva, backend, autenticacao, sincronizacao em nuvem e integracao com IA real ainda estao fora do escopo atual.
+O projeto esta em fase de MVP. A UI principal, fluxo de adicao, edicao, estimativa via BFF, persistencia local SQLite, navegacao por data, remocao e testes ja existem. Autenticacao de usuario, sincronizacao em nuvem e reconhecimento por imagem ainda estao fora do escopo atual.
 
 ## Setup Android
 
