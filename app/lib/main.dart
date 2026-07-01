@@ -19,6 +19,8 @@ import 'package:calorie_counter_app/services/subscription/sqlite_app_settings_re
 import 'package:calorie_counter_app/services/subscription/subscription_service.dart';
 import 'package:calorie_counter_app/themes/nutrition_theme.dart';
 
+const bool _useMockAi = true;
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('pt_BR', null);
@@ -58,11 +60,7 @@ Future<void> main() async {
 }
 
 AiAdapter _createAiAdapter() {
-  const useMock = bool.fromEnvironment(
-    'NUTRITY_USE_MOCK',
-    defaultValue: false,
-  );
-  return useMock ? const AiAdapterMock() : BffAiAdapter();
+  return _useMockAi ? const AiAdapterMock() : BffAiAdapter();
 }
 
 bool get _supportsSqliteStorage {
@@ -81,6 +79,39 @@ class CalorieCounterApp extends StatelessWidget {
       title: 'Nutrity',
       theme: NutritionTheme.light,
       debugShowCheckedModeBanner: false,
+      builder: (context, child) {
+        if (!_useMockAi || child == null) return child ?? const SizedBox.shrink();
+
+        return Stack(
+          children: [
+            child,
+            Positioned(
+              top: 12,
+              right: 12,
+              child: IgnorePointer(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE65100),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    child: Text(
+                      'IA MOCK',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
       home: const SplashPage(),
     );
   }
