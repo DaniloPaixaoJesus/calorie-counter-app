@@ -1,20 +1,69 @@
 import 'package:calorie_counter_app/design_system/app_spacing.dart';
 import 'package:calorie_counter_app/design_system/layout_breakpoints.dart';
 import 'package:calorie_counter_app/features/home/home_shell_page.dart';
+import 'package:calorie_counter_app/services/auth/google_auth_service.dart';
 import 'package:calorie_counter_app/services/subscription/subscription_service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 
-class PaywallPage extends StatelessWidget {
+class PaywallPage extends StatefulWidget {
   const PaywallPage({super.key});
 
-  Future<void> _continueWithMockUser(BuildContext context) async {
-    await context.read<SubscriptionService>().activatePremium();
-    if (!context.mounted) return;
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const HomeShellPage()),
-      (_) => false,
-    );
+  @override
+  State<PaywallPage> createState() => _PaywallPageState();
+}
+
+class _PaywallPageState extends State<PaywallPage> {
+  final GoogleAuthService _googleAuthService = GoogleAuthService();
+  bool _isLoadingGoogleLogin = false;
+  String? _googleLoginError;
+
+  bool get _isAndroid =>
+      !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+
+  bool get _isIos => !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+
+  Future<void> _continueWithGoogle(BuildContext context) async {
+    if (_isLoadingGoogleLogin) return;
+
+    setState(() {
+      _isLoadingGoogleLogin = true;
+      _googleLoginError = null;
+    });
+
+    try {
+      final account = await _googleAuthService.signIn();
+      if (!context.mounted) return;
+
+      await context.read<SubscriptionService>().activatePremium(
+            userName: account.displayName,
+            userEmail: account.email,
+            userPhotoUrl: account.photoUrl,
+          );
+      if (!context.mounted) return;
+
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const HomeShellPage()),
+        (_) => false,
+      );
+    } on GoogleAuthCancelledException {
+      if (!mounted) return;
+      setState(() {
+        _googleLoginError = 'Login Google cancelado.';
+      });
+    } on GoogleAuthException catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _googleLoginError = error.message;
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingGoogleLogin = false;
+        });
+      }
+    }
   }
 
   @override
@@ -82,35 +131,15 @@ class PaywallPage extends StatelessWidget {
                     padding: const EdgeInsets.all(AppSpacing.lg),
                     child: Row(
                       children: [
-                        CircleAvatar(
-                          backgroundColor: colorScheme.primaryContainer,
-                          child: Icon(
-                            Icons.person_rounded,
-                            color: colorScheme.primary,
-                          ),
+                        Icon(
+                          Icons.verified_user_rounded,
+                          color: colorScheme.primary,
                         ),
-                        const SizedBox(width: AppSpacing.md),
+                        const SizedBox(width: AppSpacing.sm),
                         Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Marina Silva',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleSmall
-                                    ?.copyWith(fontWeight: FontWeight.w800),
-                              ),
-                              Text(
-                                'marina.silva@nutrity.app',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodySmall
-                                    ?.copyWith(
-                                      color: colorScheme.onSurfaceVariant,
-                                    ),
-                              ),
-                            ],
+                          child: Text(
+                            'Você autenticará sua própria conta para ativar o Premium.',
+                            style: Theme.of(context).textTheme.bodyMedium,
                           ),
                         ),
                       ],
@@ -118,35 +147,90 @@ class PaywallPage extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: AppSpacing.lg),
-                FilledButton.icon(
-                  onPressed: null,
-                  icon: const Icon(Icons.login_rounded),
-                  label: const Text('Login Google'),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                OutlinedButton.icon(
-                  onPressed: null,
-                  icon: const Icon(Icons.apple_rounded),
-                  label: const Text('Login Apple'),
-                ),
-                const SizedBox(height: AppSpacing.md),
-                Text(
-                  'Autenticação em breve.',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
+                if (_isAndroid)
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.black87,
+                        side: const BorderSide(color: Color(0xFFDADCE0)),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
                       ),
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                FilledButton.tonalIcon(
-                  onPressed: () => _continueWithMockUser(context),
-                  icon: const Icon(Icons.person_rounded),
-                  label: const Text('Contratar Premium (demo)'),
-                ),
+                      onPressed: _isLoadingGoogleLogin
+                          ? null
+                          : () => _continueWithGoogle(context),
+                      icon: const _GoogleMark(),
+                      label: Text(
+                        _isLoadingGoogleLogin
+                            ? 'Conectando ao Google...'
+                            : 'Continuar com Google',
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ),
+                if (_isIos)
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.icon(
+                      style: FilledButton.styleFrom(
+                        backgroundColor: Colors.black,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                      onPressed: null,
+                      icon: const Icon(Icons.apple_rounded),
+                      label: const Text('Continuar com Apple'),
+                    ),
+                  ),
+                if (!_isAndroid && !_isIos)
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: null,
+                      icon: const Icon(Icons.devices_rounded),
+                      label: const Text('Login indisponível nesta plataforma'),
+                    ),
+                  ),
+                const SizedBox(height: AppSpacing.md),
+                if (_googleLoginError != null)
+                  Text(
+                    _googleLoginError!,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: colorScheme.error,
+                        ),
+                  )
+                else
+                  Text(
+                    _isIos
+                        ? 'Use sua conta Apple para liberar o Premium no iOS.'
+                        : 'Use sua conta Google para liberar o Premium no Android.',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                  ),
               ],
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _GoogleMark extends StatelessWidget {
+  const _GoogleMark();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Text(
+      'G',
+      style: TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.w700,
+        color: Color(0xFF4285F4),
       ),
     );
   }

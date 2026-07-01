@@ -6,6 +6,7 @@ import 'package:calorie_counter_app/design_system/app_spacing.dart';
 import 'package:calorie_counter_app/features/onboarding/paywall_page.dart';
 import 'package:calorie_counter_app/models/app_settings.dart';
 import 'package:calorie_counter_app/models/meal.dart';
+import 'package:calorie_counter_app/services/auth/google_auth_service.dart';
 import 'package:calorie_counter_app/services/subscription/subscription_service.dart';
 import 'package:calorie_counter_app/utils/adaptive_page_route.dart';
 import 'edit_meal_page.dart';
@@ -93,7 +94,16 @@ class HomePage extends StatelessWidget {
                   Padding(
                     padding:
                         EdgeInsets.symmetric(horizontal: horizontalPadding),
-                    child: _PremiumHeader(settings: settings!),
+                    child: _PremiumHeader(
+                      settings: settings!,
+                      onLogout: () async {
+                        try {
+                          await GoogleAuthService().signOut();
+                        } catch (_) {}
+                        if (!context.mounted) return;
+                        await context.read<SubscriptionService>().logout();
+                      },
+                    ),
                   ),
                   const SizedBox(height: AppSpacing.md),
                 ],
@@ -194,8 +204,9 @@ class HomePage extends StatelessWidget {
 
 class _PremiumHeader extends StatelessWidget {
   final AppSettings settings;
+  final Future<void> Function() onLogout;
 
-  const _PremiumHeader({required this.settings});
+  const _PremiumHeader({required this.settings, required this.onLogout});
 
   void _showUserData(BuildContext context) {
     showModalBottomSheet<void>(
@@ -251,7 +262,18 @@ class _PremiumHeader extends StatelessWidget {
                   contentPadding: EdgeInsets.zero,
                   leading: const PremiumCrownIcon(),
                   title: const Text('Plano Premium'),
-                  subtitle: const Text('Autenticado via integração mockada'),
+                  subtitle: const Text('Autenticado via Google'),
+                ),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton.icon(
+                    onPressed: () async {
+                      Navigator.of(context).pop();
+                      await onLogout();
+                    },
+                    icon: const Icon(Icons.logout_rounded),
+                    label: const Text('Logout'),
+                  ),
                 ),
               ],
             ),
@@ -295,16 +317,22 @@ class _UserPhoto extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final assetPath = settings.userPhotoAssetPath;
+    final photoPath = settings.userPhotoAssetPath;
     final colorScheme = Theme.of(context).colorScheme;
+    final hasPhoto = photoPath != null && photoPath.isNotEmpty;
+    final hasRemotePhoto = hasPhoto && photoPath.startsWith('http');
 
     return CircleAvatar(
       radius: radius,
       backgroundColor: colorScheme.primaryContainer,
-      backgroundImage: assetPath == null ? null : AssetImage(assetPath),
-      child: assetPath == null
-          ? Icon(Icons.person_rounded, color: colorScheme.primary)
+      backgroundImage: hasPhoto
+          ? (hasRemotePhoto
+              ? NetworkImage(photoPath)
+              : AssetImage(photoPath) as ImageProvider)
           : null,
+      child: hasPhoto
+          ? null
+          : Icon(Icons.person_rounded, color: colorScheme.primary),
     );
   }
 }

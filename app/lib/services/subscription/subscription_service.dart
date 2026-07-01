@@ -51,15 +51,44 @@ class SubscriptionService extends ChangeNotifier {
     );
   }
 
-  Future<void> activatePremium() async {
+  Future<void> activatePremium({
+    String? userName,
+    String? userEmail,
+    String? userPhotoUrl,
+  }) async {
+    final trimmedName = userName?.trim();
+    final trimmedEmail = userEmail?.trim();
+    final trimmedPhoto = userPhotoUrl?.trim();
+
     await _save(
       _settings.copyWith(
         selectedPlan: AppPlan.premium,
         isPremium: true,
         userLogged: true,
-        userName: 'Marina Silva',
-        userEmail: 'marina.silva@nutrity.app',
-        userPhotoAssetPath: 'assets/branding/nutrity_icon.png',
+        userName: (trimmedName == null || trimmedName.isEmpty)
+            ? 'Usuário Premium'
+            : trimmedName,
+        userEmail: (trimmedEmail == null || trimmedEmail.isEmpty)
+            ? null
+            : trimmedEmail,
+        userPhotoAssetPath: (trimmedPhoto == null || trimmedPhoto.isEmpty)
+            ? null
+            : trimmedPhoto,
+        remainingDailyEstimations: freeDailyEstimateLimit,
+        lastResetDate: DateTime.now(),
+      ),
+    );
+  }
+
+  Future<void> logout() async {
+    await _save(
+      _settings.copyWith(
+        selectedPlan: AppPlan.free,
+        isPremium: false,
+        userLogged: false,
+        userName: null,
+        userEmail: null,
+        userPhotoAssetPath: null,
         remainingDailyEstimations: freeDailyEstimateLimit,
         lastResetDate: DateTime.now(),
       ),
