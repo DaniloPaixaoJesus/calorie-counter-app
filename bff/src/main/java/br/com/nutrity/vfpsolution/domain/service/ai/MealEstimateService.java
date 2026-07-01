@@ -1,6 +1,7 @@
 package br.com.nutrity.vfpsolution.domain.service.ai;
 
 import br.com.nutrity.vfpsolution.config.ai.AiProviderProperties;
+import br.com.nutrity.vfpsolution.domain.ai.AiMacronutrients;
 import br.com.nutrity.vfpsolution.domain.ai.AiProviderAdapter;
 import br.com.nutrity.vfpsolution.domain.dto.ai.MealEstimateDto;
 import br.com.nutrity.vfpsolution.domain.entityrequest.ai.MealEstimateRequest;
@@ -34,10 +35,18 @@ public class MealEstimateService {
         }
 
         var estimate = adapter.estimateCalories(request.descricao().trim());
+        var macronutrients = estimate.macronutrients() == null
+                ? new AiMacronutrients(0, 0, 0)
+                : estimate.macronutrients();
 
         return new MealEstimateDto(
                 estimate.descricaoInterpretada(),
                 estimate.calorias(),
+                new MealEstimateDto.MacronutrientsDto(
+                        macronutrients.proteinGrams(),
+                        macronutrients.carbohydrateGrams(),
+                        macronutrients.fatGrams()
+                ),
                 estimate.observacao(),
                 estimate.confidence(),
                 estimate.iconKey(),

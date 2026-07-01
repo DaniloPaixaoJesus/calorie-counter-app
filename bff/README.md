@@ -75,6 +75,11 @@ Response:
 {
   "descricaoInterpretada": "arroz, feijão e frango grelhado",
   "calorias": 530,
+  "macronutrients": {
+    "proteinGrams": 47,
+    "carbohydrateGrams": 62,
+    "fatGrams": 10
+  },
   "observacao": "Estimativa baseada na soma de porções médias reconhecidas.",
   "confidence": 0.92,
   "iconKey": "grain",

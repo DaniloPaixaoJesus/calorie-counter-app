@@ -2,6 +2,7 @@ package br.com.nutrity.vfpsolution.infrastructure.ai;
 
 import br.com.nutrity.vfpsolution.config.ai.AiProviderProperties;
 import br.com.nutrity.vfpsolution.domain.ai.AiMealEstimate;
+import br.com.nutrity.vfpsolution.domain.ai.AiMacronutrients;
 import br.com.nutrity.vfpsolution.domain.ai.AiProviderAdapter;
 import br.com.nutrity.vfpsolution.domain.exception.BusinessException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -20,9 +21,11 @@ public class OpenAiGptProviderAdapter implements AiProviderAdapter {
     private static final String SYSTEM_PROMPT = """
             Você estima calorias de refeições em português do Brasil.
             Responda somente JSON válido com os campos:
-            descricaoInterpretada, calorias, observacao, confidence, iconKey.
+            descricaoInterpretada, calorias, macronutrients, observacao, confidence, iconKey.
+            macronutrients deve ser um objeto com proteinGrams, carbohydrateGrams e fatGrams.
             iconKey deve ser um destes valores: default, protein, grain, legume, vegetable, fruit.
-            calorias deve ser inteiro >= 0 e confidence deve estar entre 0.0 e 1.0.
+            calorias e todos os gramas de macronutrients devem ser inteiros >= 0.
+            confidence deve estar entre 0.0 e 1.0.
             Use a descrição do usuário como base, mas torne explícitas as premissas de porção.
             Quando a quantidade não for informada, estime usando porções médias brasileiras e explique isso em observacao.
             A observacao deve sempre citar as quantidades/tamanhos assumidos para cada item relevante.
@@ -35,7 +38,7 @@ public class OpenAiGptProviderAdapter implements AiProviderAdapter {
             descreva a porção média assumida e reduza a confidence.
             A descricaoInterpretada deve incluir os alimentos identificados e, quando útil, a porção interpretada.
             Quando não houver alimento reconhecível ou informação mínima suficiente para uma estimativa útil,
-            use calorias 0, confidence baixo, iconKey default e explique em observacao quais quantidades faltaram.
+            use calorias 0, macronutrients com todos os valores 0, confidence baixo, iconKey default e explique em observacao quais quantidades faltaram.
             Não use Markdown, não use bloco de código e não inclua texto antes ou depois do JSON.
             """;
 
@@ -81,6 +84,7 @@ public class OpenAiGptProviderAdapter implements AiProviderAdapter {
             return new AiMealEstimate(
                     textValue(estimate, "descricaoInterpretada", descricao),
                     Math.max(estimate.path("calorias").asInt(0), 0),
+                    macronutrientsValue(estimate.path("macronutrients")),
                     textValue(estimate, "observacao", null),
                     clamp(estimate.path("confidence").asDouble(0.0)),
                     textValue(estimate, "iconKey", "default")
@@ -142,6 +146,14 @@ public class OpenAiGptProviderAdapter implements AiProviderAdapter {
     private String textValue(JsonNode node, String field, String fallback) {
         String value = node.path(field).asText(null);
         return value == null || value.isBlank() ? fallback : value.trim();
+    }
+
+    private AiMacronutrients macronutrientsValue(JsonNode node) {
+        return new AiMacronutrients(
+                Math.max(node.path("proteinGrams").asInt(0), 0),
+                Math.max(node.path("carbohydrateGrams").asInt(0), 0),
+                Math.max(node.path("fatGrams").asInt(0), 0)
+        );
     }
 
     private double clamp(double value) {
