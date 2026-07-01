@@ -1,4 +1,5 @@
 // Contrato: specs/001-home-adicionar-refeicao-ia/contracts/ai_adapter.md
+import 'package:calorie_counter_app/models/macronutrients.dart';
 
 abstract class AiAdapter {
   /// Estima as calorias de uma refeição descrita em texto livre.
@@ -13,6 +14,7 @@ class AiEstimate {
   final String? observacao;
   final double confidence;
   final String iconKey;
+  final Macronutrients macronutrients;
 
   const AiEstimate({
     required this.descricaoInterpretada,
@@ -20,6 +22,7 @@ class AiEstimate {
     this.observacao,
     required this.confidence,
     required this.iconKey,
+    this.macronutrients = Macronutrients.zero,
   });
 
   // Compatibilidade com código legado que ainda usa `nota`.

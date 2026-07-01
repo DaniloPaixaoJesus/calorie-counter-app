@@ -1,5 +1,6 @@
 import 'ai_adapter.dart';
 import 'package:calorie_counter_app/design_system/icon_key_registry.dart';
+import 'package:calorie_counter_app/models/macronutrients.dart';
 
 /// Implementação mock do AiAdapter para MVP e testes.
 /// Threshold de confiança: < 0.7 → aviso ao usuário.
@@ -10,23 +11,23 @@ class AiAdapterMock implements AiAdapter {
 
   const AiAdapterMock({this.responseDelay = defaultResponseDelay});
 
-  static const _keywords = <String, int>{
-    'arroz': 130,
-    'feijão': 90,
-    'frango': 165,
-    'frango grelhado': 165,
-    'pão': 80,
-    'ovo': 70,
-    'salada': 25,
-    'maçã': 52,
-    'banana': 89,
-    'leite': 61,
-    'queijo': 113,
-    'batata': 77,
-    'macarrão': 131,
-    'carne': 250,
-    'peixe': 140,
-    'iogurte': 59,
+  static const _keywords = <String, _FoodMacroEstimate>{
+    'arroz': _FoodMacroEstimate(130, 3, 28, 0),
+    'feijão': _FoodMacroEstimate(90, 6, 16, 1),
+    'frango': _FoodMacroEstimate(165, 31, 0, 4),
+    'frango grelhado': _FoodMacroEstimate(165, 31, 0, 4),
+    'pão': _FoodMacroEstimate(80, 3, 15, 1),
+    'ovo': _FoodMacroEstimate(70, 6, 1, 5),
+    'salada': _FoodMacroEstimate(25, 1, 4, 1),
+    'maçã': _FoodMacroEstimate(52, 0, 14, 0),
+    'banana': _FoodMacroEstimate(89, 1, 23, 0),
+    'leite': _FoodMacroEstimate(61, 3, 5, 3),
+    'queijo': _FoodMacroEstimate(113, 7, 1, 9),
+    'batata': _FoodMacroEstimate(77, 2, 17, 0),
+    'macarrão': _FoodMacroEstimate(131, 5, 25, 1),
+    'carne': _FoodMacroEstimate(250, 26, 0, 17),
+    'peixe': _FoodMacroEstimate(140, 22, 0, 5),
+    'iogurte': _FoodMacroEstimate(59, 4, 7, 2),
   };
 
   String _inferIconKey(String lowerDescription) {
@@ -70,11 +71,17 @@ class AiAdapterMock implements AiAdapter {
 
     final lower = descricao.toLowerCase();
     int total = 0;
+    int proteinGrams = 0;
+    int carbohydrateGrams = 0;
+    int fatGrams = 0;
     final matched = <String>[];
 
     for (final entry in _keywords.entries) {
       if (lower.contains(entry.key)) {
-        total += entry.value;
+        total += entry.value.calories;
+        proteinGrams += entry.value.proteinGrams;
+        carbohydrateGrams += entry.value.carbohydrateGrams;
+        fatGrams += entry.value.fatGrams;
         matched.add(entry.key);
       }
     }
@@ -101,6 +108,25 @@ class AiAdapterMock implements AiAdapter {
       observacao: observacao,
       confidence: confidence,
       iconKey: _inferIconKey(lower),
+      macronutrients: Macronutrients.fromGramValues(
+        proteinGrams: proteinGrams,
+        carbohydrateGrams: carbohydrateGrams,
+        fatGrams: fatGrams,
+      ),
     );
   }
+}
+
+class _FoodMacroEstimate {
+  final int calories;
+  final int proteinGrams;
+  final int carbohydrateGrams;
+  final int fatGrams;
+
+  const _FoodMacroEstimate(
+    this.calories,
+    this.proteinGrams,
+    this.carbohydrateGrams,
+    this.fatGrams,
+  );
 }

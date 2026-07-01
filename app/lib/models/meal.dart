@@ -1,5 +1,6 @@
 import 'package:uuid/uuid.dart';
 import 'package:calorie_counter_app/design_system/icon_key_registry.dart';
+import 'package:calorie_counter_app/models/macronutrients.dart';
 
 enum MealOrigem { texto, audio }
 
@@ -12,6 +13,7 @@ class Meal {
   final double? aiConfidence;
   final String? nota;
   final String iconKey;
+  final Macronutrients? macronutrients;
 
   const Meal({
     required this.id,
@@ -22,6 +24,7 @@ class Meal {
     this.aiConfidence,
     this.nota,
     this.iconKey = IconKeyRegistry.defaultKey,
+    this.macronutrients,
   });
 
   factory Meal.create({
@@ -32,6 +35,7 @@ class Meal {
     double? aiConfidence,
     String? nota,
     String? iconKey,
+    Macronutrients? macronutrients,
   }) {
     assert(descricao.isNotEmpty, 'descricao não pode ser vazia');
     assert(calorias >= 0, 'calorias deve ser não-negativo');
@@ -56,6 +60,7 @@ class Meal {
       aiConfidence: aiConfidence,
       nota: nota,
       iconKey: IconKeyRegistry.normalize(iconKey),
+      macronutrients: macronutrients,
     );
   }
 
@@ -65,6 +70,7 @@ class Meal {
     double? aiConfidence,
     String? nota,
     String? iconKey,
+    Macronutrients? macronutrients,
   }) {
     return Meal(
       id: id,
@@ -75,6 +81,7 @@ class Meal {
       aiConfidence: aiConfidence ?? this.aiConfidence,
       nota: nota ?? this.nota,
       iconKey: IconKeyRegistry.normalize(iconKey ?? this.iconKey),
+      macronutrients: macronutrients ?? this.macronutrients,
     );
   }
 
@@ -88,6 +95,9 @@ class Meal {
       'aiConfidence': aiConfidence,
       'nota': nota,
       'iconKey': iconKey,
+      'proteinGrams': macronutrients?.protein.grams,
+      'carbohydrateGrams': macronutrients?.carbs.grams,
+      'fatGrams': macronutrients?.fat.grams,
     };
   }
 
@@ -106,6 +116,22 @@ class Meal {
       aiConfidence: (map['aiConfidence'] as num?)?.toDouble(),
       nota: map['nota'] as String?,
       iconKey: IconKeyRegistry.normalize(map['iconKey'] as String?),
+      macronutrients: _macronutrientsFromMap(map),
+    );
+  }
+
+  static Macronutrients? _macronutrientsFromMap(Map<String, Object?> map) {
+    final proteinGrams = (map['proteinGrams'] as num?)?.toInt();
+    final carbohydrateGrams = (map['carbohydrateGrams'] as num?)?.toInt();
+    final fatGrams = (map['fatGrams'] as num?)?.toInt();
+    if (proteinGrams == null || carbohydrateGrams == null || fatGrams == null) {
+      return null;
+    }
+
+    return Macronutrients.fromGramValues(
+      proteinGrams: proteinGrams,
+      carbohydrateGrams: carbohydrateGrams,
+      fatGrams: fatGrams,
     );
   }
 }

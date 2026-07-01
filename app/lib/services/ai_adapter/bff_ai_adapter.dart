@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:calorie_counter_app/models/macronutrients.dart';
 import 'package:calorie_counter_app/services/ai_adapter/ai_adapter.dart';
 
 typedef BffAiTransport = Future<BffAiResponse> Function({
@@ -106,6 +107,7 @@ class BffAiAdapter implements AiAdapter {
         observacao: _readString(decoded, 'observacao'),
         confidence: _readDouble(decoded, 'confidence') ?? 0.0,
         iconKey: _readString(decoded, 'iconKey') ?? 'default',
+        macronutrients: _readMacronutrients(decoded),
       );
     } on FormatException {
       throw const AiAdapterException('Resposta inválida do BFF');
@@ -238,5 +240,18 @@ class BffAiAdapter implements AiAdapter {
     if (value is int) return value.toDouble();
     if (value is num) return value.toDouble();
     return null;
+  }
+
+  static Macronutrients _readMacronutrients(Map<String, dynamic> json) {
+    final value = json['macronutrients'];
+    if (value is! Map<String, dynamic>) {
+      return Macronutrients.zero;
+    }
+
+    return Macronutrients.fromGramValues(
+      proteinGrams: _readInt(value, 'proteinGrams') ?? 0,
+      carbohydrateGrams: _readInt(value, 'carbohydrateGrams') ?? 0,
+      fatGrams: _readInt(value, 'fatGrams') ?? 0,
+    );
   }
 }

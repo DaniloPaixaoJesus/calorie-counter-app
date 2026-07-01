@@ -1,14 +1,23 @@
 import 'package:calorie_counter_app/design_system/app_spacing.dart';
 import 'package:calorie_counter_app/design_system/layout_breakpoints.dart';
+import 'package:calorie_counter_app/models/macronutrients.dart';
+import 'package:calorie_counter_app/services/subscription/subscription_service.dart';
 import 'package:calorie_counter_app/utils/meal_icon_mapper.dart';
+import 'package:calorie_counter_app/features/home/widgets/macronutrients_summary_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 
 class ReviewEstimateResult {
   final String descricao;
   final int calorias;
+  final Macronutrients macronutrients;
 
-  const ReviewEstimateResult({required this.descricao, required this.calorias});
+  const ReviewEstimateResult({
+    required this.descricao,
+    required this.calorias,
+    required this.macronutrients,
+  });
 }
 
 class ReviewEstimatePage extends StatefulWidget {
@@ -17,6 +26,7 @@ class ReviewEstimatePage extends StatefulWidget {
   final double confidence;
   final String? observacao;
   final String iconKey;
+  final Macronutrients macronutrients;
 
   const ReviewEstimatePage({
     super.key,
@@ -25,6 +35,7 @@ class ReviewEstimatePage extends StatefulWidget {
     required this.confidence,
     required this.observacao,
     required this.iconKey,
+    required this.macronutrients,
   });
 
   @override
@@ -57,6 +68,7 @@ class _ReviewEstimatePageState extends State<ReviewEstimatePage> {
       ReviewEstimateResult(
         descricao: _descricaoController.text.trim(),
         calorias: calorias,
+        macronutrients: widget.macronutrients,
       ),
     );
   }
@@ -65,6 +77,8 @@ class _ReviewEstimatePageState extends State<ReviewEstimatePage> {
   Widget build(BuildContext context) {
     final iconData = MealIconMapper.toIconData(widget.iconKey);
     final colorScheme = Theme.of(context).colorScheme;
+    final subscriptionService = context.watch<SubscriptionService?>();
+    final isPremium = subscriptionService?.isPremium ?? false;
     final horizontalPadding =
         LayoutBreakpoints.isSmall(context) ? AppSpacing.md : AppSpacing.lg;
 
@@ -136,6 +150,12 @@ class _ReviewEstimatePageState extends State<ReviewEstimatePage> {
                       fontWeight: FontWeight.w700,
                     ),
               ),
+              if (isPremium) ...[
+                const SizedBox(height: AppSpacing.lg),
+                MacronutrientsSummaryCard(
+                  macronutrients: widget.macronutrients,
+                ),
+              ],
               if (widget.observacao != null &&
                   widget.observacao!.trim().isNotEmpty) ...[
                 const SizedBox(height: AppSpacing.lg),

@@ -7,9 +7,10 @@ import 'package:calorie_counter_app/utils/adaptive_page_route.dart';
 import 'package:flutter/material.dart';
 
 class AddMealEntryPage extends StatelessWidget {
+  final bool showAds;
   final VoidCallback? onMealSaved;
 
-  const AddMealEntryPage({super.key, this.onMealSaved});
+  const AddMealEntryPage({super.key, this.showAds = true, this.onMealSaved});
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +40,10 @@ class AddMealEntryPage extends StatelessWidget {
                   onTap: () => Navigator.of(context).push(
                     adaptivePageRoute(
                       context: context,
-                      builder: (_) => AddMealPage(onMealSaved: onMealSaved),
+                      builder: (_) => AddMealPage(
+                        showAds: showAds,
+                        onMealSaved: onMealSaved,
+                      ),
                     ),
                   ),
                 ),
@@ -53,6 +57,7 @@ class AddMealEntryPage extends StatelessWidget {
                       context: context,
                       builder: (_) => AddMealPage(
                         startWithAudio: true,
+                        showAds: showAds,
                         onMealSaved: onMealSaved,
                       ),
                     ),

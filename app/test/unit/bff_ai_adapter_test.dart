@@ -27,6 +27,11 @@ void main() {
             body: jsonEncode({
               'descricaoInterpretada': 'banana e ovo mexido',
               'calorias': 230,
+              'macronutrients': {
+                'proteinGrams': 14,
+                'carbohydrateGrams': 28,
+                'fatGrams': 8,
+              },
               'observacao': 'Estimativa por porção média.',
               'confidence': 0.88,
               'iconKey': 'breakfast',
@@ -48,6 +53,9 @@ void main() {
       expect(capturedBody.keys, ['descricao']);
       expect(estimate.descricaoInterpretada, 'banana e ovo mexido');
       expect(estimate.calorias, 230);
+      expect(estimate.macronutrients.protein.grams, 14);
+      expect(estimate.macronutrients.carbs.grams, 28);
+      expect(estimate.macronutrients.fat.grams, 8);
       expect(estimate.confidence, 0.88);
       expect(estimate.iconKey, 'breakfast');
     });

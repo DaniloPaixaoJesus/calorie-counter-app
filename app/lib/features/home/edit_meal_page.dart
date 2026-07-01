@@ -1,9 +1,12 @@
 import 'package:calorie_counter_app/design_system/app_spacing.dart';
 import 'package:calorie_counter_app/design_system/layout_breakpoints.dart';
 import 'package:calorie_counter_app/features/home/view_model.dart';
+import 'package:calorie_counter_app/features/home/widgets/macronutrients_summary_card.dart';
 import 'package:calorie_counter_app/features/home/widgets/meal_form.dart';
 import 'package:calorie_counter_app/features/home/widgets/section_header.dart';
+import 'package:calorie_counter_app/models/macronutrients.dart';
 import 'package:calorie_counter_app/models/meal.dart';
+import 'package:calorie_counter_app/services/subscription/subscription_service.dart';
 import 'package:calorie_counter_app/utils/meal_icon_mapper.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -79,6 +82,8 @@ class _EditMealPageState extends State<EditMealPage> {
   Widget _buildDetails(BuildContext context) {
     final meal = widget.meal;
     final colorScheme = Theme.of(context).colorScheme;
+    final subscriptionService = context.watch<SubscriptionService?>();
+    final isPremium = subscriptionService?.isPremium ?? false;
     final iconData = MealIconMapper.toIconData(meal.iconKey);
     final date = DateFormat('dd/MM/yyyy HH:mm', 'pt_BR').format(meal.timestamp);
     final confidence = meal.aiConfidence == null
@@ -124,6 +129,13 @@ class _EditMealPageState extends State<EditMealPage> {
         const SizedBox(height: AppSpacing.lg),
         _infoRow(context, 'Descricao', meal.descricao),
         _infoRow(context, 'Calorias', '${meal.calorias} kcal'),
+        if (isPremium) ...[
+          MacronutrientsSummaryCard(
+            macronutrients: meal.macronutrients ?? Macronutrients.zero,
+            compact: true,
+          ),
+          const SizedBox(height: AppSpacing.lg),
+        ],
         _infoRow(context, 'Origem',
             meal.origem == MealOrigem.audio ? 'Audio' : 'Texto'),
         _infoRow(context, 'Data e hora', date),

@@ -14,7 +14,10 @@ class CalorieTotalCard extends StatelessWidget {
       label: 'Total de calorias: $totalCalorias quilocalorias',
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.all(AppSpacing.xl),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.lg,
+          vertical: AppSpacing.md,
+        ),
         decoration: BoxDecoration(
           color: colorScheme.primary,
           borderRadius: BorderRadius.circular(AppRadius.lg),
@@ -28,10 +31,10 @@ class CalorieTotalCard extends StatelessWidget {
                     color: colorScheme.onPrimary.withValues(alpha: 0.85),
                   ),
             ),
-            const SizedBox(height: AppSpacing.sm),
+            const SizedBox(height: AppSpacing.xs),
             Text(
               '$totalCalorias kcal',
-              style: Theme.of(context).textTheme.displaySmall?.copyWith(
+              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                     color: colorScheme.onPrimary,
                     fontWeight: FontWeight.w700,
                   ),

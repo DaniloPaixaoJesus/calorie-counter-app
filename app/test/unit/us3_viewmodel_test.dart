@@ -5,6 +5,8 @@ import 'package:calorie_counter_app/services/ai_adapter/ai_adapter.dart';
 import 'package:calorie_counter_app/services/ai_adapter/ai_adapter_mock.dart';
 import 'package:calorie_counter_app/services/estimate_quota/in_memory_estimate_quota_repository.dart';
 import 'package:calorie_counter_app/services/repository/in_memory_repository.dart';
+import 'package:calorie_counter_app/services/subscription/in_memory_app_settings_repository.dart';
+import 'package:calorie_counter_app/services/subscription/subscription_service.dart';
 
 void main() {
   group('US3 — ViewModel: revisão e confiança', () {
@@ -87,7 +89,8 @@ void main() {
       expect(vm.estimateErrorMessage, isNull);
     });
 
-    test('limita estimativas de calorias a 30 chamadas por dia', () async {
+    test('limita estimativas de calorias a 3 chamadas por dia no Free',
+        () async {
       for (var i = 0; i < HomeViewModel.dailyEstimateLimit; i++) {
         await vm.requestEstimate('arroz feijão frango');
       }
@@ -104,12 +107,10 @@ void main() {
       );
     });
 
-    test('avisa quando faltam apenas 10 estimativas no dia', () async {
-      for (var i = 0; i < 20; i++) {
-        await vm.requestEstimate('arroz feijão frango');
-      }
+    test('avisa quando restam poucas estimativas gratuitas no dia', () async {
+      await vm.requestEstimate('arroz feijão frango');
 
-      expect(vm.remainingDailyEstimates, 10);
+      expect(vm.remainingDailyEstimates, 2);
       expect(vm.shouldWarnEstimateQuota, isTrue);
     });
 
@@ -131,7 +132,29 @@ void main() {
         estimateQuotaRepository: quotaRepository,
       );
 
-      expect(secondVm.remainingDailyEstimates, 28);
+      expect(secondVm.remainingDailyEstimates, 1);
+    });
+
+    test('premium remove limite diario de estimativas', () async {
+      final subscriptionService = await SubscriptionService.load(
+        InMemoryAppSettingsRepository(),
+      );
+      await subscriptionService.activatePremium();
+
+      final premiumVm = HomeViewModel(
+        repository: InMemoryRepository(),
+        aiAdapter: AiAdapterMock(responseDelay: Duration.zero),
+        estimateQuotaRepository: InMemoryEstimateQuotaRepository(),
+        subscriptionService: subscriptionService,
+      );
+
+      for (var i = 0; i < HomeViewModel.dailyEstimateLimit + 2; i++) {
+        await premiumVm.requestEstimate('arroz feijão frango');
+      }
+
+      expect(premiumVm.hasUnlimitedEstimates, isTrue);
+      expect(premiumVm.canRequestEstimate, isTrue);
+      expect(premiumVm.remainingDailyEstimates, -1);
     });
   });
 }

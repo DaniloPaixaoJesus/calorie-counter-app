@@ -1,30 +1,38 @@
 import 'package:flutter/foundation.dart';
+import 'package:calorie_counter_app/models/macronutrients.dart';
 import 'package:calorie_counter_app/models/meal.dart';
 import 'package:calorie_counter_app/design_system/icon_key_registry.dart';
 import 'package:calorie_counter_app/services/ai_adapter/ai_adapter.dart';
 import 'package:calorie_counter_app/services/estimate_quota/estimate_quota_repository.dart';
 import 'package:calorie_counter_app/services/estimate_quota/in_memory_estimate_quota_repository.dart';
 import 'package:calorie_counter_app/services/repository/meal_repository.dart';
+import 'package:calorie_counter_app/services/subscription/subscription_service.dart';
 import 'package:calorie_counter_app/utils/datetime_extensions.dart';
 
 class HomeViewModel extends ChangeNotifier {
-  static const int dailyEstimateLimit = 30;
+  static const int dailyEstimateLimit =
+      SubscriptionService.freeDailyEstimateLimit;
 
   final MealRepository _repository;
   final AiAdapter _aiAdapter;
   final EstimateQuotaRepository _estimateQuotaRepository;
+  final SubscriptionService _subscriptionService;
   late DateTime dataSelecionada;
 
   HomeViewModel({
     required MealRepository repository,
     required AiAdapter aiAdapter,
     EstimateQuotaRepository? estimateQuotaRepository,
+    SubscriptionService? subscriptionService,
   })  : _repository = repository,
         _aiAdapter = aiAdapter,
         _estimateQuotaRepository =
-            estimateQuotaRepository ?? InMemoryEstimateQuotaRepository() {
+            estimateQuotaRepository ?? InMemoryEstimateQuotaRepository(),
+        _subscriptionService =
+            subscriptionService ?? SubscriptionService.fallback() {
     // Initialize dataSelecionada to today (Feature 002)
     dataSelecionada = DateTime.now().toLocalDate();
+    _subscriptionService.addListener(notifyListeners);
   }
 
   // Feature 002: Date Navigation Getters
@@ -59,6 +67,13 @@ class HomeViewModel extends ChangeNotifier {
 
   int get totalHoje => mealsDoDia.fold(0, (sum, meal) => sum + meal.calorias);
 
+  Macronutrients get totalMacronutrientsHoje {
+    return mealsDoDia.fold(
+      Macronutrients.zero,
+      (sum, meal) => sum + (meal.macronutrients ?? Macronutrients.zero),
+    );
+  }
+
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
@@ -68,15 +83,19 @@ class HomeViewModel extends ChangeNotifier {
   /// Confiança abaixo de 0.7 dispara aviso ao usuário (FR-011).
   bool get lowConfidence => _estimate != null && _estimate!.confidence < 0.7;
 
+  bool get hasUnlimitedEstimates => _subscriptionService.hasUnlimitedEstimates;
+
   int get remainingDailyEstimates {
+    if (hasUnlimitedEstimates) return -1;
     final usedToday = _estimateQuotaRepository
         .getForDate(DateTime.now().toLocalDate())
         .usedCount;
-    final remaining = dailyEstimateLimit - usedToday;
+    final remaining = SubscriptionService.freeDailyEstimateLimit - usedToday;
     return remaining < 0 ? 0 : remaining;
   }
 
-  bool get canRequestEstimate => remainingDailyEstimates > 0;
+  bool get canRequestEstimate =>
+      hasUnlimitedEstimates || remainingDailyEstimates > 0;
 
   bool get shouldWarnEstimateQuota {
     final remaining = remainingDailyEstimates;
@@ -91,10 +110,14 @@ class HomeViewModel extends ChangeNotifier {
 
   String? get errorMessage => _estimateErrorMessage ?? _homeErrorMessage;
 
+  bool _shouldShowDailyLimitDialog = false;
+  bool get shouldShowDailyLimitDialog => _shouldShowDailyLimitDialog;
+
   Future<void> requestEstimate(String descricao) async {
     if (!canRequestEstimate) {
       _estimateErrorMessage =
           'Limite diário de estimativas atingido. Tente novamente amanhã.';
+      _shouldShowDailyLimitDialog = true;
       notifyListeners();
       return;
     }
@@ -102,7 +125,9 @@ class HomeViewModel extends ChangeNotifier {
     _isLoading = true;
     _estimateErrorMessage = null;
     _estimate = null;
-    await _estimateQuotaRepository.increment(DateTime.now().toLocalDate());
+    if (!hasUnlimitedEstimates) {
+      await _estimateQuotaRepository.increment(DateTime.now().toLocalDate());
+    }
     notifyListeners();
 
     try {
@@ -113,6 +138,7 @@ class HomeViewModel extends ChangeNotifier {
         observacao: raw.observacao,
         confidence: raw.confidence,
         iconKey: IconKeyRegistry.normalize(raw.iconKey),
+        macronutrients: raw.macronutrients,
       );
     } on AiAdapterException catch (e) {
       _estimateErrorMessage = e.statusCode == null
@@ -122,8 +148,16 @@ class HomeViewModel extends ChangeNotifier {
       _estimateErrorMessage = 'Erro inesperado ao estimar calorias.';
     } finally {
       _isLoading = false;
+      if (!hasUnlimitedEstimates && remainingDailyEstimates == 0) {
+        _shouldShowDailyLimitDialog = true;
+      }
       notifyListeners();
     }
+  }
+
+  void dismissDailyLimitDialog() {
+    _shouldShowDailyLimitDialog = false;
+    notifyListeners();
   }
 
   Future<void> addMeal(Meal meal) async {
@@ -220,5 +254,11 @@ class HomeViewModel extends ChangeNotifier {
 
   void cancelarRemocao() {
     // No-op; dialog fechado pelo widget
+  }
+
+  @override
+  void dispose() {
+    _subscriptionService.removeListener(notifyListeners);
+    super.dispose();
   }
 }

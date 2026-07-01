@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:calorie_counter_app/services/subscription/subscription_service.dart';
 
 import 'add_meal_entry_page.dart';
 import 'home_page.dart';
 
 class HomeShellPage extends StatefulWidget {
-  const HomeShellPage({super.key});
+  final bool? showAds;
+
+  const HomeShellPage({super.key, this.showAds});
 
   @override
   State<HomeShellPage> createState() => _HomeShellPageState();
@@ -15,9 +19,15 @@ class _HomeShellPageState extends State<HomeShellPage> {
 
   @override
   Widget build(BuildContext context) {
+    final subscriptionService = context.watch<SubscriptionService?>();
+    final showAds =
+        widget.showAds ?? subscriptionService?.shouldShowAds ?? true;
     final pages = [
-      const HomePage(),
-      AddMealEntryPage(onMealSaved: () => setState(() => _currentIndex = 0)),
+      HomePage(showAds: showAds),
+      AddMealEntryPage(
+        showAds: showAds,
+        onMealSaved: () => setState(() => _currentIndex = 0),
+      ),
     ];
 
     return Scaffold(
