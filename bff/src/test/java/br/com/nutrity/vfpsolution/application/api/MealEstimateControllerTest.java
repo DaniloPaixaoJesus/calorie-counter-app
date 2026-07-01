@@ -34,6 +34,9 @@ class MealEstimateControllerTest {
                 .andExpect(jsonPath("$.provider", is("mock")))
                 .andExpect(jsonPath("$.descricaoInterpretada", is("arroz, feijão e frango")))
                 .andExpect(jsonPath("$.calorias", greaterThan(0)))
+                .andExpect(jsonPath("$.macronutrients.proteinGrams", greaterThan(0)))
+                .andExpect(jsonPath("$.macronutrients.carbohydrateGrams", greaterThan(0)))
+                .andExpect(jsonPath("$.macronutrients.fatGrams", greaterThan(0)))
                 .andExpect(jsonPath("$.confidence", greaterThan(0.7)))
                 .andExpect(jsonPath("$.iconKey", is("grain")));
     }
