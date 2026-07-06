@@ -9,6 +9,7 @@ import 'package:calorie_counter_app/models/meal.dart';
 import 'package:calorie_counter_app/services/auth/google_auth_service.dart';
 import 'package:calorie_counter_app/services/subscription/subscription_service.dart';
 import 'package:calorie_counter_app/utils/adaptive_page_route.dart';
+import 'package:intl/intl.dart';
 import 'edit_meal_page.dart';
 import 'view_model.dart';
 import 'widgets/date_navigation_bar.dart';
@@ -18,12 +19,17 @@ import 'widgets/calorie_total_card.dart';
 import 'widgets/meal_list_item.dart';
 import 'widgets/ad_card.dart';
 import 'widgets/macronutrients_summary_card.dart';
-import 'widgets/premium_upgrade_card.dart';
 
 class HomePage extends StatelessWidget {
   final bool showAds;
 
   const HomePage({super.key, this.showAds = true});
+
+  String _macroTitle(HomeViewModel vm) {
+    if (vm.eHoje) return 'Macros de hoje';
+    final formatted = DateFormat('dd/MM', 'pt_BR').format(vm.dataSelecionada);
+    return 'Macros de $formatted';
+  }
 
   Future<void> _showRemovalDialog(
     BuildContext context,
@@ -89,7 +95,6 @@ class HomePage extends StatelessWidget {
             ),
             child: Column(
               children: [
-                const DateNavigationBar(),
                 if (isPremium && settings?.userName != null) ...[
                   Padding(
                     padding:
@@ -106,23 +111,27 @@ class HomePage extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: AppSpacing.md),
+                ] else ...[
+                  Padding(
+                    padding:
+                        EdgeInsets.symmetric(horizontal: horizontalPadding),
+                    child: _FreeHeader(onTap: () => _openPremium(context)),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
                 ],
+                const DateNavigationBar(),
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
                   child: CalorieTotalCard(totalCalorias: vm.totalHoje),
                 ),
-                if (isPremium) ...[
-                  const SizedBox(height: AppSpacing.md),
-                  Padding(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: horizontalPadding),
-                    child: MacronutrientsSummaryCard(
-                      macronutrients: vm.totalMacronutrientsHoje,
-                      title: 'Macros de hoje',
-                      showMockNotice: false,
-                    ),
+                const SizedBox(height: AppSpacing.md),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+                  child: MacronutrientsSummaryCard(
+                    macronutrients: vm.totalMacronutrientsHoje,
+                    title: _macroTitle(vm),
                   ),
-                ],
+                ),
                 if (showAds) ...[
                   const SizedBox(height: AppSpacing.md),
                   Padding(
@@ -156,8 +165,7 @@ class HomePage extends StatelessWidget {
                     padding: EdgeInsets.symmetric(
                       horizontal: horizontalPadding,
                     ),
-                    itemCount:
-                        (meals.isEmpty ? 1 : meals.length) + (showAds ? 1 : 0),
+                    itemCount: meals.isEmpty ? 1 : meals.length,
                     separatorBuilder: (_, __) => const Divider(height: 1),
                     itemBuilder: (_, i) {
                       if (meals.isEmpty && i == 0) {
@@ -170,18 +178,7 @@ class HomePage extends StatelessWidget {
                           ),
                         );
                       }
-                      final mealIndex = meals.isEmpty ? i - 1 : i;
-                      if (mealIndex >= meals.length) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: AppSpacing.md,
-                          ),
-                          child: PremiumUpgradeCard(
-                            onTap: () => _openPremium(context),
-                          ),
-                        );
-                      }
-                      final meal = meals[mealIndex];
+                      final meal = meals[i];
                       return MealListItem(
                         meal: meal,
                         onTap: () => _openEditMealPage(context, meal),
@@ -305,6 +302,62 @@ class _PremiumHeader extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _FreeHeader extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _FreeHeader({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Material(
+      color: colorScheme.surface,
+      borderRadius: BorderRadius.circular(999),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(999),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.sm,
+            vertical: AppSpacing.xs,
+          ),
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 14,
+                backgroundColor: colorScheme.primaryContainer,
+                child: Icon(
+                  Icons.eco_rounded,
+                  color: colorScheme.primary,
+                  size: 16,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              Text(
+                'Free',
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+              ),
+              const Spacer(),
+              const PremiumCrownIcon(size: 18),
+              const SizedBox(width: AppSpacing.xs),
+              Text(
+                'Virar Premium',
+                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                      color: colorScheme.primary,
+                      fontWeight: FontWeight.w800,
+                    ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

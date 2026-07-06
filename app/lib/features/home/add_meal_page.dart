@@ -12,7 +12,7 @@ import 'widgets/confidence_warning.dart';
 import 'widgets/audio_recording_indicator.dart';
 import 'widgets/section_header.dart';
 import 'widgets/ad_card.dart';
-import 'package:calorie_counter_app/features/onboarding/paywall_page.dart';
+import 'daily_limit_page.dart';
 import 'review_estimate_page.dart';
 import 'view_model.dart';
 import 'dart:async';
@@ -59,34 +59,12 @@ class _AddMealPageState extends State<AddMealPage> {
     }
   }
 
-  Future<void> _showDailyLimitDialog(HomeViewModel vm) async {
+  Future<void> _openDailyLimitPage(HomeViewModel vm) async {
     vm.dismissDailyLimitDialog();
-    await showDialog<void>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Limite diário atingido'),
-        content: const Text(
-          'Você utilizou suas 3 estimativas gratuitas hoje.\n\n'
-          'Volte amanhã ou assine o Premium para estimativas ilimitadas.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Agora não'),
-          ),
-          FilledButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              Navigator.of(context).push(
-                adaptivePageRoute(
-                  context: context,
-                  builder: (_) => const PaywallPage(),
-                ),
-              );
-            },
-            child: const Text('Conhecer Premium'),
-          ),
-        ],
+    await Navigator.of(context).push(
+      adaptivePageRoute(
+        context: context,
+        builder: (_) => const DailyLimitPage(),
       ),
     );
   }
@@ -246,7 +224,7 @@ class _AddMealPageState extends State<AddMealPage> {
     if (vm.shouldShowDailyLimitDialog) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
-        _showDailyLimitDialog(vm);
+        _openDailyLimitPage(vm);
       });
     }
 

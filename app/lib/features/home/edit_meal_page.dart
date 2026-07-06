@@ -140,7 +140,6 @@ class _EditMealPageState extends State<EditMealPage> {
             meal.origem == MealOrigem.audio ? 'Audio' : 'Texto'),
         _infoRow(context, 'Data e hora', date),
         _infoRow(context, 'Confianca da IA', confidence),
-        _infoRow(context, 'Icone', meal.iconKey),
         _infoRow(
           context,
           'Observacao',

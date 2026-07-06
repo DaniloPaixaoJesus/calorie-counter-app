@@ -7,20 +7,16 @@ class MacronutrientsSummaryCard extends StatelessWidget {
   final Macronutrients macronutrients;
   final bool compact;
   final String title;
-  final bool showMockNotice;
 
   const MacronutrientsSummaryCard({
     super.key,
     required this.macronutrients,
     this.compact = false,
     this.title = 'Macronutrientes estimados',
-    this.showMockNotice = true,
   });
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.lg),
@@ -31,8 +27,6 @@ class MacronutrientsSummaryCard extends StatelessWidget {
               title,
               style: Theme.of(context).textTheme.titleMedium,
             ),
-            const SizedBox(height: AppSpacing.md),
-            _MacroDistributionBar(macronutrients: macronutrients),
             const SizedBox(height: AppSpacing.md),
             if (compact)
               Wrap(
@@ -50,15 +44,8 @@ class MacronutrientsSummaryCard extends StatelessWidget {
                     Expanded(child: _MacroValue(macro: macro)),
                 ],
               ),
-            if (showMockNotice) ...[
-              const SizedBox(height: AppSpacing.sm),
-              Text(
-                'Valores mockados para validação de layout.',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-              ),
-            ],
+            const SizedBox(height: AppSpacing.md),
+            _MacroDistributionBar(macronutrients: macronutrients),
           ],
         ),
       ),
@@ -101,28 +88,21 @@ class _MacroValue extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Container(
-          width: 28,
-          height: 3,
-          decoration: BoxDecoration(
-            color: macro.color,
-            borderRadius: BorderRadius.circular(AppRadius.sm),
-          ),
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        Text(
-          macro.label,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-        ),
-        const SizedBox(height: AppSpacing.xs),
         Text(
           '${macro.grams} g',
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w800,
+              ),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Text(
+          macro.label,
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w700,
               ),
         ),
       ],

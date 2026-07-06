@@ -1,12 +1,8 @@
 import 'package:calorie_counter_app/design_system/app_spacing.dart';
 import 'package:calorie_counter_app/design_system/layout_breakpoints.dart';
 import 'package:calorie_counter_app/models/macronutrients.dart';
-import 'package:calorie_counter_app/services/subscription/subscription_service.dart';
 import 'package:calorie_counter_app/utils/meal_icon_mapper.dart';
-import 'package:calorie_counter_app/features/home/widgets/macronutrients_summary_card.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
 
 class ReviewEstimateResult {
   final String descricao;
@@ -43,31 +39,11 @@ class ReviewEstimatePage extends StatefulWidget {
 }
 
 class _ReviewEstimatePageState extends State<ReviewEstimatePage> {
-  late final TextEditingController _descricaoController;
-  late final TextEditingController _caloriasController;
-
-  @override
-  void initState() {
-    super.initState();
-    _descricaoController =
-        TextEditingController(text: widget.descricaoInterpretada);
-    _caloriasController =
-        TextEditingController(text: widget.calorias.toString());
-  }
-
-  @override
-  void dispose() {
-    _descricaoController.dispose();
-    _caloriasController.dispose();
-    super.dispose();
-  }
-
   void _confirmar() {
-    final calorias = int.tryParse(_caloriasController.text.trim()) ?? 0;
     Navigator.of(context).pop(
       ReviewEstimateResult(
-        descricao: _descricaoController.text.trim(),
-        calorias: calorias,
+        descricao: widget.descricaoInterpretada,
+        calorias: widget.calorias,
         macronutrients: widget.macronutrients,
       ),
     );
@@ -77,13 +53,11 @@ class _ReviewEstimatePageState extends State<ReviewEstimatePage> {
   Widget build(BuildContext context) {
     final iconData = MealIconMapper.toIconData(widget.iconKey);
     final colorScheme = Theme.of(context).colorScheme;
-    final subscriptionService = context.watch<SubscriptionService?>();
-    final isPremium = subscriptionService?.isPremium ?? false;
     final horizontalPadding =
         LayoutBreakpoints.isSmall(context) ? AppSpacing.md : AppSpacing.lg;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Revisar estimativa')),
+      appBar: AppBar(title: const Text('Revisar e confirmar')),
       body: Center(
         child: ConstrainedBox(
           constraints: BoxConstraints(
@@ -92,114 +66,163 @@ class _ReviewEstimatePageState extends State<ReviewEstimatePage> {
           child: ListView(
             padding: EdgeInsets.all(horizontalPadding),
             children: [
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(AppSpacing.lg),
-                  child: Row(
-                    children: [
-                      CircleAvatar(
-                        backgroundColor: colorScheme.primaryContainer,
-                        child: Icon(iconData, color: colorScheme.primary),
-                      ),
-                      const SizedBox(width: AppSpacing.md),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Estimativa da IA',
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                            const SizedBox(height: AppSpacing.xs),
-                            Text(
-                              'Confianca: ${(widget.confidence * 100).toStringAsFixed(0)}%',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
-                                  ?.copyWith(
-                                    color: colorScheme.onSurfaceVariant,
-                                  ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: AppSpacing.lg),
               Text(
-                'Descricao interpretada',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              TextField(
-                controller: _descricaoController,
-                maxLines: 2,
-                decoration: const InputDecoration(),
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              Text(
-                'Estimativa de calorias',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              Text(
-                '${widget.calorias} kcal',
-                style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                      fontWeight: FontWeight.w700,
+                'Confira os detalhes da sua refeição',
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
                     ),
               ),
-              if (isPremium) ...[
-                const SizedBox(height: AppSpacing.lg),
-                MacronutrientsSummaryCard(
-                  macronutrients: widget.macronutrients,
+              const SizedBox(height: AppSpacing.lg),
+              Container(
+                decoration: BoxDecoration(
+                  color: colorScheme.surfaceContainerHighest.withValues(
+                    alpha: 0.35,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: colorScheme.outlineVariant.withValues(alpha: 0.6),
+                  ),
                 ),
+                padding: const EdgeInsets.all(AppSpacing.md),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 16,
+                      backgroundColor: colorScheme.primaryContainer,
+                      child: Icon(iconData, color: colorScheme.primary, size: 18),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.descricaoInterpretada,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                ),
+                          ),
+                          const SizedBox(height: AppSpacing.xs),
+                          Text(
+                            '${widget.calorias} kcal',
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              Text(
+                'Macros estimados',
+                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              for (final macro in widget.macronutrients.values) ...[
+                _MacroLine(macro: macro),
+                const SizedBox(height: AppSpacing.sm),
               ],
               if (widget.observacao != null &&
                   widget.observacao!.trim().isNotEmpty) ...[
                 const SizedBox(height: AppSpacing.lg),
                 Text(
                   'Observacao da IA',
-                  style: Theme.of(context).textTheme.titleMedium,
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 Text(
                   widget.observacao!,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),
                 ),
               ],
               const SizedBox(height: AppSpacing.lg),
-              TextField(
-                controller: _caloriasController,
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                decoration: const InputDecoration(labelText: 'Calorias (kcal)'),
+              Text(
+                'Confianca da IA',
+                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                '${(widget.confidence * 100).toStringAsFixed(0)}%',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
               ),
               const SizedBox(height: AppSpacing.xl),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      child: const Text('Cancelar'),
-                    ),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: _confirmar,
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size.fromHeight(48),
+                    shape: const StadiumBorder(),
                   ),
-                  const SizedBox(width: AppSpacing.lg),
-                  Expanded(
-                    child: FilledButton(
-                      onPressed: _confirmar,
-                      child: const Text('Confirmar'),
-                    ),
-                  ),
-                ],
+                  child: const Text('Confirmar'),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Center(
+                child: TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Editar'),
+                ),
               ),
             ],
           ),
         ),
       ),
+    );
+  }
+}
+
+class _MacroLine extends StatelessWidget {
+  final Macronutrient macro;
+
+  const _MacroLine({required this.macro});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Row(
+      children: [
+        Container(
+          width: 3,
+          height: 12,
+          decoration: BoxDecoration(
+            color: macro.color,
+            borderRadius: BorderRadius.circular(99),
+          ),
+        ),
+        const SizedBox(width: AppSpacing.sm),
+        Expanded(
+          child: Text(
+            macro.label,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+          ),
+        ),
+        Text(
+          '${macro.grams} g',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+        ),
+      ],
     );
   }
 }
