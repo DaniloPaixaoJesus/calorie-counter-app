@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:calorie_counter_app/design_system/premium_crown_icon.dart';
 import 'package:calorie_counter_app/design_system/layout_breakpoints.dart';
 import 'package:calorie_counter_app/design_system/app_spacing.dart';
 import 'package:calorie_counter_app/features/onboarding/paywall_page.dart';
@@ -285,10 +284,14 @@ class _FreeHeader extends StatelessWidget {
                     ),
               ),
               const Spacer(),
-              const PremiumCrownIcon(size: 18),
+              const Icon(
+                Icons.workspace_premium_rounded,
+                color: Color(0xFFF2BE1A),
+                size: 18,
+              ),
               const SizedBox(width: AppSpacing.xs),
               Text(
-                'Virar Premium',
+                'Seja Premium!',
                 style: Theme.of(context).textTheme.labelMedium?.copyWith(
                       color: colorScheme.primary,
                       fontWeight: FontWeight.w800,

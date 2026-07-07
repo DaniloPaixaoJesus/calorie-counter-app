@@ -389,11 +389,9 @@ class _LineChartCard extends StatelessWidget {
             const SizedBox(height: AppSpacing.md),
             SizedBox(
               height: 210,
-              child: CustomPaint(
-                painter: _ProfileLineChartPainter(
-                  series: series,
-                  labels: labels,
-                ),
+              child: _ProfileChartSurface(
+                series: series,
+                labels: labels,
               ),
             ),
             const SizedBox(height: AppSpacing.md),
@@ -412,6 +410,52 @@ class _LineChartCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _ProfileChartSurface extends StatelessWidget {
+  final List<_ChartSeries> series;
+  final List<String> labels;
+
+  const _ProfileChartSurface({
+    required this.series,
+    required this.labels,
+  });
+
+  bool get _hasData {
+    return series.any((item) => item.values.any((value) => value > 0));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_hasData) {
+      return DecoratedBox(
+        decoration: BoxDecoration(
+          color: Theme.of(context)
+              .colorScheme
+              .surfaceContainerHighest
+              .withValues(alpha: 0.45),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Center(
+          child: Text(
+            'Sem dados no período',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w700,
+                ),
+          ),
+        ),
+      );
+    }
+
+    return CustomPaint(
+      painter: _ProfileLineChartPainter(
+        series: series,
+        labels: labels,
+      ),
+      child: const SizedBox.expand(),
     );
   }
 }
@@ -514,10 +558,10 @@ class _ProfileLineChartPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    const left = 42.0;
+    const left = 36.0;
     const top = 10.0;
-    const right = 10.0;
-    const bottom = 34.0;
+    const right = 6.0;
+    const bottom = 32.0;
     final chartRect = Rect.fromLTWH(
       left,
       top,
@@ -557,10 +601,10 @@ class _ProfileLineChartPainter extends CustomPainter {
         text: tick.round().toString(),
         style: const TextStyle(color: Color(0xFF6B7280), fontSize: 10),
       );
-      labelPainter.layout(minWidth: 28, maxWidth: 28);
+      labelPainter.layout(minWidth: 24, maxWidth: 24);
       labelPainter.paint(
         canvas,
-        Offset(chartRect.left - labelPainter.width - 6, y - 6),
+        Offset(chartRect.left - labelPainter.width - 5, y - 6),
       );
     }
 
@@ -621,7 +665,8 @@ class _ProfileLineChartPainter extends CustomPainter {
       textAlign: TextAlign.center,
       textDirection: ui.TextDirection.ltr,
     );
-    for (var i = 0; i < labels.length; i++) {
+    final labelIndexes = _visibleLabelIndexes(labels.length);
+    for (final i in labelIndexes) {
       final x = labels.length == 1
           ? chartRect.center.dx
           : chartRect.left + (chartRect.width / (labels.length - 1)) * i;
@@ -635,6 +680,12 @@ class _ProfileLineChartPainter extends CustomPainter {
         Offset(x - textPainter.width / 2, chartRect.bottom + 10),
       );
     }
+  }
+
+  List<int> _visibleLabelIndexes(int count) {
+    if (count <= 0) return const [];
+    if (count <= 3) return [for (var i = 0; i < count; i++) i];
+    return [0, count ~/ 2, count - 1];
   }
 
   double _niceMax(double value) {
