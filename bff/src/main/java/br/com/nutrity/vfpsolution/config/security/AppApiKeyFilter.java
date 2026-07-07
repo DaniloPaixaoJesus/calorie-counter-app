@@ -74,7 +74,9 @@ public class AppApiKeyFilter extends OncePerRequestFilter {
             path = path.substring(contextPath.length());
         }
 
-        return path.equals("/ai") || path.startsWith("/ai/");
+        return path.equals("/ai") || path.startsWith("/ai/")
+                || path.equals("/auth") || path.startsWith("/auth/")
+                || path.equals("/users") || path.startsWith("/users/");
     }
 
     private boolean allowRequest(String apiKey, String clientIp) {

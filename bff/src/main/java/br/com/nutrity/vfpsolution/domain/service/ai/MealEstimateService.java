@@ -34,7 +34,8 @@ public class MealEstimateService {
             throw new BusinessException("Provider de IA não suportado: " + provider);
         }
 
-        var estimate = adapter.estimateCalories(request.descricao().trim());
+        String locale = normalizeLocale(request.locale());
+        var estimate = adapter.estimateCalories(request.descricao().trim(), locale);
         var macronutrients = estimate.macronutrients() == null
                 ? new AiMacronutrients(0, 0, 0)
                 : estimate.macronutrients();
@@ -52,6 +53,23 @@ public class MealEstimateService {
                 estimate.iconKey(),
                 adapter.provider()
         );
+    }
+
+    private String normalizeLocale(String value) {
+        if (value == null || value.isBlank()) {
+            return "en_US";
+        }
+        String normalized = value.trim().replace('-', '_');
+        if (normalized.equalsIgnoreCase("pt") || normalized.equalsIgnoreCase("pt_BR")) {
+            return "pt_BR";
+        }
+        if (normalized.equalsIgnoreCase("es") || normalized.toLowerCase(Locale.ROOT).startsWith("es_")) {
+            return "es";
+        }
+        if (normalized.equalsIgnoreCase("en") || normalized.equalsIgnoreCase("en_US")) {
+            return "en_US";
+        }
+        return "en_US";
     }
 
     private String firstNonBlank(String value, String fallback) {

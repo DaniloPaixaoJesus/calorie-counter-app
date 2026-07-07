@@ -15,19 +15,22 @@ spring:
     throw-exception-if-no-handler-found: true
   #Database properties
   datasource:
-    url: jdbc:h2:mem:testdb
-    driver-class-name: org.h2.Driver
-    username: sa
-    password: ""
+    url: ${DB_URL:jdbc:h2:mem:nutritydb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE}
+    driver-class-name: ${DB_DRIVER:org.h2.Driver}
+    username: ${DB_USERNAME:sa}
+    password: ${DB_PASSWORD:}
     
   h2:
     console:
-      enabled: true
-      path: /h2
+      enabled: ${H2_CONSOLE_ENABLED:true}
+      path: ${H2_CONSOLE_PATH:/h2}
+      settings:
+        trace: false
+        web-allow-others: true
   jpa:
     showSql: ${JPA_SHOW_SQL:true}
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: ${JPA_DDL_AUTO:update}
   
   sql:
     init:

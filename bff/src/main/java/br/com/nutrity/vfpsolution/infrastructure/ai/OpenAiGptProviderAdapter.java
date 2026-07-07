@@ -19,7 +19,7 @@ import java.util.Map;
 public class OpenAiGptProviderAdapter implements AiProviderAdapter {
 
     private static final String SYSTEM_PROMPT = """
-            Você estima calorias de refeições em português do Brasil.
+            Você estima calorias de refeições.
             Responda somente JSON válido com os campos:
             descricaoInterpretada, calorias, macronutrients, observacao, confidence, iconKey.
             macronutrients deve ser um objeto com proteinGrams, carbohydrateGrams e fatGrams.
@@ -64,7 +64,7 @@ public class OpenAiGptProviderAdapter implements AiProviderAdapter {
     }
 
     @Override
-    public AiMealEstimate estimateCalories(String descricao) {
+    public AiMealEstimate estimateCalories(String descricao, String locale) {
         if (properties.getApiKey() == null || properties.getApiKey().isBlank()) {
             throw new BusinessException("OPENAI_API_KEY não configurada para o provider openai-gpt");
         }
@@ -74,7 +74,7 @@ public class OpenAiGptProviderAdapter implements AiProviderAdapter {
                     .uri("/v1/responses")
                     .contentType(MediaType.APPLICATION_JSON)
                     .header("Authorization", "Bearer " + properties.getApiKey())
-                    .body(requestBody(descricao))
+                    .body(requestBody(descricao, locale))
                     .retrieve()
                     .body(JsonNode.class);
 
@@ -96,12 +96,28 @@ public class OpenAiGptProviderAdapter implements AiProviderAdapter {
         }
     }
 
-    private Map<String, Object> requestBody(String descricao) {
+    private Map<String, Object> requestBody(String descricao, String locale) {
         return Map.of(
                 "model", properties.getModel(),
                 "temperature", 0.2,
-                "input", SYSTEM_PROMPT + "\nDescrição da refeição: " + descricao
+                "input", SYSTEM_PROMPT
+                        + "\nIdioma obrigatório da resposta: " + responseLanguage(locale)
+                        + "\nDescrição da refeição: " + descricao
         );
+    }
+
+    private String responseLanguage(String locale) {
+        if (locale == null || locale.isBlank()) {
+            return "English (United States)";
+        }
+        String normalized = locale.trim().replace('-', '_').toLowerCase();
+        if (normalized.equals("pt") || normalized.equals("pt_br")) {
+            return "Português do Brasil";
+        }
+        if (normalized.equals("es") || normalized.startsWith("es_")) {
+            return "Español";
+        }
+        return "English (United States)";
     }
 
     private String extractOutputText(JsonNode response) {

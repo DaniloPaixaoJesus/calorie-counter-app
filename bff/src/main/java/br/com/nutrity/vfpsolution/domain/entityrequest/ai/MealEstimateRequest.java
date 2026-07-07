@@ -9,6 +9,9 @@ public record MealEstimateRequest(
         String descricao,
 
         @Size(max = 40)
-        String provider
+        String provider,
+
+        @Size(max = 12)
+        String locale
 ) {
 }

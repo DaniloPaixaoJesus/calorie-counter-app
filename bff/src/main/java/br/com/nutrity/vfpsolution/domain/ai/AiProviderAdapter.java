@@ -4,5 +4,5 @@ public interface AiProviderAdapter {
 
     String provider();
 
-    AiMealEstimate estimateCalories(String descricao);
+    AiMealEstimate estimateCalories(String descricao, String locale);
 }
