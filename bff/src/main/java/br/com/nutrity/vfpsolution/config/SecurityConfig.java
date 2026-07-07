@@ -2,6 +2,8 @@ package br.com.nutrity.vfpsolution.config;
 
 import br.com.nutrity.vfpsolution.config.security.AppApiKeyFilter;
 import br.com.nutrity.vfpsolution.config.security.AppApiSecurityProperties;
+import br.com.nutrity.vfpsolution.config.security.GoogleUserTokenFilter;
+import br.com.nutrity.vfpsolution.domain.service.user.GoogleOAuthValidator;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -27,6 +29,11 @@ public class SecurityConfig {
     }
 
     @Bean
+    public GoogleUserTokenFilter googleUserTokenFilter(GoogleOAuthValidator googleOAuthValidator) {
+        return new GoogleUserTokenFilter(googleOAuthValidator);
+    }
+
+    @Bean
     public FilterRegistrationBean<AppApiKeyFilter> appApiKeyFilterRegistration(AppApiKeyFilter appApiKeyFilter) {
         FilterRegistrationBean<AppApiKeyFilter> registration = new FilterRegistrationBean<>(appApiKeyFilter);
         registration.setEnabled(false);
@@ -34,7 +41,20 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, AppApiKeyFilter appApiKeyFilter) throws Exception {
+    public FilterRegistrationBean<GoogleUserTokenFilter> googleUserTokenFilterRegistration(
+            GoogleUserTokenFilter googleUserTokenFilter
+    ) {
+        FilterRegistrationBean<GoogleUserTokenFilter> registration = new FilterRegistrationBean<>(googleUserTokenFilter);
+        registration.setEnabled(false);
+        return registration;
+    }
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            AppApiKeyFilter appApiKeyFilter,
+            GoogleUserTokenFilter googleUserTokenFilter
+    ) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(
@@ -44,6 +64,7 @@ public class SecurityConfig {
                 .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
+                .addFilterBefore(googleUserTokenFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(appApiKeyFilter, UsernamePasswordAuthenticationFilter.class);
         // .authenticated() // Requer autenticação para qualquer outra rota
         // .httpBasic(); // Usa autenticação HTTP Basic

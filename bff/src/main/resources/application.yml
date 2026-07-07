@@ -71,7 +71,13 @@ nutrity:
       api-key: ${OPENAI_API_KEY:}
       base-url: ${OPENAI_BASE_URL:https://api.openai.com}
       model: ${OPENAI_MODEL:gpt-4.1-mini}
+      cheap-model: ${OPENAI_CHEAP_MODEL:gpt-4.1-nano}
       timeout-seconds: ${OPENAI_TIMEOUT_SECONDS:20}
+  auth:
+    google:
+      enabled: ${GOOGLE_OAUTH_VALIDATION_ENABLED:true}
+      token-info-url: ${GOOGLE_OAUTH_TOKEN_INFO_URL:https://oauth2.googleapis.com/tokeninfo}
+      allowed-audiences: ${GOOGLE_OAUTH_ALLOWED_AUDIENCES:}
 
 feign-client:
   cnarh40:

@@ -21,7 +21,7 @@ public class AuthController {
 
     private final UserPersistenceService userPersistenceService;
 
-    @Operation(summary = "Autentica usuário via Google OAuth e grava perfil em memória")
+    @Operation(summary = "Valida Google OAuth, autentica usuário e grava perfil")
     @PostMapping("/google")
     public ResponseEntity<UserProfileDto> authenticateGoogle(@Valid @RequestBody GoogleAuthRequest request) {
         return ResponseEntity.ok(userPersistenceService.authenticateWithGoogle(request));

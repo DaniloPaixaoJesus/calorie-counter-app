@@ -42,6 +42,16 @@ public class OpenAiGptProviderAdapter implements AiProviderAdapter {
             Não use Markdown, não use bloco de código e não inclua texto antes ou depois do JSON.
             """;
 
+    private static final String SIMPLE_SYSTEM_PROMPT = """
+            Você estima calorias de refeições de forma rápida e econômica.
+            Responda somente JSON válido com os campos:
+            descricaoInterpretada, calorias, macronutrients, observacao, confidence, iconKey.
+            macronutrients deve ter proteinGrams, carbohydrateGrams e fatGrams como inteiros >= 0.
+            iconKey deve ser: default, protein, grain, legume, vegetable ou fruit.
+            Use uma estimativa simplificada com porções médias quando o usuário não informar quantidade.
+            Não use Markdown e não inclua texto fora do JSON.
+            """;
+
     private final AiProviderProperties.OpenAi properties;
     private final ObjectMapper objectMapper;
     private final RestClient restClient;
@@ -64,7 +74,7 @@ public class OpenAiGptProviderAdapter implements AiProviderAdapter {
     }
 
     @Override
-    public AiMealEstimate estimateCalories(String descricao, String locale) {
+    public AiMealEstimate estimateCalories(String descricao, String locale, boolean premium) {
         if (properties.getApiKey() == null || properties.getApiKey().isBlank()) {
             throw new BusinessException("OPENAI_API_KEY não configurada para o provider openai-gpt");
         }
@@ -74,7 +84,7 @@ public class OpenAiGptProviderAdapter implements AiProviderAdapter {
                     .uri("/v1/responses")
                     .contentType(MediaType.APPLICATION_JSON)
                     .header("Authorization", "Bearer " + properties.getApiKey())
-                    .body(requestBody(descricao, locale))
+                    .body(requestBody(descricao, locale, premium))
                     .retrieve()
                     .body(JsonNode.class);
 
@@ -96,11 +106,11 @@ public class OpenAiGptProviderAdapter implements AiProviderAdapter {
         }
     }
 
-    private Map<String, Object> requestBody(String descricao, String locale) {
+    private Map<String, Object> requestBody(String descricao, String locale, boolean premium) {
         return Map.of(
-                "model", properties.getModel(),
-                "temperature", 0.2,
-                "input", SYSTEM_PROMPT
+                "model", premium ? properties.getModel() : properties.getCheapModel(),
+                "temperature", premium ? 0.2 : 0.1,
+                "input", (premium ? SYSTEM_PROMPT : SIMPLE_SYSTEM_PROMPT)
                         + "\nIdioma obrigatório da resposta: " + responseLanguage(locale)
                         + "\nDescrição da refeição: " + descricao
         );

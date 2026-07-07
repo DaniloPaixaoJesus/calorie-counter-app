@@ -32,7 +32,7 @@ public class MockAiProviderAdapter implements AiProviderAdapter {
     }
 
     @Override
-    public AiMealEstimate estimateCalories(String descricao, String locale) {
+    public AiMealEstimate estimateCalories(String descricao, String locale, boolean premium) {
         String normalizedDescription = descricao.trim();
         String comparableDescription = normalizedDescription.toLowerCase(Locale.ROOT);
 

@@ -24,6 +24,7 @@ public class AiProviderProperties {
         private String apiKey;
         private String baseUrl = "https://api.openai.com";
         private String model = "gpt-4.1-mini";
+        private String cheapModel = "gpt-4.1-nano";
         private int timeoutSeconds = 20;
 
         public String getApiKey() {
@@ -48,6 +49,14 @@ public class AiProviderProperties {
 
         public void setModel(String model) {
             this.model = model;
+        }
+
+        public String getCheapModel() {
+            return cheapModel;
+        }
+
+        public void setCheapModel(String cheapModel) {
+            this.cheapModel = cheapModel;
         }
 
         public int getTimeoutSeconds() {

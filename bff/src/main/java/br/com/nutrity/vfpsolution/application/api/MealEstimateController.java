@@ -7,7 +7,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,7 +25,10 @@ public class MealEstimateController {
 
     @Operation(summary = "Estima calorias de uma refeição a partir de texto livre")
     @PostMapping
-    public ResponseEntity<MealEstimateDto> estimate(@Valid @RequestBody MealEstimateRequest request) {
-        return ResponseEntity.ok(service.estimate(request));
+    public ResponseEntity<MealEstimateDto> estimate(
+            @Valid @RequestBody MealEstimateRequest request,
+            @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorizationHeader
+    ) {
+        return ResponseEntity.ok(service.estimate(request, authorizationHeader));
     }
 }

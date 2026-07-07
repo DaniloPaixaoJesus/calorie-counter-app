@@ -27,18 +27,21 @@ public class UserPersistenceService {
 
     private final UserProfileRepository userProfileRepository;
     private final UserMealRepository userMealRepository;
+    private final GoogleOAuthValidator googleOAuthValidator;
 
     public UserPersistenceService(
             UserProfileRepository userProfileRepository,
-            UserMealRepository userMealRepository
+            UserMealRepository userMealRepository,
+            GoogleOAuthValidator googleOAuthValidator
     ) {
         this.userProfileRepository = userProfileRepository;
         this.userMealRepository = userMealRepository;
+        this.googleOAuthValidator = googleOAuthValidator;
     }
 
     @Transactional
     public UserProfileDto authenticateWithGoogle(GoogleAuthRequest request) {
-        validateGooglePayload(request);
+        googleOAuthValidator.validate(request);
 
         String email = request.email().trim().toLowerCase(Locale.ROOT);
         OffsetDateTime now = OffsetDateTime.now();
@@ -70,6 +73,14 @@ public class UserPersistenceService {
     @Transactional(readOnly = true)
     public UserProfileDto findUser(String userId) {
         return toDto(findUserEntity(userId));
+    }
+
+    @Transactional(readOnly = true)
+    public void assertUserAccess(String userId, String authenticatedEmail) {
+        UserProfile user = findUserEntity(userId);
+        if (authenticatedEmail == null || !user.getEmail().equalsIgnoreCase(authenticatedEmail.trim())) {
+            throw new BusinessException("Usuário autenticado não tem acesso a este recurso");
+        }
     }
 
     @Transactional
@@ -117,15 +128,6 @@ public class UserPersistenceService {
     private UserProfile findUserEntity(String userId) {
         return userProfileRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException("Usuário não encontrado: " + userId));
-    }
-
-    private void validateGooglePayload(GoogleAuthRequest request) {
-        boolean hasToken = !isBlank(request.idToken()) || !isBlank(request.accessToken());
-        if (!hasToken) {
-            // Integração inicial: o app ainda pode rodar em modo debug sem idToken em algumas plataformas.
-            // Mantemos validação estrutural do e-mail e centralizamos aqui a futura validação real do token Google.
-            return;
-        }
     }
 
     private UserProfileDto toDto(UserProfile user) {

@@ -63,39 +63,13 @@ class MealEstimateControllerTest {
     }
 
     @Test
-    void shouldRejectAiRequestsWithoutAppApiKey() throws Exception {
+    void shouldAllowPublicAiRequestsWithoutAppApiKey() throws Exception {
         mockMvc.perform(post("/ai/meal-estimates")
                         .header("X-Forwarded-For", "10.0.0.4")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"descricao\":\"banana\"}"))
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.mensagem", is("API key inválida ou ausente")));
-    }
-
-    @Test
-    void shouldRateLimitAiRequestsByApiKeyAndClientIp() throws Exception {
-        String payload = "{\"descricao\":\"banana\"}";
-
-        mockMvc.perform(post("/ai/meal-estimates")
-                        .header("X-App-Api-Key", "test-key")
-                        .header("X-Forwarded-For", "10.0.0.5")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(payload))
-                .andExpect(status().isOk());
-
-        mockMvc.perform(post("/ai/meal-estimates")
-                        .header("X-App-Api-Key", "test-key")
-                        .header("X-Forwarded-For", "10.0.0.5")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(payload))
-                .andExpect(status().isOk());
-
-        mockMvc.perform(post("/ai/meal-estimates")
-                        .header("X-App-Api-Key", "test-key")
-                        .header("X-Forwarded-For", "10.0.0.5")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(payload))
-                .andExpect(status().isTooManyRequests())
-                .andExpect(jsonPath("$.mensagem", is("Limite de requisições excedido")));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.provider", is("mock")))
+                .andExpect(jsonPath("$.calorias", greaterThan(0)));
     }
 }
