@@ -63,12 +63,15 @@ class SqliteAppSettingsRepository implements AppSettingsRepository {
         userName TEXT,
         userEmail TEXT,
         userPhotoAssetPath TEXT,
+        dailyCalorieGoal INTEGER NOT NULL DEFAULT 2000,
         updatedAt TEXT NOT NULL
       )
     ''');
     await _ensureColumn(db, 'userName', 'TEXT');
     await _ensureColumn(db, 'userEmail', 'TEXT');
     await _ensureColumn(db, 'userPhotoAssetPath', 'TEXT');
+    await _ensureColumn(
+        db, 'dailyCalorieGoal', 'INTEGER NOT NULL DEFAULT 2000');
   }
 
   static Future<void> _ensureColumn(

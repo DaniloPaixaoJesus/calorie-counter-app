@@ -6,11 +6,11 @@ import 'package:calorie_counter_app/design_system/app_spacing.dart';
 import 'package:calorie_counter_app/features/onboarding/paywall_page.dart';
 import 'package:calorie_counter_app/models/app_settings.dart';
 import 'package:calorie_counter_app/models/meal.dart';
-import 'package:calorie_counter_app/services/auth/google_auth_service.dart';
 import 'package:calorie_counter_app/services/subscription/subscription_service.dart';
 import 'package:calorie_counter_app/utils/adaptive_page_route.dart';
 import 'package:intl/intl.dart';
 import 'edit_meal_page.dart';
+import 'profile_insights_page.dart';
 import 'view_model.dart';
 import 'widgets/date_navigation_bar.dart';
 import 'widgets/date_empty_state.dart';
@@ -75,6 +75,15 @@ class HomePage extends StatelessWidget {
     );
   }
 
+  Future<void> _openProfileInsights(BuildContext context) async {
+    await Navigator.of(context).push(
+      adaptivePageRoute(
+        context: context,
+        builder: (_) => const ProfileInsightsPage(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<HomeViewModel>();
@@ -95,19 +104,14 @@ class HomePage extends StatelessWidget {
             ),
             child: Column(
               children: [
+                const SizedBox(height: AppSpacing.md),
                 if (isPremium && settings?.userName != null) ...[
                   Padding(
                     padding:
                         EdgeInsets.symmetric(horizontal: horizontalPadding),
                     child: _PremiumHeader(
                       settings: settings!,
-                      onLogout: () async {
-                        try {
-                          await GoogleAuthService().signOut();
-                        } catch (_) {}
-                        if (!context.mounted) return;
-                        await context.read<SubscriptionService>().logout();
-                      },
+                      onProfileTap: () => _openProfileInsights(context),
                     ),
                   ),
                   const SizedBox(height: AppSpacing.md),
@@ -122,7 +126,10 @@ class HomePage extends StatelessWidget {
                 const DateNavigationBar(),
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-                  child: CalorieTotalCard(totalCalorias: vm.totalHoje),
+                  child: CalorieTotalCard(
+                    totalCalorias: vm.totalHoje,
+                    dailyGoal: settings?.dailyCalorieGoal,
+                  ),
                 ),
                 const SizedBox(height: AppSpacing.md),
                 Padding(
@@ -130,6 +137,7 @@ class HomePage extends StatelessWidget {
                   child: MacronutrientsSummaryCard(
                     macronutrients: vm.totalMacronutrientsHoje,
                     title: _macroTitle(vm),
+                    showDistributionBar: false,
                   ),
                 ),
                 if (showAds) ...[
@@ -201,90 +209,22 @@ class HomePage extends StatelessWidget {
 
 class _PremiumHeader extends StatelessWidget {
   final AppSettings settings;
-  final Future<void> Function() onLogout;
+  final VoidCallback onProfileTap;
 
-  const _PremiumHeader({required this.settings, required this.onLogout});
-
-  void _showUserData(BuildContext context) {
-    showModalBottomSheet<void>(
-      context: context,
-      showDragHandle: true,
-      builder: (context) {
-        final colorScheme = Theme.of(context).colorScheme;
-
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.lg,
-              AppSpacing.sm,
-              AppSpacing.lg,
-              AppSpacing.xl,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    _UserPhoto(settings: settings, radius: 28),
-                    const SizedBox(width: AppSpacing.md),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            settings.userName ?? 'Usuário Premium',
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleMedium
-                                ?.copyWith(fontWeight: FontWeight.w800),
-                          ),
-                          if ((settings.userEmail ?? '').isNotEmpty)
-                            Text(
-                              settings.userEmail!,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
-                                  ?.copyWith(
-                                    color: colorScheme.onSurfaceVariant,
-                                  ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: const PremiumCrownIcon(),
-                  title: const Text('Plano Premium'),
-                  subtitle: const Text('Autenticado via Google'),
-                ),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton.icon(
-                    onPressed: () async {
-                      Navigator.of(context).pop();
-                      await onLogout();
-                    },
-                    icon: const Icon(Icons.logout_rounded),
-                    label: const Text('Logout'),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
+  const _PremiumHeader({
+    required this.settings,
+    required this.onProfileTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const PremiumCrownIcon(size: 20),
+        const Icon(
+          Icons.workspace_premium_rounded,
+          color: Color(0xFFF2BE1A),
+          size: 20,
+        ),
         const SizedBox(width: AppSpacing.xs),
         Text(
           'Premium',
@@ -294,10 +234,10 @@ class _PremiumHeader extends StatelessWidget {
         ),
         const Spacer(),
         Tooltip(
-          message: 'Dados do usuário',
+          message: 'Perfil e metas',
           child: InkWell(
             customBorder: const CircleBorder(),
-            onTap: () => _showUserData(context),
+            onTap: onProfileTap,
             child: _UserPhoto(settings: settings, radius: 18),
           ),
         ),

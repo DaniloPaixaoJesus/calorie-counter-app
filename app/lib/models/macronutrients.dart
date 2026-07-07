@@ -47,9 +47,9 @@ class Macronutrients {
     );
   }
 
-  static const _proteinColor = Color(0xFF2E7D32);
-  static const _carbsColor = Color(0xFFB7791F);
-  static const _fatColor = Color(0xFFC9A227);
+  static const _proteinColor = Color(0xFF2EA8D9);
+  static const _carbsColor = Color(0xFFF47A20);
+  static const _fatColor = Color(0xFFF2BE1A);
 
   static const zero = Macronutrients(
     protein: Macronutrient(
@@ -105,7 +105,7 @@ class Macronutrients {
     ),
   );
 
-  List<Macronutrient> get values => [protein, carbs, fat];
+  List<Macronutrient> get values => [protein, fat, carbs];
 
   int get totalGrams => values.fold(0, (sum, macro) => sum + macro.grams);
 

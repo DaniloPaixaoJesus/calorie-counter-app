@@ -133,6 +133,7 @@ class _EditMealPageState extends State<EditMealPage> {
           MacronutrientsSummaryCard(
             macronutrients: meal.macronutrients ?? Macronutrients.zero,
             compact: true,
+            showDistributionBar: false,
           ),
           const SizedBox(height: AppSpacing.lg),
         ],

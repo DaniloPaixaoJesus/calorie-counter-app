@@ -14,6 +14,7 @@ class AppSettings {
   final String? userName;
   final String? userEmail;
   final String? userPhotoAssetPath;
+  final int dailyCalorieGoal;
 
   const AppSettings({
     this.selectedPlan,
@@ -26,6 +27,7 @@ class AppSettings {
     this.userName,
     this.userEmail,
     this.userPhotoAssetPath,
+    this.dailyCalorieGoal = 2000,
   });
 
   static const empty = AppSettings();
@@ -43,6 +45,7 @@ class AppSettings {
     String? userName,
     String? userEmail,
     String? userPhotoAssetPath,
+    int? dailyCalorieGoal,
   }) {
     return AppSettings(
       selectedPlan: selectedPlan ?? this.selectedPlan,
@@ -56,6 +59,7 @@ class AppSettings {
       userName: userName ?? this.userName,
       userEmail: userEmail ?? this.userEmail,
       userPhotoAssetPath: userPhotoAssetPath ?? this.userPhotoAssetPath,
+      dailyCalorieGoal: dailyCalorieGoal ?? this.dailyCalorieGoal,
     );
   }
 
@@ -71,6 +75,7 @@ class AppSettings {
       'userName': userName,
       'userEmail': userEmail,
       'userPhotoAssetPath': userPhotoAssetPath,
+      'dailyCalorieGoal': dailyCalorieGoal,
     };
   }
 
@@ -87,6 +92,7 @@ class AppSettings {
       userName: map['userName'] as String?,
       userEmail: map['userEmail'] as String?,
       userPhotoAssetPath: map['userPhotoAssetPath'] as String?,
+      dailyCalorieGoal: (map['dailyCalorieGoal'] as int?) ?? 2000,
     );
   }
 

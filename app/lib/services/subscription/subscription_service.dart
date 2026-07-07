@@ -95,6 +95,11 @@ class SubscriptionService extends ChangeNotifier {
     );
   }
 
+  Future<void> updateDailyCalorieGoal(int goal) async {
+    final normalizedGoal = goal.clamp(800, 6000).toInt();
+    await _save(_settings.copyWith(dailyCalorieGoal: normalizedGoal));
+  }
+
   Future<void> _save(AppSettings settings) async {
     _settings = settings;
     await _repository.save(settings);

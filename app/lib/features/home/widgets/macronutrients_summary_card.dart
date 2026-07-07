@@ -7,12 +7,14 @@ class MacronutrientsSummaryCard extends StatelessWidget {
   final Macronutrients macronutrients;
   final bool compact;
   final String title;
+  final bool showDistributionBar;
 
   const MacronutrientsSummaryCard({
     super.key,
     required this.macronutrients,
     this.compact = false,
     this.title = 'Macronutrientes estimados',
+    this.showDistributionBar = true,
   });
 
   @override
@@ -44,8 +46,10 @@ class MacronutrientsSummaryCard extends StatelessWidget {
                     Expanded(child: _MacroValue(macro: macro)),
                 ],
               ),
-            const SizedBox(height: AppSpacing.md),
-            _MacroDistributionBar(macronutrients: macronutrients),
+            if (showDistributionBar) ...[
+              const SizedBox(height: AppSpacing.md),
+              _MacroDistributionBar(macronutrients: macronutrients),
+            ],
           ],
         ),
       ),
@@ -62,20 +66,33 @@ class _MacroDistributionBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final total = macronutrients.totalGrams;
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(AppRadius.sm),
-      child: SizedBox(
-        height: 8,
-        child: Row(
-          children: [
-            for (final macro in macronutrients.values)
-              Expanded(
-                flex: total == 0 ? 1 : macro.grams,
-                child: ColoredBox(color: macro.color.withValues(alpha: 0.85)),
-              ),
-          ],
-        ),
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width =
+            constraints.maxWidth.isFinite ? constraints.maxWidth : 0.0;
+
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(AppRadius.sm),
+          child: Container(
+            width: double.infinity,
+            height: 8,
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            child: Row(
+              children: [
+                for (final macro in macronutrients.values)
+                  SizedBox(
+                    width: total == 0
+                        ? width / macronutrients.values.length
+                        : width * (macro.grams / total),
+                    child: ColoredBox(
+                      color: macro.color.withValues(alpha: 0.95),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -97,13 +114,22 @@ class _MacroValue extends StatelessWidget {
               ),
         ),
         const SizedBox(height: AppSpacing.xs),
-        Text(
-          macro.label,
-          textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.w700,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _MacroColorDot(color: macro.color),
+            const SizedBox(width: AppSpacing.xs),
+            Flexible(
+              child: Text(
+                macro.label,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w700,
+                    ),
               ),
+            ),
+          ],
         ),
       ],
     );
@@ -120,17 +146,28 @@ class _CompactMacroValue extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          width: 8,
-          height: 8,
-          decoration: BoxDecoration(
-            color: macro.color,
-            shape: BoxShape.circle,
-          ),
-        ),
+        _MacroColorDot(color: macro.color),
         const SizedBox(width: AppSpacing.xs),
         Text('${macro.label}: ${macro.grams} g'),
       ],
+    );
+  }
+}
+
+class _MacroColorDot extends StatelessWidget {
+  final Color color;
+
+  const _MacroColorDot({required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 8,
+      height: 8,
+      decoration: BoxDecoration(
+        color: color,
+        shape: BoxShape.circle,
+      ),
     );
   }
 }

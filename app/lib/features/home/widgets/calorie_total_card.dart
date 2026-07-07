@@ -4,8 +4,13 @@ import 'package:flutter/material.dart';
 
 class CalorieTotalCard extends StatelessWidget {
   final int totalCalorias;
+  final int? dailyGoal;
 
-  const CalorieTotalCard({super.key, required this.totalCalorias});
+  const CalorieTotalCard({
+    super.key,
+    required this.totalCalorias,
+    this.dailyGoal,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -46,9 +51,59 @@ class CalorieTotalCard extends StatelessWidget {
                     color: colorScheme.onPrimary.withValues(alpha: 0.85),
                   ),
             ),
+            if (dailyGoal != null) ...[
+              const SizedBox(height: AppSpacing.sm),
+              _GoalProgress(
+                totalCalorias: totalCalorias,
+                dailyGoal: dailyGoal!,
+              ),
+            ],
           ],
         ),
       ),
+    );
+  }
+}
+
+class _GoalProgress extends StatelessWidget {
+  final int totalCalorias;
+  final int dailyGoal;
+
+  const _GoalProgress({
+    required this.totalCalorias,
+    required this.dailyGoal,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final progress = dailyGoal <= 0
+        ? 0.0
+        : (totalCalorias / dailyGoal).clamp(0.0, 1.0).toDouble();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(AppRadius.sm),
+          child: LinearProgressIndicator(
+            value: progress,
+            minHeight: 6,
+            backgroundColor: colorScheme.onPrimary.withValues(alpha: 0.22),
+            valueColor: AlwaysStoppedAnimation<Color>(
+              colorScheme.onPrimary.withValues(alpha: 0.92),
+            ),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Text(
+          'Meta diaria: $dailyGoal kcal',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: colorScheme.onPrimary.withValues(alpha: 0.85),
+                fontWeight: FontWeight.w600,
+              ),
+        ),
+      ],
     );
   }
 }
