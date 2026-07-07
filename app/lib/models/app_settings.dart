@@ -15,6 +15,7 @@ class AppSettings {
   final String? userName;
   final String? userEmail;
   final String? userPhotoAssetPath;
+  final String? googleAuthToken;
   final DateTime? birthDate;
   final String? gender;
   final int dailyCalorieGoal;
@@ -31,6 +32,7 @@ class AppSettings {
     this.userName,
     this.userEmail,
     this.userPhotoAssetPath,
+    this.googleAuthToken,
     this.birthDate,
     this.gender,
     this.dailyCalorieGoal = 2000,
@@ -52,6 +54,7 @@ class AppSettings {
     String? userName,
     String? userEmail,
     String? userPhotoAssetPath,
+    String? googleAuthToken,
     DateTime? birthDate,
     String? gender,
     int? dailyCalorieGoal,
@@ -69,6 +72,7 @@ class AppSettings {
       userName: userName ?? this.userName,
       userEmail: userEmail ?? this.userEmail,
       userPhotoAssetPath: userPhotoAssetPath ?? this.userPhotoAssetPath,
+      googleAuthToken: googleAuthToken ?? this.googleAuthToken,
       birthDate: birthDate ?? this.birthDate,
       gender: gender ?? this.gender,
       dailyCalorieGoal: dailyCalorieGoal ?? this.dailyCalorieGoal,
@@ -88,6 +92,7 @@ class AppSettings {
       'userName': userName,
       'userEmail': userEmail,
       'userPhotoAssetPath': userPhotoAssetPath,
+      'googleAuthToken': googleAuthToken,
       'birthDate': birthDate?.toIso8601String(),
       'gender': gender,
       'dailyCalorieGoal': dailyCalorieGoal,
@@ -108,6 +113,7 @@ class AppSettings {
       userName: map['userName'] as String?,
       userEmail: map['userEmail'] as String?,
       userPhotoAssetPath: map['userPhotoAssetPath'] as String?,
+      googleAuthToken: map['googleAuthToken'] as String?,
       birthDate: _parseDate(map['birthDate']),
       gender: map['gender'] as String?,
       dailyCalorieGoal: (map['dailyCalorieGoal'] as int?) ?? 2000,

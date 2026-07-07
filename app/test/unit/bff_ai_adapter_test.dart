@@ -6,12 +6,13 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('BffAiAdapter', () {
-    test('envia descrição para endpoint público com X-App-Api-Key', () async {
+    test('envia descrição para endpoint público com bearer opcional', () async {
       late Uri capturedEndpoint;
       late Map<String, String> capturedHeaders;
       late Map<String, Object?> capturedBody;
 
       final adapter = BffAiAdapter(
+        authTokenProvider: () => 'google-token-123',
         transport: ({
           required endpoint,
           required headers,
@@ -47,6 +48,7 @@ void main() {
         'https://nutrity-bff-695228964694.southamerica-east1.run.app/bff-service/ai/meal-estimates',
       );
       expect(capturedHeaders['X-App-Api-Key'], isNotEmpty);
+      expect(capturedHeaders['authorization'], 'Bearer google-token-123');
       expect(
           capturedHeaders['content-type'], 'application/json; charset=utf-8');
       expect(capturedBody['descricao'], 'banana e ovo mexido');

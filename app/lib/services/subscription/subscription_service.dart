@@ -84,6 +84,7 @@ class SubscriptionService extends ChangeNotifier {
         userPhotoAssetPath: (trimmedPhoto == null || trimmedPhoto.isEmpty)
             ? null
             : trimmedPhoto,
+        googleAuthToken: null,
         remainingDailyEstimations: freeDailyEstimateLimit,
         lastResetDate: DateTime.now(),
       ),
@@ -103,6 +104,7 @@ class SubscriptionService extends ChangeNotifier {
           userName: remoteSettings.userName,
           userEmail: remoteSettings.userEmail,
           userPhotoAssetPath: remoteSettings.userPhotoAssetPath,
+          googleAuthToken: remoteSettings.googleAuthToken,
           birthDate: remoteSettings.birthDate,
           gender: remoteSettings.gender,
           dailyCalorieGoal: remoteSettings.dailyCalorieGoal,

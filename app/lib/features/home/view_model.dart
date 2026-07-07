@@ -181,7 +181,11 @@ class HomeViewModel extends ChangeNotifier {
     }
 
     try {
-      await userBffService.addMeal(userId: userId, meal: meal);
+      await userBffService.addMeal(
+        userId: userId,
+        meal: meal,
+        bearerToken: _subscriptionService.settings.googleAuthToken,
+      );
     } on UserBffException catch (error) {
       _homeErrorMessage = error.statusCode == null
           ? error.message

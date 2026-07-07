@@ -34,7 +34,9 @@ class UserBffService {
       'locale': localeProvider(),
     });
 
-    return _settingsFromResponse(response);
+    return _settingsFromResponse(response).copyWith(
+      googleAuthToken: account.idToken ?? account.accessToken,
+    );
   }
 
   Future<AppSettings> updateProfile(AppSettings settings) async {
@@ -43,13 +45,17 @@ class UserBffService {
       throw const UserBffException('Usuário sem id remoto');
     }
 
-    final response = await client.put('/users/$userId', {
-      'name': settings.userName,
-      'birthDate': settings.birthDate?.toIso8601String().split('T').first,
-      'gender': settings.gender,
-      'dailyCalorieGoal': settings.dailyCalorieGoal,
-      'locale': localeProvider(),
-    });
+    final response = await client.put(
+      '/users/$userId',
+      {
+        'name': settings.userName,
+        'birthDate': settings.birthDate?.toIso8601String().split('T').first,
+        'gender': settings.gender,
+        'dailyCalorieGoal': settings.dailyCalorieGoal,
+        'locale': localeProvider(),
+      },
+      bearerToken: settings.googleAuthToken,
+    );
 
     return _settingsFromResponse(response);
   }
@@ -57,22 +63,27 @@ class UserBffService {
   Future<void> addMeal({
     required String userId,
     required Meal meal,
+    required String? bearerToken,
   }) async {
-    final response = await client.post('/users/$userId/meals', {
-      'id': meal.id,
-      'descricao': meal.descricao,
-      'calorias': meal.calorias,
-      'timestamp': meal.timestamp.toUtc().toIso8601String(),
-      'origem': meal.origem.name,
-      'aiConfidence': meal.aiConfidence,
-      'nota': meal.nota,
-      'iconKey': meal.iconKey,
-      'macronutrients': {
-        'proteinGrams': meal.macronutrients?.protein.grams ?? 0,
-        'carbohydrateGrams': meal.macronutrients?.carbs.grams ?? 0,
-        'fatGrams': meal.macronutrients?.fat.grams ?? 0,
+    final response = await client.post(
+      '/users/$userId/meals',
+      {
+        'id': meal.id,
+        'descricao': meal.descricao,
+        'calorias': meal.calorias,
+        'timestamp': meal.timestamp.toUtc().toIso8601String(),
+        'origem': meal.origem.name,
+        'aiConfidence': meal.aiConfidence,
+        'nota': meal.nota,
+        'iconKey': meal.iconKey,
+        'macronutrients': {
+          'proteinGrams': meal.macronutrients?.protein.grams ?? 0,
+          'carbohydrateGrams': meal.macronutrients?.carbs.grams ?? 0,
+          'fatGrams': meal.macronutrients?.fat.grams ?? 0,
+        },
       },
-    });
+      bearerToken: bearerToken,
+    );
 
     _ensureSuccess(response);
   }
@@ -92,6 +103,7 @@ class UserBffService {
       userEmail: _readString(decoded, 'email'),
       userName: _readString(decoded, 'name'),
       userPhotoAssetPath: _readString(decoded, 'photoUrl'),
+      googleAuthToken: null,
       birthDate: _parseDate(_readString(decoded, 'birthDate')),
       gender: _readString(decoded, 'gender'),
       dailyCalorieGoal: _readInt(decoded, 'dailyCalorieGoal') ?? 2000,

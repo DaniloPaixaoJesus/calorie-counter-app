@@ -44,6 +44,7 @@ class BffAiAdapter implements AiAdapter {
   final String apiKeyHeader;
   final Duration timeout;
   final String Function()? localeProvider;
+  final String? Function()? authTokenProvider;
   final BffAiTransport _transport;
 
   BffAiAdapter({
@@ -52,6 +53,7 @@ class BffAiAdapter implements AiAdapter {
     this.apiKeyHeader = _defaultApiKeyHeader,
     this.timeout = const Duration(seconds: 30),
     this.localeProvider,
+    this.authTokenProvider,
     BffAiTransport? transport,
   })  : endpoint = endpoint ?? Uri.parse(_defaultEndpoint),
         _transport = transport ?? _postWithHttpClient;
@@ -65,14 +67,17 @@ class BffAiAdapter implements AiAdapter {
     if (normalizedDescription.length > 1000) {
       throw const AiAdapterException('Descrição muito longa (máx 1.000 chars)');
     }
-    if (apiKey.trim().isEmpty) {
-      throw const AiAdapterException('Chave do BFF não configurada');
-    }
-
     final requestHeaders = {
       HttpHeaders.contentTypeHeader: 'application/json; charset=utf-8',
-      apiKeyHeader: apiKey,
     };
+    if (apiKey.trim().isNotEmpty) {
+      requestHeaders[apiKeyHeader] = apiKey;
+    }
+    final authToken = authTokenProvider?.call();
+    if (authToken != null && authToken.trim().isNotEmpty) {
+      requestHeaders[HttpHeaders.authorizationHeader] =
+          'Bearer ${authToken.trim()}';
+    }
     final requestBody = {
       'descricao': normalizedDescription,
       'locale': localeProvider?.call() ?? 'en_US',

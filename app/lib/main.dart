@@ -22,7 +22,7 @@ import 'package:calorie_counter_app/services/subscription/sqlite_app_settings_re
 import 'package:calorie_counter_app/services/subscription/subscription_service.dart';
 import 'package:calorie_counter_app/themes/nutrition_theme.dart';
 
-const bool _useMockAi = true;
+const bool _useMockAi = false;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -55,7 +55,7 @@ Future<void> main() async {
         ChangeNotifierProvider(
           create: (_) => HomeViewModel(
             repository: repository,
-            aiAdapter: _createAiAdapter(),
+            aiAdapter: _createAiAdapter(subscriptionService),
             estimateQuotaRepository: estimateQuotaRepository,
             subscriptionService: subscriptionService,
             userBffService: userBffService,
@@ -67,10 +67,13 @@ Future<void> main() async {
   );
 }
 
-AiAdapter _createAiAdapter() {
+AiAdapter _createAiAdapter(SubscriptionService subscriptionService) {
   return _useMockAi
       ? const AiAdapterMock()
-      : BffAiAdapter(localeProvider: _currentLocaleName);
+      : BffAiAdapter(
+          localeProvider: _currentLocaleName,
+          authTokenProvider: () => subscriptionService.settings.googleAuthToken,
+        );
 }
 
 String _currentLocaleName() {

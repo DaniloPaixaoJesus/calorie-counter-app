@@ -64,6 +64,7 @@ class SqliteAppSettingsRepository implements AppSettingsRepository {
         userName TEXT,
         userEmail TEXT,
         userPhotoAssetPath TEXT,
+        googleAuthToken TEXT,
         birthDate TEXT,
         gender TEXT,
         dailyCalorieGoal INTEGER NOT NULL DEFAULT 2000,
@@ -74,6 +75,7 @@ class SqliteAppSettingsRepository implements AppSettingsRepository {
     await _ensureColumn(db, 'userName', 'TEXT');
     await _ensureColumn(db, 'userEmail', 'TEXT');
     await _ensureColumn(db, 'userPhotoAssetPath', 'TEXT');
+    await _ensureColumn(db, 'googleAuthToken', 'TEXT');
     await _ensureColumn(db, 'birthDate', 'TEXT');
     await _ensureColumn(db, 'gender', 'TEXT');
     await _ensureColumn(
