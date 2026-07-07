@@ -17,6 +17,9 @@ public record CreateMealRequest(
         @Size(min = 2, max = 1000)
         String descricao,
 
+        @Size(max = 1000)
+        String descricaoOriginal,
+
         @NotNull
         @Min(0)
         @Max(20000)

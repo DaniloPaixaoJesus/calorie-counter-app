@@ -25,6 +25,9 @@ public class UserMeal {
     @Column(nullable = false, length = 1000)
     private String descricao;
 
+    @Column(length = 1000)
+    private String descricaoOriginal;
+
     @Column(nullable = false)
     private Integer calorias;
 
@@ -58,6 +61,7 @@ public class UserMeal {
             String id,
             UserProfile user,
             String descricao,
+            String descricaoOriginal,
             Integer calorias,
             OffsetDateTime timestamp,
             String origem,
@@ -71,6 +75,7 @@ public class UserMeal {
         this.id = id;
         this.user = user;
         this.descricao = descricao;
+        this.descricaoOriginal = descricaoOriginal;
         this.calorias = calorias;
         this.timestamp = timestamp;
         this.origem = origem;
@@ -92,6 +97,10 @@ public class UserMeal {
 
     public String getDescricao() {
         return descricao;
+    }
+
+    public String getDescricaoOriginal() {
+        return descricaoOriginal;
     }
 
     public Integer getCalorias() {

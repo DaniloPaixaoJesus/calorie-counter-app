@@ -6,6 +6,7 @@ public record MealDto(
         String id,
         String userId,
         String descricao,
+        String descricaoOriginal,
         Integer calorias,
         OffsetDateTime timestamp,
         String origem,

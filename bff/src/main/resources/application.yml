@@ -54,10 +54,6 @@ cloud:
       property: some-cloud-setup-value-here
 
 
-# Domain business rule properties
-boiler-plate-domain:
-  properties: some-business-rule-value-here
-
 nutrity:
   security:
     app-api:
