@@ -62,7 +62,7 @@ class _ProfileInsightsPageState extends State<ProfileInsightsPage> {
   Widget build(BuildContext context) {
     final vm = context.watch<HomeViewModel>();
     final settings = context.watch<SubscriptionService>().settings;
-    final days = _lastFiveDays(vm);
+    final days = _lastSevenDays(vm);
     final horizontalPadding =
         LayoutBreakpoints.isSmall(context) ? AppSpacing.md : AppSpacing.lg;
 
@@ -90,19 +90,9 @@ class _ProfileInsightsPageState extends State<ProfileInsightsPage> {
                   label: const Text('Sair da conta'),
                 ),
                 const SizedBox(height: AppSpacing.md),
-                _LineChartCard(
-                  title: 'Calorias dos ultimos 5 dias',
-                  subtitle: 'Consumo diario',
-                  series: [
-                    _ChartSeries(
-                      label: 'Calorias',
-                      values:
-                          days.map((day) => day.calories.toDouble()).toList(),
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                  ],
-                  labels: days.map((day) => day.label).toList(),
-                  valueSuffix: 'kcal',
+                _CaloriesChartCard(
+                  days: days,
+                  dailyGoal: settings.dailyCalorieGoal,
                 ),
                 const SizedBox(height: AppSpacing.md),
                 _MacroLineChartCard(days: days),
@@ -114,10 +104,10 @@ class _ProfileInsightsPageState extends State<ProfileInsightsPage> {
     );
   }
 
-  List<_DailyInsight> _lastFiveDays(HomeViewModel vm) {
+  List<_DailyInsight> _lastSevenDays(HomeViewModel vm) {
     final now = DateTime.now();
-    final dates = List<DateTime>.generate(5, (index) {
-      final day = now.subtract(Duration(days: 4 - index));
+    final dates = List<DateTime>.generate(7, (index) {
+      final day = now.subtract(Duration(days: 6 - index));
       return DateTime(day.year, day.month, day.day);
     });
     final formatter = DateFormat('dd/MM', 'pt_BR');
@@ -166,47 +156,211 @@ class _UserSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final memberSince = settings.trialStartDate ?? DateTime(2025, 4, 15);
+    final memberSinceLabel =
+        DateFormat('dd/MM/yyyy', 'pt_BR').format(memberSince);
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
+        child: Column(
           children: [
-            _ProfilePhoto(settings: settings),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    settings.userName ?? 'Usuario Premium',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w800,
-                        ),
-                  ),
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(
-                    settings.userEmail ?? 'E-mail nao informado',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  const Row(
-                    children: [
-                      Icon(
-                        Icons.workspace_premium_rounded,
-                        color: Color(0xFFF2BE1A),
-                      ),
-                      SizedBox(width: AppSpacing.sm),
-                      Text('Plano Premium'),
-                    ],
-                  ),
-                ],
-              ),
+            _UserHeader(settings: settings),
+            const SizedBox(height: AppSpacing.lg),
+            const Divider(height: 1),
+            const SizedBox(height: AppSpacing.md),
+            Wrap(
+              spacing: AppSpacing.lg,
+              runSpacing: AppSpacing.md,
+              children: [
+                _ProfileMetric(
+                  icon: Icons.calendar_month_rounded,
+                  iconColor: Color(0xFF2E7D32),
+                  title: 'Membro desde',
+                  value: memberSinceLabel,
+                ),
+                const _ProfileMetric(
+                  icon: Icons.local_fire_department_rounded,
+                  iconColor: Color(0xFFF05A24),
+                  title: 'Sequencia atual',
+                  value: '12 dias',
+                ),
+                const _ProfileMetric(
+                  icon: Icons.emoji_events_rounded,
+                  iconColor: Color(0xFF2E7D32),
+                  title: 'Melhor sequencia',
+                  value: '28 dias',
+                ),
+                _ProfileMetric(
+                  icon: Icons.star_rounded,
+                  iconColor: const Color(0xFFF2BE1A),
+                  title: 'Meta diaria',
+                  value: '${settings.dailyCalorieGoal} kcal',
+                ),
+              ],
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _UserHeader extends StatelessWidget {
+  final AppSettings settings;
+
+  const _UserHeader({required this.settings});
+
+  @override
+  Widget build(BuildContext context) {
+    final profileInfo = Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        _ProfilePhoto(settings: settings),
+        const SizedBox(width: AppSpacing.md),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                settings.userName ?? 'Usuario Premium',
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                settings.userEmail ?? 'E-mail nao informado',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              const _PlanStatus(),
+            ],
+          ),
+        ),
+      ],
+    );
+
+    final manageButton = OutlinedButton(
+      onPressed: () {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Gerenciamento de plano em breve.')),
+        );
+      },
+      child: const Text('Gerenciar plano'),
+    );
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth < 520) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              profileInfo,
+              const SizedBox(height: AppSpacing.md),
+              manageButton,
+            ],
+          );
+        }
+
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(child: profileInfo),
+            const SizedBox(width: AppSpacing.md),
+            manageButton,
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _PlanStatus extends StatelessWidget {
+  const _PlanStatus();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        const Icon(
+          Icons.workspace_premium_rounded,
+          color: Color(0xFFF2BE1A),
+        ),
+        const SizedBox(width: AppSpacing.sm),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Plano Premium',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+              ),
+              Text(
+                'Assinatura ativa',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.w700,
+                    ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ProfileMetric extends StatelessWidget {
+  final IconData icon;
+  final Color iconColor;
+  final String title;
+  final String value;
+
+  const _ProfileMetric({
+    required this.icon,
+    required this.iconColor,
+    required this.title,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 130,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: iconColor, size: 28),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                ),
+                Text(
+                  value,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -300,7 +454,7 @@ class _MacroLineChartCard extends StatelessWidget {
     final labels = days.map((day) => day.label).toList();
 
     return _LineChartCard(
-      title: 'Macros dos ultimos 5 dias',
+      title: 'Macros dos ultimos 7 dias',
       subtitle: 'Gramas por dia',
       series: [
         _ChartSeries(
@@ -331,12 +485,85 @@ class _MacroLineChartCard extends StatelessWidget {
   }
 }
 
+class _CaloriesChartCard extends StatelessWidget {
+  final List<_DailyInsight> days;
+  final int dailyGoal;
+
+  const _CaloriesChartCard({
+    required this.days,
+    required this.dailyGoal,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final values = days.map((day) => day.calories.toDouble()).toList();
+    final total = days.fold(0, (sum, day) => sum + day.calories);
+    final average = days.isEmpty ? 0 : (total / days.length).round();
+    final maxDay = _maxCaloriesDay(days);
+    final minDay = _minCaloriesDay(days);
+    final goalPercent =
+        dailyGoal <= 0 ? 0 : ((average / dailyGoal) * 100).round();
+
+    return _LineChartCard(
+      title: 'Calorias dos ultimos 7 dias',
+      subtitle: 'Consumo diario',
+      series: [
+        _ChartSeries(
+          label: 'Calorias',
+          values: values,
+          color: Theme.of(context).colorScheme.primary,
+        ),
+      ],
+      labels: days.map((day) => day.label).toList(),
+      valueSuffix: 'kcal',
+      showPointLabels: true,
+      footer: _CaloriesStats(
+        total: total,
+        maxDay: maxDay,
+        minDay: minDay,
+        goalPercent: goalPercent,
+      ),
+    );
+  }
+
+  _DailyInsight _maxCaloriesDay(List<_DailyInsight> days) {
+    if (days.isEmpty) {
+      return const _DailyInsight(
+        label: '--',
+        calories: 0,
+        macronutrients: Macronutrients.zero,
+      );
+    }
+    return days.reduce(
+      (current, next) => next.calories > current.calories ? next : current,
+    );
+  }
+
+  _DailyInsight _minCaloriesDay(List<_DailyInsight> days) {
+    final daysWithCalories = days.where((day) => day.calories > 0).toList();
+    if (daysWithCalories.isEmpty) {
+      return days.isEmpty
+          ? const _DailyInsight(
+              label: '--',
+              calories: 0,
+              macronutrients: Macronutrients.zero,
+            )
+          : days.first;
+    }
+    return daysWithCalories.reduce(
+      (current, next) => next.calories < current.calories ? next : current,
+    );
+  }
+}
+
 class _LineChartCard extends StatelessWidget {
   final String title;
   final String subtitle;
   final List<_ChartSeries> series;
   final List<String> labels;
   final String valueSuffix;
+  final bool showPointLabels;
+  final Widget? footer;
 
   const _LineChartCard({
     required this.title,
@@ -344,6 +571,8 @@ class _LineChartCard extends StatelessWidget {
     required this.series,
     required this.labels,
     required this.valueSuffix,
+    this.showPointLabels = false,
+    this.footer,
   });
 
   @override
@@ -392,6 +621,8 @@ class _LineChartCard extends StatelessWidget {
               child: _ProfileChartSurface(
                 series: series,
                 labels: labels,
+                valueSuffix: valueSuffix,
+                showPointLabels: showPointLabels,
               ),
             ),
             const SizedBox(height: AppSpacing.md),
@@ -407,6 +638,10 @@ class _LineChartCard extends StatelessWidget {
                   ),
               ],
             ),
+            if (footer != null) ...[
+              const SizedBox(height: AppSpacing.md),
+              footer!,
+            ],
           ],
         ),
       ),
@@ -417,10 +652,14 @@ class _LineChartCard extends StatelessWidget {
 class _ProfileChartSurface extends StatelessWidget {
   final List<_ChartSeries> series;
   final List<String> labels;
+  final String valueSuffix;
+  final bool showPointLabels;
 
   const _ProfileChartSurface({
     required this.series,
     required this.labels,
+    required this.valueSuffix,
+    required this.showPointLabels,
   });
 
   bool get _hasData {
@@ -454,6 +693,8 @@ class _ProfileChartSurface extends StatelessWidget {
       painter: _ProfileLineChartPainter(
         series: series,
         labels: labels,
+        valueSuffix: valueSuffix,
+        showPointLabels: showPointLabels,
       ),
       child: const SizedBox.expand(),
     );
@@ -483,6 +724,122 @@ class _ChartValuePill extends StatelessWidget {
               color: color,
               fontWeight: FontWeight.w800,
             ),
+      ),
+    );
+  }
+}
+
+class _CaloriesStats extends StatelessWidget {
+  final int total;
+  final _DailyInsight maxDay;
+  final _DailyInsight minDay;
+  final int goalPercent;
+
+  const _CaloriesStats({
+    required this.total,
+    required this.maxDay,
+    required this.minDay,
+    required this.goalPercent,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.22),
+        ),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Wrap(
+        spacing: AppSpacing.lg,
+        runSpacing: AppSpacing.md,
+        children: [
+          _StatItem(
+            icon: Icons.local_fire_department_rounded,
+            iconColor: const Color(0xFF2E7D32),
+            title: 'Total na semana',
+            value: '$total kcal',
+          ),
+          _StatItem(
+            icon: Icons.trending_up_rounded,
+            iconColor: const Color(0xFFF05A24),
+            title: 'Maior consumo',
+            value: '${maxDay.calories} kcal',
+            subtitle: maxDay.label,
+          ),
+          _StatItem(
+            icon: Icons.trending_down_rounded,
+            iconColor: const Color(0xFF2E7D32),
+            title: 'Menor consumo',
+            value: '${minDay.calories} kcal',
+            subtitle: minDay.label,
+          ),
+          _StatItem(
+            icon: Icons.pie_chart_rounded,
+            iconColor: const Color(0xFF1E88E5),
+            title: '% da meta (media)',
+            value: '$goalPercent%',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatItem extends StatelessWidget {
+  final IconData icon;
+  final Color iconColor;
+  final String title;
+  final String value;
+  final String? subtitle;
+
+  const _StatItem({
+    required this.icon,
+    required this.iconColor,
+    required this.title,
+    required this.value,
+    this.subtitle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 145,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: iconColor, size: 24),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                ),
+                Text(
+                  value,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                ),
+                if (subtitle != null)
+                  Text(
+                    subtitle!,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                  ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -550,16 +907,20 @@ class _ChartSeries {
 class _ProfileLineChartPainter extends CustomPainter {
   final List<_ChartSeries> series;
   final List<String> labels;
+  final String valueSuffix;
+  final bool showPointLabels;
 
   const _ProfileLineChartPainter({
     required this.series,
     required this.labels,
+    required this.valueSuffix,
+    required this.showPointLabels,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
     const left = 36.0;
-    const top = 10.0;
+    const top = 24.0;
     const right = 6.0;
     const bottom = 32.0;
     final chartRect = Rect.fromLTWH(
@@ -655,9 +1016,17 @@ class _ProfileLineChartPainter extends CustomPainter {
 
       final dotPaint = Paint()..color = item.color;
       final dotBorderPaint = Paint()..color = const Color(0xFFFFFFFF);
-      for (final point in points) {
+      for (var i = 0; i < points.length; i++) {
+        final point = points[i];
         canvas.drawCircle(point, 4.5, dotBorderPaint);
         canvas.drawCircle(point, 3.2, dotPaint);
+        if (showPointLabels && series.length == 1) {
+          _paintPointValue(
+            canvas: canvas,
+            point: point,
+            value: item.values[i],
+          );
+        }
       }
     }
 
@@ -682,6 +1051,29 @@ class _ProfileLineChartPainter extends CustomPainter {
     }
   }
 
+  void _paintPointValue({
+    required Canvas canvas,
+    required Offset point,
+    required double value,
+  }) {
+    final textPainter = TextPainter(
+      text: TextSpan(
+        text: value.round().toString(),
+        style: const TextStyle(
+          color: Color(0xFF1F2937),
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+      textAlign: TextAlign.center,
+      textDirection: ui.TextDirection.ltr,
+    )..layout();
+    textPainter.paint(
+      canvas,
+      Offset(point.dx - textPainter.width / 2, point.dy - 20),
+    );
+  }
+
   List<int> _visibleLabelIndexes(int count) {
     if (count <= 0) return const [];
     if (count <= 3) return [for (var i = 0; i < count; i++) i];
@@ -698,6 +1090,9 @@ class _ProfileLineChartPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _ProfileLineChartPainter oldDelegate) {
-    return oldDelegate.series != series || oldDelegate.labels != labels;
+    return oldDelegate.series != series ||
+        oldDelegate.labels != labels ||
+        oldDelegate.valueSuffix != valueSuffix ||
+        oldDelegate.showPointLabels != showPointLabels;
   }
 }
