@@ -2,6 +2,7 @@ import 'package:calorie_counter_app/design_system/app_radius.dart';
 import 'package:calorie_counter_app/design_system/app_spacing.dart';
 import 'package:calorie_counter_app/design_system/layout_breakpoints.dart';
 import 'package:calorie_counter_app/features/home/home_shell_page.dart';
+import 'package:calorie_counter_app/l10n/app_localizations.dart';
 import 'package:calorie_counter_app/services/auth/google_auth_service.dart';
 import 'package:calorie_counter_app/services/subscription/subscription_service.dart';
 import 'package:calorie_counter_app/utils/adaptive_page_route.dart';
@@ -31,15 +32,16 @@ class _PaywallPageState extends State<PaywallPage> {
   Widget build(BuildContext context) {
     final horizontalPadding =
         LayoutBreakpoints.isSmall(context) ? AppSpacing.md : AppSpacing.lg;
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          tooltip: 'Voltar',
+          tooltip: l10n.back,
           onPressed: () => Navigator.of(context).maybePop(),
           icon: const Icon(Icons.arrow_back_rounded),
         ),
-        title: const Text('Planos Premium'),
+        title: Text(l10n.premiumPlans),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -57,7 +59,7 @@ class _PaywallPageState extends State<PaywallPage> {
               ),
               children: [
                 Text(
-                  'Escolha o plano ideal para você',
+                  l10n.chooseIdealPlan,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -65,10 +67,10 @@ class _PaywallPageState extends State<PaywallPage> {
                 ),
                 const SizedBox(height: AppSpacing.xl),
                 _PremiumPlanCard(
-                  title: 'Mensal',
+                  title: l10n.monthly,
                   price: 'R\$ 14,90',
-                  period: '/mês',
-                  badge: 'Mais escolhido',
+                  period: l10n.perMonth,
+                  badge: l10n.mostChosen,
                   selected: _selectedPlan == _PremiumPlan.monthly,
                   onTap: () {
                     setState(() => _selectedPlan = _PremiumPlan.monthly);
@@ -76,10 +78,10 @@ class _PaywallPageState extends State<PaywallPage> {
                 ),
                 const SizedBox(height: AppSpacing.lg),
                 _PremiumPlanCard(
-                  title: 'Anual',
+                  title: l10n.yearly,
                   price: 'R\$ 119,90',
-                  period: '/ano',
-                  badge: 'Economize 33%',
+                  period: l10n.perYear,
+                  badge: l10n.save33,
                   selected: _selectedPlan == _PremiumPlan.yearly,
                   onTap: () {
                     setState(() => _selectedPlan = _PremiumPlan.yearly);
@@ -88,7 +90,7 @@ class _PaywallPageState extends State<PaywallPage> {
                 const SizedBox(height: AppSpacing.xl),
                 FilledButton(
                   onPressed: () => _openLogin(context),
-                  child: const Text('Continuar'),
+                  child: Text(l10n.continueLabel),
                 ),
               ],
             ),
@@ -188,11 +190,9 @@ class _PremiumPlanCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: AppSpacing.md),
-            const _PlanBullet('Estimativas ilimitadas com IA'),
-            const _PlanBullet('Macros nutrientes'),
-            const _PlanBullet('Histórico na nuvem'),
-            const _PlanBullet('Sem anúncios'),
-            const _PlanBullet('Suporte prioritário'),
+            for (final bullet
+                in AppLocalizations.of(context).premiumPlanBullets)
+              _PlanBullet(bullet),
           ],
         ),
       ),
@@ -215,6 +215,8 @@ class _PremiumGoogleLoginPageState extends State<_PremiumGoogleLoginPage> {
 
   Future<void> _continueWithGoogle(BuildContext context) async {
     if (_isLoadingGoogleLogin) return;
+    final googleLoginCancelled =
+        AppLocalizations.of(context).googleLoginCancelled;
 
     setState(() {
       _isLoadingGoogleLogin = true;
@@ -238,7 +240,7 @@ class _PremiumGoogleLoginPageState extends State<_PremiumGoogleLoginPage> {
       );
     } on GoogleAuthCancelledException {
       if (!mounted) return;
-      setState(() => _googleLoginError = 'Login Google cancelado.');
+      setState(() => _googleLoginError = googleLoginCancelled);
     } on GoogleAuthException catch (error) {
       if (!mounted) return;
       setState(() => _googleLoginError = error.message);
@@ -254,11 +256,12 @@ class _PremiumGoogleLoginPageState extends State<_PremiumGoogleLoginPage> {
     final horizontalPadding =
         LayoutBreakpoints.isSmall(context) ? AppSpacing.md : AppSpacing.lg;
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          tooltip: 'Voltar',
+          tooltip: l10n.back,
           onPressed: () => Navigator.of(context).maybePop(),
           icon: const Icon(Icons.arrow_back_rounded),
         ),
@@ -281,7 +284,7 @@ class _PremiumGoogleLoginPageState extends State<_PremiumGoogleLoginPage> {
                 children: [
                   const Spacer(),
                   Text(
-                    'Acesse sua conta',
+                    l10n.accessYourAccount,
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.w800,
@@ -289,7 +292,7 @@ class _PremiumGoogleLoginPageState extends State<_PremiumGoogleLoginPage> {
                   ),
                   const SizedBox(height: AppSpacing.sm),
                   Text(
-                    'Para continuar e aproveitar\ntodos os benefícios do Premium',
+                    l10n.premiumLoginSubtitle,
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                           color: colorScheme.onSurfaceVariant,
@@ -311,8 +314,8 @@ class _PremiumGoogleLoginPageState extends State<_PremiumGoogleLoginPage> {
                     icon: const _GoogleBrandIcon(),
                     label: Text(
                       _isLoadingGoogleLogin
-                          ? 'Conectando ao Google...'
-                          : 'Continuar com Google',
+                          ? l10n.connectingGoogle
+                          : l10n.continueWithGoogle,
                       style: const TextStyle(fontWeight: FontWeight.w800),
                     ),
                   ),
@@ -327,7 +330,7 @@ class _PremiumGoogleLoginPageState extends State<_PremiumGoogleLoginPage> {
                     ),
                   const Spacer(),
                   Text(
-                    'Seus dados estarão seguros\ne sincronizados na nuvem.',
+                    l10n.secureCloudData,
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: colorScheme.onSurfaceVariant,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:calorie_counter_app/design_system/app_spacing.dart';
 import 'package:calorie_counter_app/design_system/layout_breakpoints.dart';
+import 'package:calorie_counter_app/l10n/app_localizations.dart';
 import 'package:calorie_counter_app/models/macronutrients.dart';
 import 'package:calorie_counter_app/models/meal.dart';
 import 'package:calorie_counter_app/services/audio_transcription/audio_transcription_adapter.dart';
@@ -111,7 +112,11 @@ class _AddMealPageState extends State<AddMealPage> {
         _countdownTimer?.cancel();
         setState(() => _isListening = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro no reconhecimento de voz: $error')),
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context).voiceRecognitionError(error),
+            ),
+          ),
         );
       }
     }, onStatus: (status) {
@@ -145,7 +150,7 @@ class _AddMealPageState extends State<AddMealPage> {
   Future<void> _estimar(HomeViewModel vm) async {
     if (_descricao.trim().length < 2) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Digite pelo menos 2 caracteres.')),
+        SnackBar(content: Text(AppLocalizations.of(context).typeAtLeast2Chars)),
       );
       return;
     }
@@ -161,12 +166,16 @@ class _AddMealPageState extends State<AddMealPage> {
   Future<void> _confirmar(HomeViewModel vm) async {
     if (_calorias <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Informe as calorias antes de salvar.')),
+        SnackBar(
+          content: Text(AppLocalizations.of(context).enterCaloriesBeforeSave),
+        ),
       );
       return;
     }
     final meal = Meal.create(
-      descricao: _descricao.isNotEmpty ? _descricao : 'Sem descrição',
+      descricao: _descricao.isNotEmpty
+          ? _descricao
+          : AppLocalizations.of(context).noDescription,
       calorias: _calorias,
       origem: _usouAudio ? MealOrigem.audio : MealOrigem.texto,
       dataSelecionada: vm.dataSelecionada,
@@ -185,7 +194,9 @@ class _AddMealPageState extends State<AddMealPage> {
     final estimate = vm.estimate;
     if (estimate == null || _calorias <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Estime as calorias antes de confirmar.')),
+        SnackBar(
+          content: Text(AppLocalizations.of(context).estimateBeforeConfirm),
+        ),
       );
       return;
     }
@@ -218,6 +229,7 @@ class _AddMealPageState extends State<AddMealPage> {
     final vm = context.watch<HomeViewModel>();
     final estimate = vm.estimate;
     final remainingEstimates = vm.remainingDailyEstimates;
+    final l10n = AppLocalizations.of(context);
     final horizontalPadding =
         LayoutBreakpoints.isSmall(context) ? AppSpacing.md : AppSpacing.lg;
 
@@ -229,7 +241,7 @@ class _AddMealPageState extends State<AddMealPage> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Adicionar Refeicao')),
+      appBar: AppBar(title: Text(l10n.addMeal)),
       body: Center(
         child: ConstrainedBox(
           constraints: BoxConstraints(
@@ -240,13 +252,13 @@ class _AddMealPageState extends State<AddMealPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SectionHeader(
-                  title: 'Fale o que voce comeu',
-                  subtitle: 'Descreva sua refeicao com detalhes',
+                SectionHeader(
+                  title: l10n.tellWhatYouAte,
+                  subtitle: l10n.describeMealDetails,
                 ),
                 const SizedBox(height: AppSpacing.xl),
                 Semantics(
-                  label: _isListening ? 'Parar gravacao' : 'Gravar audio',
+                  label: _isListening ? l10n.stop : l10n.recordAudio,
                   button: true,
                   child: FilledButton.icon(
                     style: FilledButton.styleFrom(
@@ -259,7 +271,7 @@ class _AddMealPageState extends State<AddMealPage> {
                     ),
                     onPressed: () => _toggleListening(vm),
                     icon: const Icon(Icons.mic_rounded),
-                    label: Text(_isListening ? 'Parar' : 'Gravar audio'),
+                    label: Text(_isListening ? l10n.stop : l10n.recordAudio),
                   ),
                 ),
                 const SizedBox(height: AppSpacing.md),
@@ -270,11 +282,11 @@ class _AddMealPageState extends State<AddMealPage> {
                 const SizedBox(height: AppSpacing.lg),
                 Row(
                   children: [
-                    const Text('Entrada por audio:'),
+                    Text(l10n.audioInput),
                     const SizedBox(width: AppSpacing.sm),
                     if (_isListening)
                       Text(
-                        'Gravando... ${_segundosRestantes}s',
+                        l10n.recordingSeconds(_segundosRestantes),
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.error,
                           fontWeight: FontWeight.bold,
@@ -307,10 +319,12 @@ class _AddMealPageState extends State<AddMealPage> {
                     Expanded(
                       child: Text(
                         vm.hasUnlimitedEstimates
-                            ? 'Estimativas ilimitadas'
+                            ? l10n.unlimitedEstimates
                             : remainingEstimates == 0
-                                ? 'Limite diário de estimativas atingido.'
-                                : '$remainingEstimates estimativas restantes hoje',
+                                ? l10n.dailyEstimateLimitReached
+                                : l10n.remainingEstimatesToday(
+                                    remainingEstimates,
+                                  ),
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: vm.shouldWarnEstimateQuota
                                   ? const Color(0xFF7A4D00)
@@ -339,7 +353,7 @@ class _AddMealPageState extends State<AddMealPage> {
                   Padding(
                     padding: const EdgeInsets.only(bottom: AppSpacing.md),
                     child: Semantics(
-                      label: 'Aviso de erro da estimativa',
+                      label: l10n.estimateErrorNotice,
                       liveRegion: true,
                       child: Material(
                         color: Theme.of(context).colorScheme.errorContainer,
@@ -363,7 +377,9 @@ class _AddMealPageState extends State<AddMealPage> {
                               const SizedBox(width: AppSpacing.sm),
                               Expanded(
                                 child: Text(
-                                  vm.estimateErrorMessage!,
+                                  l10n.userFacingMessage(
+                                    vm.estimateErrorMessage!,
+                                  ),
                                   style: Theme.of(context)
                                       .textTheme
                                       .bodyMedium
@@ -375,7 +391,7 @@ class _AddMealPageState extends State<AddMealPage> {
                                 ),
                               ),
                               IconButton(
-                                tooltip: 'Fechar aviso',
+                                tooltip: l10n.closeNotice,
                                 onPressed: vm.clearEstimateError,
                                 icon: const Icon(Icons.close_rounded),
                                 color: Theme.of(
@@ -399,7 +415,7 @@ class _AddMealPageState extends State<AddMealPage> {
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       : const Icon(Icons.auto_awesome),
-                  label: const Text('Estimar com IA'),
+                  label: Text(l10n.estimateWithAi),
                 ),
                 if (widget.showAds) ...[
                   const SizedBox(height: AppSpacing.md),
@@ -409,11 +425,11 @@ class _AddMealPageState extends State<AddMealPage> {
                 FilledButton(
                   onPressed:
                       _calorias > 0 ? () => _revisarEConfirmar(vm) : null,
-                  child: const Text('Revisar e confirmar'),
+                  child: Text(l10n.reviewAndConfirm),
                 ),
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('Cancelar'),
+                  child: Text(l10n.cancel),
                 ),
               ],
             ),

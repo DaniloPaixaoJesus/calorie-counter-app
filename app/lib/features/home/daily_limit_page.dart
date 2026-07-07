@@ -2,6 +2,7 @@ import 'package:calorie_counter_app/design_system/app_radius.dart';
 import 'package:calorie_counter_app/design_system/app_spacing.dart';
 import 'package:calorie_counter_app/design_system/layout_breakpoints.dart';
 import 'package:calorie_counter_app/features/onboarding/paywall_page.dart';
+import 'package:calorie_counter_app/l10n/app_localizations.dart';
 import 'package:calorie_counter_app/utils/adaptive_page_route.dart';
 import 'package:flutter/material.dart';
 
@@ -21,15 +22,16 @@ class DailyLimitPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final horizontalPadding =
         LayoutBreakpoints.isSmall(context) ? AppSpacing.md : AppSpacing.lg;
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          tooltip: 'Voltar',
+          tooltip: l10n.back,
           onPressed: () => Navigator.of(context).maybePop(),
           icon: const Icon(Icons.arrow_back_rounded),
         ),
-        title: const Text('Adicionar Refeição'),
+        title: Text(l10n.addMeal),
       ),
       body: SafeArea(
         child: Center(
@@ -50,7 +52,7 @@ class DailyLimitPage extends StatelessWidget {
                   ),
                   const SizedBox(height: AppSpacing.xl),
                   Text(
-                    'Limite diário atingido',
+                    l10n.dailyLimitTitle,
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.w800,
@@ -58,7 +60,7 @@ class DailyLimitPage extends StatelessWidget {
                   ),
                   const SizedBox(height: AppSpacing.lg),
                   Text(
-                    'Você já utilizou suas 3 estimativas\ncom IA hoje.',
+                    l10n.dailyLimitUsed,
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -75,7 +77,7 @@ class DailyLimitPage extends StatelessWidget {
                       borderRadius: BorderRadius.circular(AppRadius.md),
                     ),
                     child: Text(
-                      'Volte amanhã para novas\nestimativas ou faça upgrade\npara Premium e tenha\nestimativas ilimitadas!',
+                      l10n.dailyLimitUpgrade,
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             fontWeight: FontWeight.w800,
@@ -85,12 +87,12 @@ class DailyLimitPage extends StatelessWidget {
                   const SizedBox(height: AppSpacing.xl),
                   FilledButton(
                     onPressed: () => _openPlans(context),
-                    child: const Text('Ver planos'),
+                    child: Text(l10n.viewPlans),
                   ),
                   const SizedBox(height: AppSpacing.md),
                   TextButton(
                     onPressed: () => Navigator.of(context).maybePop(),
-                    child: const Text('Entendi'),
+                    child: Text(l10n.gotIt),
                   ),
                   const Spacer(),
                 ],

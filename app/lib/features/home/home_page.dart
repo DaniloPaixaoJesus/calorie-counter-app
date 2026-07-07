@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:calorie_counter_app/design_system/layout_breakpoints.dart';
 import 'package:calorie_counter_app/design_system/app_spacing.dart';
 import 'package:calorie_counter_app/features/onboarding/paywall_page.dart';
+import 'package:calorie_counter_app/l10n/app_localizations.dart';
 import 'package:calorie_counter_app/models/app_settings.dart';
 import 'package:calorie_counter_app/models/meal.dart';
 import 'package:calorie_counter_app/services/subscription/subscription_service.dart';
@@ -24,10 +25,14 @@ class HomePage extends StatelessWidget {
 
   const HomePage({super.key, this.showAds = true});
 
-  String _macroTitle(HomeViewModel vm) {
-    if (vm.eHoje) return 'Macros de hoje';
-    final formatted = DateFormat('dd/MM', 'pt_BR').format(vm.dataSelecionada);
-    return 'Macros de $formatted';
+  String _macroTitle(BuildContext context, HomeViewModel vm) {
+    final l10n = AppLocalizations.of(context);
+    if (vm.eHoje) return l10n.macrosToday;
+    final formatted = DateFormat(
+      'dd/MM',
+      AppLocalizations.localeNameOf(context),
+    ).format(vm.dataSelecionada);
+    return l10n.macrosOn(formatted);
   }
 
   Future<void> _showRemovalDialog(
@@ -89,6 +94,7 @@ class HomePage extends StatelessWidget {
     final subscriptionService = context.watch<SubscriptionService?>();
     final settings = subscriptionService?.settings;
     final isPremium = subscriptionService?.isPremium ?? false;
+    final l10n = AppLocalizations.of(context);
     final meals = vm.mealsDoDia;
     final horizontalPadding =
         LayoutBreakpoints.isSmall(context) ? AppSpacing.md : AppSpacing.lg;
@@ -135,7 +141,7 @@ class HomePage extends StatelessWidget {
                   padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
                   child: MacronutrientsSummaryCard(
                     macronutrients: vm.totalMacronutrientsHoje,
-                    title: _macroTitle(vm),
+                    title: _macroTitle(context, vm),
                     showDistributionBar: false,
                   ),
                 ),
@@ -158,7 +164,7 @@ class HomePage extends StatelessWidget {
                       child: Padding(
                         padding: const EdgeInsets.all(AppSpacing.md),
                         child: Text(
-                          vm.homeErrorMessage!,
+                          l10n.userFacingMessage(vm.homeErrorMessage!),
                           style: TextStyle(
                             color:
                                 Theme.of(context).colorScheme.onErrorContainer,
@@ -233,7 +239,7 @@ class _PremiumHeader extends StatelessWidget {
         ),
         const Spacer(),
         Tooltip(
-          message: 'Perfil e metas',
+          message: AppLocalizations.of(context).profileAndGoals,
           child: InkWell(
             customBorder: const CircleBorder(),
             onTap: onProfileTap,
@@ -278,7 +284,7 @@ class _FreeHeader extends StatelessWidget {
               ),
               const SizedBox(width: AppSpacing.xs),
               Text(
-                'Free',
+                AppLocalizations.of(context).free,
                 style: Theme.of(context).textTheme.labelLarge?.copyWith(
                       fontWeight: FontWeight.w800,
                     ),
@@ -291,7 +297,7 @@ class _FreeHeader extends StatelessWidget {
               ),
               const SizedBox(width: AppSpacing.xs),
               Text(
-                'Seja Premium!',
+                AppLocalizations.of(context).becomePremium,
                 style: Theme.of(context).textTheme.labelMedium?.copyWith(
                       color: colorScheme.primary,
                       fontWeight: FontWeight.w800,

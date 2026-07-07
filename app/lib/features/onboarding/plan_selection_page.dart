@@ -4,6 +4,7 @@ import 'package:calorie_counter_app/design_system/layout_breakpoints.dart';
 import 'package:calorie_counter_app/design_system/premium_crown_icon.dart';
 import 'package:calorie_counter_app/features/home/home_shell_page.dart';
 import 'package:calorie_counter_app/features/onboarding/paywall_page.dart';
+import 'package:calorie_counter_app/l10n/app_localizations.dart';
 import 'package:calorie_counter_app/services/subscription/subscription_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -29,18 +30,19 @@ class PlanSelectionPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final horizontalPadding =
         LayoutBreakpoints.isSmall(context) ? AppSpacing.md : AppSpacing.lg;
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          tooltip: 'Voltar',
+          tooltip: l10n.back,
           onPressed: () => Navigator.of(context).maybePop(),
           icon: const Icon(Icons.arrow_back_rounded),
         ),
         actions: [
           TextButton(
             onPressed: () => _continueFree(context),
-            child: const Text('Agora nao'),
+            child: Text(l10n.notNow),
           ),
         ],
       ),
@@ -61,7 +63,7 @@ class PlanSelectionPage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text(
-                    'Escolha seu plano',
+                    l10n.chooseYourPlan,
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.w800,
@@ -69,7 +71,7 @@ class PlanSelectionPage extends StatelessWidget {
                   ),
                   const SizedBox(height: AppSpacing.xs),
                   Text(
-                    'Comece de forma gratuita',
+                    l10n.startForFree,
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -78,14 +80,9 @@ class PlanSelectionPage extends StatelessWidget {
                   const SizedBox(height: AppSpacing.xl),
                   _PlanCard(
                     icon: Icons.eco_rounded,
-                    title: 'Free',
-                    badge: 'Gratuito',
-                    bullets: const [
-                      '3 estimativas com IA por dia',
-                      'Sem login',
-                      'Dados salvos apenas no dispositivo',
-                      'Com anúncios',
-                    ],
+                    title: l10n.free,
+                    badge: l10n.freeBadge,
+                    bullets: l10n.freePlanBullets,
                     color: Theme.of(context).colorScheme.primary,
                     background: Theme.of(context).colorScheme.primaryContainer,
                     onTap: () => _continueFree(context),
@@ -94,15 +91,9 @@ class PlanSelectionPage extends StatelessWidget {
                   _PlanCard(
                     icon: Icons.workspace_premium_rounded,
                     customIcon: const PremiumCrownIcon(size: 22),
-                    title: 'Premium',
-                    badge: 'Mais recomendado',
-                    bullets: const [
-                      'Estimativas ilimitadas com IA',
-                      'Macros (proteínas, carboidratos e gorduras)',
-                      'Histórico na nuvem',
-                      'Sem anúncios',
-                      'Suporte prioritário',
-                    ],
+                    title: l10n.premium,
+                    badge: l10n.mostRecommended,
+                    bullets: l10n.premiumPlanBullets,
                     color: const Color(0xFFB56A00),
                     background: const Color(0xFFFFF3D8),
                     onTap: () => _openPremium(context),
@@ -110,7 +101,7 @@ class PlanSelectionPage extends StatelessWidget {
                   const SizedBox(height: AppSpacing.xl),
                   FilledButton(
                     onPressed: () => _continueFree(context),
-                    child: const Text('Continuar com Free'),
+                    child: Text(l10n.continueWithFree),
                   ),
                 ],
               ),
@@ -149,7 +140,11 @@ class _PlanCard extends StatelessWidget {
 
     return Semantics(
       button: true,
-      label: 'Plano $title',
+      label: AppLocalizations.of(context).pick(
+        en: '$title plan',
+        pt: 'Plano $title',
+        es: 'Plan $title',
+      ),
       child: InkWell(
         borderRadius: BorderRadius.circular(AppRadius.lg),
         onTap: onTap,

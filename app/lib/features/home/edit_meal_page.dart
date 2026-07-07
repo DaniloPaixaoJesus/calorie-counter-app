@@ -4,6 +4,7 @@ import 'package:calorie_counter_app/features/home/view_model.dart';
 import 'package:calorie_counter_app/features/home/widgets/macronutrients_summary_card.dart';
 import 'package:calorie_counter_app/features/home/widgets/meal_form.dart';
 import 'package:calorie_counter_app/features/home/widgets/section_header.dart';
+import 'package:calorie_counter_app/l10n/app_localizations.dart';
 import 'package:calorie_counter_app/models/macronutrients.dart';
 import 'package:calorie_counter_app/models/meal.dart';
 import 'package:calorie_counter_app/services/subscription/subscription_service.dart';
@@ -37,14 +38,16 @@ class _EditMealPageState extends State<EditMealPage> {
     final descricao = _descricao.trim();
     if (descricao.length < 2) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Digite pelo menos 2 caracteres.')),
+        SnackBar(content: Text(AppLocalizations.of(context).typeAtLeast2Chars)),
       );
       return;
     }
 
     if (_calorias <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Informe as calorias antes de salvar.')),
+        SnackBar(
+          content: Text(AppLocalizations.of(context).enterCaloriesBeforeSave),
+        ),
       );
       return;
     }
@@ -83,11 +86,15 @@ class _EditMealPageState extends State<EditMealPage> {
     final meal = widget.meal;
     final colorScheme = Theme.of(context).colorScheme;
     final subscriptionService = context.watch<SubscriptionService?>();
+    final l10n = AppLocalizations.of(context);
     final isPremium = subscriptionService?.isPremium ?? false;
     final iconData = MealIconMapper.toIconData(meal.iconKey);
-    final date = DateFormat('dd/MM/yyyy HH:mm', 'pt_BR').format(meal.timestamp);
+    final date = DateFormat(
+      'dd/MM/yyyy HH:mm',
+      AppLocalizations.localeNameOf(context),
+    ).format(meal.timestamp);
     final confidence = meal.aiConfidence == null
-        ? 'Nao informada'
+        ? l10n.notInformed
         : '${(meal.aiConfidence! * 100).toStringAsFixed(0)}%';
 
     return Column(
@@ -127,8 +134,8 @@ class _EditMealPageState extends State<EditMealPage> {
           ),
         ),
         const SizedBox(height: AppSpacing.lg),
-        _infoRow(context, 'Descricao', meal.descricao),
-        _infoRow(context, 'Calorias', '${meal.calorias} kcal'),
+        _infoRow(context, l10n.description, meal.descricao),
+        _infoRow(context, l10n.calories, '${meal.calorias} kcal'),
         if (isPremium) ...[
           MacronutrientsSummaryCard(
             macronutrients: meal.macronutrients ?? Macronutrients.zero,
@@ -137,22 +144,25 @@ class _EditMealPageState extends State<EditMealPage> {
           ),
           const SizedBox(height: AppSpacing.lg),
         ],
-        _infoRow(context, 'Origem',
-            meal.origem == MealOrigem.audio ? 'Audio' : 'Texto'),
-        _infoRow(context, 'Data e hora', date),
-        _infoRow(context, 'Confianca da IA', confidence),
         _infoRow(
           context,
-          'Observacao',
+          l10n.source,
+          meal.origem == MealOrigem.audio ? l10n.audio : l10n.text,
+        ),
+        _infoRow(context, l10n.dateAndTime, date),
+        _infoRow(context, l10n.aiConfidence, confidence),
+        _infoRow(
+          context,
+          l10n.observation,
           meal.nota == null || meal.nota!.trim().isEmpty
-              ? 'Sem observacao'
+              ? l10n.noObservation
               : meal.nota!,
         ),
         const SizedBox(height: AppSpacing.md),
         FilledButton.icon(
           onPressed: () => setState(() => _isEditing = true),
           icon: const Icon(Icons.edit_outlined),
-          label: const Text('Editar'),
+          label: Text(l10n.edit),
         ),
       ],
     );
@@ -176,11 +186,11 @@ class _EditMealPageState extends State<EditMealPage> {
         FilledButton.icon(
           onPressed: () => _salvar(vm),
           icon: const Icon(Icons.save_outlined),
-          label: const Text('Salvar alteracoes'),
+          label: Text(AppLocalizations.of(context).saveChanges),
         ),
         TextButton(
           onPressed: () => setState(() => _isEditing = false),
-          child: const Text('Voltar aos detalhes'),
+          child: Text(AppLocalizations.of(context).backToDetails),
         ),
       ],
     );
@@ -189,11 +199,12 @@ class _EditMealPageState extends State<EditMealPage> {
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<HomeViewModel>();
+    final l10n = AppLocalizations.of(context);
     final horizontalPadding =
         LayoutBreakpoints.isSmall(context) ? AppSpacing.md : AppSpacing.lg;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Editar refeicao')),
+      appBar: AppBar(title: Text(l10n.editMeal)),
       body: Center(
         child: ConstrainedBox(
           constraints: BoxConstraints(
@@ -205,11 +216,10 @@ class _EditMealPageState extends State<EditMealPage> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 SectionHeader(
-                  title:
-                      _isEditing ? 'Editar refeicao' : 'Detalhes da refeicao',
+                  title: _isEditing ? l10n.editMeal : l10n.mealDetails,
                   subtitle: _isEditing
-                      ? 'Altere descricao e calorias antes de salvar'
-                      : 'Revise as informacoes registradas',
+                      ? l10n.changeBeforeSaving
+                      : l10n.reviewSavedInfo,
                 ),
                 const SizedBox(height: AppSpacing.xl),
                 if (_isEditing)
@@ -220,7 +230,7 @@ class _EditMealPageState extends State<EditMealPage> {
                 if (!_isEditing)
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    child: const Text('Voltar'),
+                    child: Text(l10n.back),
                   ),
               ],
             ),

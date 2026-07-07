@@ -1,5 +1,6 @@
 import 'package:calorie_counter_app/design_system/app_radius.dart';
 import 'package:calorie_counter_app/design_system/app_spacing.dart';
+import 'package:calorie_counter_app/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 class AdCard extends StatelessWidget {
@@ -8,9 +9,10 @@ class AdCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
 
     return Semantics(
-      label: 'Espaco reservado para publicidade',
+      label: l10n.adSemantics,
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.all(AppSpacing.md),
@@ -41,7 +43,7 @@ class AdCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Patrocinado',
+                    l10n.sponsored,
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                           fontWeight: FontWeight.w700,
@@ -49,14 +51,14 @@ class AdCard extends StatelessWidget {
                   ),
                   const SizedBox(height: AppSpacing.xs),
                   Text(
-                    'Espaço de publicidade',
+                    l10n.adSpace,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.w800,
                         ),
                   ),
                   const SizedBox(height: AppSpacing.xs),
                   Text(
-                    'Reservado para integração futura com Google AdMob.',
+                    l10n.adReservedGoogle,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(

@@ -1,5 +1,6 @@
 import 'package:calorie_counter_app/models/meal.dart';
 import 'package:calorie_counter_app/design_system/app_spacing.dart';
+import 'package:calorie_counter_app/l10n/app_localizations.dart';
 import 'package:calorie_counter_app/utils/meal_icon_mapper.dart';
 import 'package:flutter/material.dart';
 
@@ -21,8 +22,13 @@ class MealListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final iconData = MealIconMapper.toIconData(meal.iconKey);
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
     return Semantics(
-      label: '${meal.descricao}, ${meal.calorias} quilocalorias',
+      label: l10n.pick(
+        en: '${meal.descricao}, ${meal.calorias} kilocalories',
+        pt: '${meal.descricao}, ${meal.calorias} quilocalorias',
+        es: '${meal.descricao}, ${meal.calorias} kilocalorías',
+      ),
       button: true,
       child: ListTile(
         minVerticalPadding: AppSpacing.md,
@@ -55,7 +61,7 @@ class MealListItem extends StatelessWidget {
                   ),
             ),
             IconButton(
-              tooltip: 'Remover refeicao',
+              tooltip: l10n.removeMealTooltip,
               onPressed: onRemoveTap,
               icon: const Icon(Icons.delete_outline_rounded),
             ),

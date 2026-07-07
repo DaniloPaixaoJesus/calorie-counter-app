@@ -1,5 +1,6 @@
 import 'package:calorie_counter_app/design_system/app_radius.dart';
 import 'package:calorie_counter_app/design_system/app_spacing.dart';
+import 'package:calorie_counter_app/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 class CalorieTotalCard extends StatelessWidget {
@@ -15,8 +16,9 @@ class CalorieTotalCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
     return Semantics(
-      label: 'Total de calorias: $totalCalorias quilocalorias',
+      label: l10n.totalCaloriesSemantic(totalCalorias),
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.symmetric(
@@ -31,7 +33,7 @@ class CalorieTotalCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Total de calorias',
+              l10n.totalCalories,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: colorScheme.onPrimary.withValues(alpha: 0.85),
                   ),
@@ -46,7 +48,7 @@ class CalorieTotalCard extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.xs),
             Text(
-              'Consumidas hoje',
+              l10n.consumedToday,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: colorScheme.onPrimary.withValues(alpha: 0.85),
                   ),
@@ -77,6 +79,7 @@ class _GoalProgress extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
     final progress = dailyGoal <= 0
         ? 0.0
         : (totalCalorias / dailyGoal).clamp(0.0, 1.0).toDouble();
@@ -97,7 +100,7 @@ class _GoalProgress extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.xs),
         Text(
-          'Meta diaria: $dailyGoal kcal',
+          l10n.dailyGoalCalories(dailyGoal),
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: colorScheme.onPrimary.withValues(alpha: 0.85),
                 fontWeight: FontWeight.w600,

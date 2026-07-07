@@ -1,5 +1,6 @@
 import 'package:calorie_counter_app/design_system/app_radius.dart';
 import 'package:calorie_counter_app/design_system/app_spacing.dart';
+import 'package:calorie_counter_app/l10n/app_localizations.dart';
 import 'package:calorie_counter_app/models/macronutrients.dart';
 import 'package:flutter/material.dart';
 
@@ -13,12 +14,13 @@ class MacronutrientsSummaryCard extends StatelessWidget {
     super.key,
     required this.macronutrients,
     this.compact = false,
-    this.title = 'Macronutrientes estimados',
+    this.title = '',
     this.showDistributionBar = true,
   });
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.lg),
@@ -26,7 +28,7 @@ class MacronutrientsSummaryCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              title,
+              title.isEmpty ? l10n.estimatedMacronutrients : title,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: AppSpacing.md),
@@ -104,6 +106,7 @@ class _MacroValue extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -121,7 +124,7 @@ class _MacroValue extends StatelessWidget {
             const SizedBox(width: AppSpacing.xs),
             Flexible(
               child: Text(
-                macro.label,
+                _localizedMacroLabel(l10n, macro),
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -143,15 +146,28 @@ class _CompactMacroValue extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         _MacroColorDot(color: macro.color),
         const SizedBox(width: AppSpacing.xs),
-        Text('${macro.label}: ${macro.grams} g'),
+        Text('${_localizedMacroLabel(l10n, macro)}: ${macro.grams} g'),
       ],
     );
   }
+}
+
+String _localizedMacroLabel(AppLocalizations l10n, Macronutrient macro) {
+  switch (macro.label) {
+    case 'Proteínas':
+      return l10n.proteins;
+    case 'Carboidratos':
+      return l10n.carbs;
+    case 'Gorduras':
+      return l10n.fats;
+  }
+  return macro.label;
 }
 
 class _MacroColorDot extends StatelessWidget {

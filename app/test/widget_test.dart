@@ -1,8 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 import 'package:calorie_counter_app/features/home/home_shell_page.dart';
 import 'package:calorie_counter_app/features/home/view_model.dart';
+import 'package:calorie_counter_app/l10n/app_localizations.dart';
 import 'package:calorie_counter_app/services/ai_adapter/ai_adapter_mock.dart';
 import 'package:calorie_counter_app/services/repository/in_memory_repository.dart';
 import 'package:calorie_counter_app/themes/nutrition_theme.dart';
@@ -21,6 +23,14 @@ void main() {
           aiAdapter: AiAdapterMock(responseDelay: Duration.zero),
         ),
         child: MaterialApp(
+          locale: const Locale('pt', 'BR'),
+          supportedLocales: AppLocalizations.supportedLocales,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
           theme: NutritionTheme.light,
           home: const HomeShellPage(),
         ),
@@ -42,6 +52,14 @@ void main() {
           aiAdapter: AiAdapterMock(responseDelay: Duration.zero),
         ),
         child: MaterialApp(
+          locale: const Locale('pt', 'BR'),
+          supportedLocales: AppLocalizations.supportedLocales,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
           theme: NutritionTheme.light,
           home: const HomeShellPage(),
         ),

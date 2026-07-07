@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:calorie_counter_app/design_system/app_spacing.dart';
 import 'package:calorie_counter_app/design_system/layout_breakpoints.dart';
+import 'package:calorie_counter_app/l10n/app_localizations.dart';
 import '../view_model.dart';
 
 /// Widget para navegação de data (Feature 002 - US1)
@@ -18,7 +19,9 @@ class DateNavigationBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<HomeViewModel>();
-    final formatador = DateFormat('d MMM yyyy', 'pt_BR');
+    final l10n = AppLocalizations.of(context);
+    final formatador =
+        DateFormat('d MMM yyyy', AppLocalizations.localeNameOf(context));
     final dataFormatada = formatador.format(vm.dataSelecionada);
     final horizontalPadding =
         LayoutBreakpoints.isSmall(context) ? AppSpacing.md : AppSpacing.lg;
@@ -37,7 +40,7 @@ class DateNavigationBar extends StatelessWidget {
             ElevatedButton.icon(
               onPressed: vm.podeVoltar ? vm.voltarDia : null,
               icon: const Icon(Icons.arrow_back),
-              label: const Text('Anterior'),
+              label: Text(l10n.previous),
             ),
             if (showDateLabel) ...[
               const SizedBox(width: AppSpacing.md),
@@ -55,13 +58,13 @@ class DateNavigationBar extends StatelessWidget {
             ElevatedButton.icon(
               onPressed: vm.podeAvancar ? vm.avancarDia : null,
               icon: const Icon(Icons.arrow_forward),
-              label: const Text('Próximo'),
+              label: Text(l10n.next),
             ),
             const SizedBox(width: AppSpacing.md),
             ElevatedButton.icon(
               onPressed: vm.eHoje ? null : vm.voltarParaHoje,
               icon: const Icon(Icons.home),
-              label: const Text('Hoje'),
+              label: Text(l10n.today),
             ),
           ],
         ),

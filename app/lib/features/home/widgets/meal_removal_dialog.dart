@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:calorie_counter_app/design_system/app_spacing.dart';
+import 'package:calorie_counter_app/l10n/app_localizations.dart';
 import 'package:calorie_counter_app/models/meal.dart';
 
 class MealRemovalDialog extends StatelessWidget {
@@ -16,14 +17,15 @@ class MealRemovalDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return AlertDialog(
       icon: const Icon(Icons.delete_outline_rounded),
-      title: const Text('Remover refeicao?'),
+      title: Text(l10n.removeMealQuestion),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Esta acao nao pode ser desfeita.'),
+          Text(l10n.cannotBeUndone),
           if (meal != null) ...[
             const SizedBox(height: AppSpacing.md),
             Text(
@@ -41,14 +43,14 @@ class MealRemovalDialog extends StatelessWidget {
         ],
       ),
       actions: [
-        TextButton(onPressed: onCancel, child: const Text('Cancelar')),
+        TextButton(onPressed: onCancel, child: Text(l10n.cancel)),
         FilledButton(
           style: FilledButton.styleFrom(
             backgroundColor: Theme.of(context).colorScheme.error,
             foregroundColor: Theme.of(context).colorScheme.onError,
           ),
           onPressed: onConfirm,
-          child: const Text('Remover'),
+          child: Text(l10n.remove),
         ),
       ],
     );

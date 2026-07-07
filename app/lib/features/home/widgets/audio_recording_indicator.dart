@@ -1,4 +1,5 @@
 import 'package:calorie_counter_app/design_system/app_spacing.dart';
+import 'package:calorie_counter_app/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 class AudioRecordingIndicator extends StatelessWidget {
@@ -15,9 +16,10 @@ class AudioRecordingIndicator extends StatelessWidget {
   Widget build(BuildContext context) {
     if (!isRecording) return const SizedBox.shrink();
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
     return Semantics(
       liveRegion: true,
-      label: 'Gravando audio. $secondsLeft segundos restantes.',
+      label: l10n.recordingAudioSemantic(secondsLeft),
       child: Column(
         children: [
           Icon(
@@ -32,7 +34,7 @@ class AudioRecordingIndicator extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.xs),
           Text(
-            'Gravando...',
+            l10n.recording,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: colorScheme.primary,
                   fontWeight: FontWeight.w600,

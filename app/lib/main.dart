@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 import 'package:calorie_counter_app/features/home/view_model.dart';
 import 'package:calorie_counter_app/features/onboarding/splash_page.dart';
+import 'package:calorie_counter_app/l10n/app_localizations.dart';
 import 'package:calorie_counter_app/services/ai_adapter/ai_adapter.dart';
 import 'package:calorie_counter_app/services/ai_adapter/ai_adapter_mock.dart';
 import 'package:calorie_counter_app/services/ai_adapter/bff_ai_adapter.dart';
@@ -23,7 +25,9 @@ const bool _useMockAi = true;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await initializeDateFormatting('en_US', null);
   await initializeDateFormatting('pt_BR', null);
+  await initializeDateFormatting('es', null);
   final MealRepository repository;
   final EstimateQuotaRepository estimateQuotaRepository;
   final AppSettingsRepository appSettingsRepository;
@@ -76,11 +80,21 @@ class CalorieCounterApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Nutrity',
+      onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
       theme: NutritionTheme.light,
       debugShowCheckedModeBanner: false,
+      supportedLocales: AppLocalizations.supportedLocales,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      localeResolutionCallback: AppLocalizations.resolve,
       builder: (context, child) {
-        if (!_useMockAi || child == null) return child ?? const SizedBox.shrink();
+        if (!_useMockAi || child == null) {
+          return child ?? const SizedBox.shrink();
+        }
 
         return Stack(
           children: [
@@ -94,11 +108,14 @@ class CalorieCounterApp extends StatelessWidget {
                     color: const Color(0xFFE65100),
                     borderRadius: BorderRadius.circular(999),
                   ),
-                  child: const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
                     child: Text(
-                      'IA MOCK',
-                      style: TextStyle(
+                      AppLocalizations.of(context).mockAiBadge,
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 11,
                         fontWeight: FontWeight.w700,

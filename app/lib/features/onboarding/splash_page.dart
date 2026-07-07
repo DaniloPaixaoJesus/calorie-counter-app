@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:calorie_counter_app/design_system/app_spacing.dart';
 import 'package:calorie_counter_app/features/home/home_shell_page.dart';
 import 'package:calorie_counter_app/features/onboarding/plan_selection_page.dart';
+import 'package:calorie_counter_app/l10n/app_localizations.dart';
 import 'package:calorie_counter_app/services/subscription/subscription_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -42,6 +43,7 @@ class _SplashPageState extends State<SplashPage> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       body: SafeArea(
@@ -64,7 +66,7 @@ class _SplashPageState extends State<SplashPage> {
               ),
               const SizedBox(height: AppSpacing.lg),
               Text(
-                'Nutrity',
+                l10n.appTitle,
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                       color: colorScheme.primary,
                       fontWeight: FontWeight.w800,
@@ -72,7 +74,7 @@ class _SplashPageState extends State<SplashPage> {
               ),
               const SizedBox(height: AppSpacing.sm),
               Text(
-                'Inteligência para\nsuas escolhas diárias',
+                l10n.splashTagline,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: colorScheme.onSurfaceVariant,
@@ -89,7 +91,7 @@ class _SplashPageState extends State<SplashPage> {
               ),
               const SizedBox(height: AppSpacing.sm),
               Text(
-                'Carregando...',
+                l10n.loading,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                     ),
