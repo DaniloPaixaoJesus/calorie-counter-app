@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:speech_to_text/speech_to_text.dart';
 
 /// Encapsula o pacote speech_to_text para transcrição on-device.
@@ -42,7 +44,7 @@ class SpeechService {
         }
       },
       listenOptions: SpeechListenOptions(
-        localeId: 'pt_BR',
+        localeId: _speechLocale(),
         partialResults: false,
         // Mantém a escuta ativa durante silêncios; só para ao atingir o limite.
         listenFor: maxDuration,
@@ -57,5 +59,12 @@ class SpeechService {
 
   void dispose() {
     _speech.cancel();
+  }
+
+  String _speechLocale() {
+    final locale = PlatformDispatcher.instance.locale;
+    if (locale.languageCode == 'pt') return 'pt_BR';
+    if (locale.languageCode == 'es') return 'es_ES';
+    return 'en_US';
   }
 }

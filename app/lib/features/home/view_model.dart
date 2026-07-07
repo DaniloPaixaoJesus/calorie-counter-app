@@ -3,6 +3,7 @@ import 'package:calorie_counter_app/models/macronutrients.dart';
 import 'package:calorie_counter_app/models/meal.dart';
 import 'package:calorie_counter_app/design_system/icon_key_registry.dart';
 import 'package:calorie_counter_app/services/ai_adapter/ai_adapter.dart';
+import 'package:calorie_counter_app/services/bff/user_bff_service.dart';
 import 'package:calorie_counter_app/services/estimate_quota/estimate_quota_repository.dart';
 import 'package:calorie_counter_app/services/estimate_quota/in_memory_estimate_quota_repository.dart';
 import 'package:calorie_counter_app/services/repository/meal_repository.dart';
@@ -17,6 +18,7 @@ class HomeViewModel extends ChangeNotifier {
   final AiAdapter _aiAdapter;
   final EstimateQuotaRepository _estimateQuotaRepository;
   final SubscriptionService _subscriptionService;
+  final UserBffService? _userBffService;
   late DateTime dataSelecionada;
 
   HomeViewModel({
@@ -24,12 +26,14 @@ class HomeViewModel extends ChangeNotifier {
     required AiAdapter aiAdapter,
     EstimateQuotaRepository? estimateQuotaRepository,
     SubscriptionService? subscriptionService,
+    UserBffService? userBffService,
   })  : _repository = repository,
         _aiAdapter = aiAdapter,
         _estimateQuotaRepository =
             estimateQuotaRepository ?? InMemoryEstimateQuotaRepository(),
         _subscriptionService =
-            subscriptionService ?? SubscriptionService.fallback() {
+            subscriptionService ?? SubscriptionService.fallback(),
+        _userBffService = userBffService {
     // Initialize dataSelecionada to today (Feature 002)
     dataSelecionada = DateTime.now().toLocalDate();
     _subscriptionService.addListener(notifyListeners);
@@ -165,7 +169,26 @@ class HomeViewModel extends ChangeNotifier {
     _estimate = null;
     _estimateErrorMessage = null;
     _homeErrorMessage = null;
+    await _syncMealWithBff(meal);
     notifyListeners();
+  }
+
+  Future<void> _syncMealWithBff(Meal meal) async {
+    final userId = _subscriptionService.settings.userId;
+    final userBffService = _userBffService;
+    if (userBffService == null || userId == null || userId.isEmpty) {
+      return;
+    }
+
+    try {
+      await userBffService.addMeal(userId: userId, meal: meal);
+    } on UserBffException catch (error) {
+      _homeErrorMessage = error.statusCode == null
+          ? error.message
+          : 'HTTP ${error.statusCode} - ${error.message}';
+    } catch (_) {
+      _homeErrorMessage = 'Erro inesperado ao sincronizar refeição.';
+    }
   }
 
   Future<void> updateMeal(Meal meal) async {

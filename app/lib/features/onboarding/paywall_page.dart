@@ -227,10 +227,8 @@ class _PremiumGoogleLoginPageState extends State<_PremiumGoogleLoginPage> {
       final account = await _googleAuthService.signIn();
       if (!context.mounted) return;
 
-      await context.read<SubscriptionService>().activatePremium(
-            userName: account.displayName,
-            userEmail: account.email,
-            userPhotoUrl: account.photoUrl,
+      await context.read<SubscriptionService>().authenticatePremiumWithGoogle(
+            account,
           );
       if (!context.mounted) return;
 

@@ -43,6 +43,7 @@ class BffAiAdapter implements AiAdapter {
   final String apiKey;
   final String apiKeyHeader;
   final Duration timeout;
+  final String Function()? localeProvider;
   final BffAiTransport _transport;
 
   BffAiAdapter({
@@ -50,6 +51,7 @@ class BffAiAdapter implements AiAdapter {
     this.apiKey = _defaultApiKey,
     this.apiKeyHeader = _defaultApiKeyHeader,
     this.timeout = const Duration(seconds: 30),
+    this.localeProvider,
     BffAiTransport? transport,
   })  : endpoint = endpoint ?? Uri.parse(_defaultEndpoint),
         _transport = transport ?? _postWithHttpClient;
@@ -73,6 +75,7 @@ class BffAiAdapter implements AiAdapter {
     };
     final requestBody = {
       'descricao': normalizedDescription,
+      'locale': localeProvider?.call() ?? 'en_US',
     };
 
     final response = await _transport(

@@ -50,7 +50,8 @@ void main() {
       expect(
           capturedHeaders['content-type'], 'application/json; charset=utf-8');
       expect(capturedBody['descricao'], 'banana e ovo mexido');
-      expect(capturedBody.keys, ['descricao']);
+      expect(capturedBody['locale'], 'en_US');
+      expect(capturedBody.keys, ['descricao', 'locale']);
       expect(estimate.descricaoInterpretada, 'banana e ovo mexido');
       expect(estimate.calorias, 230);
       expect(estimate.macronutrients.protein.grams, 14);

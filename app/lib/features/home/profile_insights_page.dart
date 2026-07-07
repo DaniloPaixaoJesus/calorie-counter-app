@@ -22,6 +22,8 @@ class ProfileInsightsPage extends StatefulWidget {
 
 class _ProfileInsightsPageState extends State<ProfileInsightsPage> {
   late final TextEditingController _goalController;
+  late final TextEditingController _birthDateController;
+  late final TextEditingController _genderController;
 
   @override
   void initState() {
@@ -30,22 +32,44 @@ class _ProfileInsightsPageState extends State<ProfileInsightsPage> {
     _goalController = TextEditingController(
       text: settings.dailyCalorieGoal.toString(),
     );
+    _birthDateController = TextEditingController(
+      text: settings.birthDate == null
+          ? ''
+          : DateFormat('yyyy-MM-dd').format(settings.birthDate!),
+    );
+    _genderController = TextEditingController(text: settings.gender ?? '');
   }
 
   @override
   void dispose() {
     _goalController.dispose();
+    _birthDateController.dispose();
+    _genderController.dispose();
     super.dispose();
   }
 
   Future<void> _saveGoal() async {
     final goal = int.tryParse(_goalController.text.trim());
     if (goal == null) return;
-    await context.read<SubscriptionService>().updateDailyCalorieGoal(goal);
+    final birthDateText = _birthDateController.text.trim();
+    final birthDate = birthDateText.isEmpty
+        ? null
+        : DateTime.tryParse('${birthDateText}T00:00:00');
+    if (birthDateText.isNotEmpty && birthDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context).invalidBirthDate)),
+      );
+      return;
+    }
+    await context.read<SubscriptionService>().updateUserProfile(
+          birthDate: birthDate,
+          gender: _genderController.text,
+          dailyCalorieGoal: goal,
+        );
     if (!mounted) return;
     FocusScope.of(context).unfocus();
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(AppLocalizations.of(context).goalUpdated)),
+      SnackBar(content: Text(AppLocalizations.of(context).profileUpdated)),
     );
   }
 
@@ -83,6 +107,8 @@ class _ProfileInsightsPageState extends State<ProfileInsightsPage> {
                 const SizedBox(height: AppSpacing.md),
                 _GoalCard(
                   controller: _goalController,
+                  birthDateController: _birthDateController,
+                  genderController: _genderController,
                   onSave: _saveGoal,
                 ),
                 const SizedBox(height: AppSpacing.md),
@@ -406,10 +432,14 @@ class _ProfilePhoto extends StatelessWidget {
 
 class _GoalCard extends StatelessWidget {
   final TextEditingController controller;
+  final TextEditingController birthDateController;
+  final TextEditingController genderController;
   final VoidCallback onSave;
 
   const _GoalCard({
     required this.controller,
+    required this.birthDateController,
+    required this.genderController,
     required this.onSave,
   });
 
@@ -422,10 +452,26 @@ class _GoalCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              AppLocalizations.of(context).dailyCalorieGoal,
+              AppLocalizations.of(context).personalData,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w800,
                   ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            TextField(
+              controller: birthDateController,
+              keyboardType: TextInputType.datetime,
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context).birthDate,
+                hintText: AppLocalizations.of(context).birthDateHint,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            TextField(
+              controller: genderController,
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context).gender,
+              ),
             ),
             const SizedBox(height: AppSpacing.md),
             Row(

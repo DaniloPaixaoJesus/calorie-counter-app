@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:speech_to_text/speech_to_text.dart';
 import 'audio_transcription_adapter.dart';
@@ -64,7 +65,7 @@ class OfflineAudioTranscriptionAdapter implements AudioTranscriptionAdapter {
         }
       },
       listenOptions: SpeechListenOptions(
-        localeId: 'pt_BR',
+        localeId: _speechLocale(),
         partialResults: false,
         listenFor: maxDuration,
         pauseFor: maxDuration,
@@ -80,5 +81,12 @@ class OfflineAudioTranscriptionAdapter implements AudioTranscriptionAdapter {
       _controller
           .add(TranscriptionError(code: 'stop_error', message: e.toString()));
     }
+  }
+
+  String _speechLocale() {
+    final locale = PlatformDispatcher.instance.locale;
+    if (locale.languageCode == 'pt') return 'pt_BR';
+    if (locale.languageCode == 'es') return 'es_ES';
+    return 'en_US';
   }
 }

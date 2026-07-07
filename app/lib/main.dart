@@ -9,6 +9,7 @@ import 'package:calorie_counter_app/l10n/app_localizations.dart';
 import 'package:calorie_counter_app/services/ai_adapter/ai_adapter.dart';
 import 'package:calorie_counter_app/services/ai_adapter/ai_adapter_mock.dart';
 import 'package:calorie_counter_app/services/ai_adapter/bff_ai_adapter.dart';
+import 'package:calorie_counter_app/services/bff/user_bff_service.dart';
 import 'package:calorie_counter_app/services/estimate_quota/estimate_quota_repository.dart';
 import 'package:calorie_counter_app/services/estimate_quota/in_memory_estimate_quota_repository.dart';
 import 'package:calorie_counter_app/services/estimate_quota/sqlite_estimate_quota_repository.dart';
@@ -41,8 +42,10 @@ Future<void> main() async {
     estimateQuotaRepository = InMemoryEstimateQuotaRepository();
     appSettingsRepository = InMemoryAppSettingsRepository();
   }
+  final userBffService = UserBffService(localeProvider: _currentLocaleName);
   final subscriptionService = await SubscriptionService.load(
     appSettingsRepository,
+    userBffService: userBffService,
   );
 
   runApp(
@@ -55,6 +58,7 @@ Future<void> main() async {
             aiAdapter: _createAiAdapter(),
             estimateQuotaRepository: estimateQuotaRepository,
             subscriptionService: subscriptionService,
+            userBffService: userBffService,
           ),
         ),
       ],
@@ -64,7 +68,19 @@ Future<void> main() async {
 }
 
 AiAdapter _createAiAdapter() {
-  return _useMockAi ? const AiAdapterMock() : BffAiAdapter();
+  return _useMockAi
+      ? const AiAdapterMock()
+      : BffAiAdapter(localeProvider: _currentLocaleName);
+}
+
+String _currentLocaleName() {
+  final locale = AppLocalizations.resolve(
+    WidgetsBinding.instance.platformDispatcher.locale,
+    AppLocalizations.supportedLocales,
+  );
+  if (locale.languageCode == 'pt') return 'pt_BR';
+  if (locale.languageCode == 'es') return 'es';
+  return 'en_US';
 }
 
 bool get _supportsSqliteStorage {

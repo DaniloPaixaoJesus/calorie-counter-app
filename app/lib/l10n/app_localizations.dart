@@ -508,6 +508,12 @@ class AppLocalizations {
           pt: 'Erro inesperado ao estimar calorias.',
           es: 'Error inesperado al estimar calorías.',
         );
+      case 'Erro inesperado ao sincronizar refeição.':
+        return pick(
+          en: 'Unexpected error while syncing meal.',
+          pt: 'Erro inesperado ao sincronizar refeição.',
+          es: 'Error inesperado al sincronizar la comida.',
+        );
       case 'Refeição não encontrada':
         return pick(
           en: 'Meal not found',
@@ -609,6 +615,32 @@ class AppLocalizations {
         en: 'Daily calorie goal',
         pt: 'Meta de calorias diaria',
         es: 'Meta diaria de calorías',
+      );
+  String get personalData => pick(
+        en: 'Personal data',
+        pt: 'Dados pessoais',
+        es: 'Datos personales',
+      );
+  String get birthDate => pick(
+        en: 'Birth date',
+        pt: 'Data de nascimento',
+        es: 'Fecha de nacimiento',
+      );
+  String get birthDateHint => pick(
+        en: 'YYYY-MM-DD',
+        pt: 'AAAA-MM-DD',
+        es: 'AAAA-MM-DD',
+      );
+  String get gender => pick(en: 'Gender', pt: 'Genero', es: 'Género');
+  String get profileUpdated => pick(
+        en: 'Profile updated.',
+        pt: 'Perfil atualizado.',
+        es: 'Perfil actualizado.',
+      );
+  String get invalidBirthDate => pick(
+        en: 'Use birth date as YYYY-MM-DD.',
+        pt: 'Use a data de nascimento como AAAA-MM-DD.',
+        es: 'Usa la fecha de nacimiento como AAAA-MM-DD.',
       );
   String get goalInKcal => pick(
         en: 'Goal in kcal',

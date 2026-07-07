@@ -5,11 +5,15 @@ class GoogleAuthAccount {
   final String email;
   final String? displayName;
   final String? photoUrl;
+  final String? idToken;
+  final String? accessToken;
 
   const GoogleAuthAccount({
     required this.email,
     this.displayName,
     this.photoUrl,
+    this.idToken,
+    this.accessToken,
   });
 }
 
@@ -30,7 +34,8 @@ class GoogleAuthService {
   final GoogleSignIn _googleSignIn;
 
   GoogleAuthService({GoogleSignIn? googleSignIn})
-      : _googleSignIn = googleSignIn ?? GoogleSignIn.standard(scopes: ['email']);
+      : _googleSignIn =
+            googleSignIn ?? GoogleSignIn.standard(scopes: ['email']);
 
   Future<GoogleAuthAccount> signIn() async {
     try {
@@ -38,11 +43,14 @@ class GoogleAuthService {
       if (account == null) {
         throw const GoogleAuthCancelledException();
       }
+      final authentication = await account.authentication;
 
       return GoogleAuthAccount(
         email: account.email,
         displayName: account.displayName,
         photoUrl: account.photoUrl,
+        idToken: authentication.idToken,
+        accessToken: authentication.accessToken,
       );
     } on GoogleAuthCancelledException {
       rethrow;

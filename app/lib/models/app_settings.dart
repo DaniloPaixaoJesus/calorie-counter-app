@@ -11,9 +11,12 @@ class AppSettings {
   final int remainingDailyEstimations;
   final DateTime? lastResetDate;
   final bool userLogged;
+  final String? userId;
   final String? userName;
   final String? userEmail;
   final String? userPhotoAssetPath;
+  final DateTime? birthDate;
+  final String? gender;
   final int dailyCalorieGoal;
 
   const AppSettings({
@@ -24,9 +27,12 @@ class AppSettings {
     this.remainingDailyEstimations = 3,
     this.lastResetDate,
     this.userLogged = false,
+    this.userId,
     this.userName,
     this.userEmail,
     this.userPhotoAssetPath,
+    this.birthDate,
+    this.gender,
     this.dailyCalorieGoal = 2000,
   });
 
@@ -42,9 +48,12 @@ class AppSettings {
     int? remainingDailyEstimations,
     DateTime? lastResetDate,
     bool? userLogged,
+    String? userId,
     String? userName,
     String? userEmail,
     String? userPhotoAssetPath,
+    DateTime? birthDate,
+    String? gender,
     int? dailyCalorieGoal,
   }) {
     return AppSettings(
@@ -56,9 +65,12 @@ class AppSettings {
           remainingDailyEstimations ?? this.remainingDailyEstimations,
       lastResetDate: lastResetDate ?? this.lastResetDate,
       userLogged: userLogged ?? this.userLogged,
+      userId: userId ?? this.userId,
       userName: userName ?? this.userName,
       userEmail: userEmail ?? this.userEmail,
       userPhotoAssetPath: userPhotoAssetPath ?? this.userPhotoAssetPath,
+      birthDate: birthDate ?? this.birthDate,
+      gender: gender ?? this.gender,
       dailyCalorieGoal: dailyCalorieGoal ?? this.dailyCalorieGoal,
     );
   }
@@ -72,9 +84,12 @@ class AppSettings {
       'remainingDailyEstimations': remainingDailyEstimations,
       'lastResetDate': lastResetDate?.toIso8601String(),
       'userLogged': userLogged ? 1 : 0,
+      'userId': userId,
       'userName': userName,
       'userEmail': userEmail,
       'userPhotoAssetPath': userPhotoAssetPath,
+      'birthDate': birthDate?.toIso8601String(),
+      'gender': gender,
       'dailyCalorieGoal': dailyCalorieGoal,
     };
   }
@@ -89,9 +104,12 @@ class AppSettings {
           (map['remainingDailyEstimations'] as int?) ?? 3,
       lastResetDate: _parseDate(map['lastResetDate']),
       userLogged: map['userLogged'] == 1,
+      userId: map['userId'] as String?,
       userName: map['userName'] as String?,
       userEmail: map['userEmail'] as String?,
       userPhotoAssetPath: map['userPhotoAssetPath'] as String?,
+      birthDate: _parseDate(map['birthDate']),
+      gender: map['gender'] as String?,
       dailyCalorieGoal: (map['dailyCalorieGoal'] as int?) ?? 2000,
     );
   }

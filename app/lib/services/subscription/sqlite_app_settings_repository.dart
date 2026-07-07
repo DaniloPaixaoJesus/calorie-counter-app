@@ -60,16 +60,22 @@ class SqliteAppSettingsRepository implements AppSettingsRepository {
         remainingDailyEstimations INTEGER NOT NULL,
         lastResetDate TEXT,
         userLogged INTEGER NOT NULL,
+        userId TEXT,
         userName TEXT,
         userEmail TEXT,
         userPhotoAssetPath TEXT,
+        birthDate TEXT,
+        gender TEXT,
         dailyCalorieGoal INTEGER NOT NULL DEFAULT 2000,
         updatedAt TEXT NOT NULL
       )
     ''');
+    await _ensureColumn(db, 'userId', 'TEXT');
     await _ensureColumn(db, 'userName', 'TEXT');
     await _ensureColumn(db, 'userEmail', 'TEXT');
     await _ensureColumn(db, 'userPhotoAssetPath', 'TEXT');
+    await _ensureColumn(db, 'birthDate', 'TEXT');
+    await _ensureColumn(db, 'gender', 'TEXT');
     await _ensureColumn(
         db, 'dailyCalorieGoal', 'INTEGER NOT NULL DEFAULT 2000');
   }
