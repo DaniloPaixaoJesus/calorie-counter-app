@@ -41,6 +41,7 @@ class _AddMealPageState extends State<AddMealPage> {
   // Usamos o adaptador de transcrição abstrato (MVP: offline)
   final AudioTranscriptionAdapter _adapter = OfflineAudioTranscriptionAdapter();
   String _descricao = '';
+  String? _descricaoInterpretada;
   int _calorias = 0;
   Macronutrients? _macronutrients;
   bool _isListening = false;
@@ -157,6 +158,7 @@ class _AddMealPageState extends State<AddMealPage> {
     await vm.requestEstimate(_descricao);
     if (mounted && vm.estimate != null) {
       setState(() {
+        _descricaoInterpretada = vm.estimate!.descricaoInterpretada;
         _calorias = vm.estimate!.calorias;
         _macronutrients = vm.estimate!.macronutrients;
       });
@@ -172,10 +174,16 @@ class _AddMealPageState extends State<AddMealPage> {
       );
       return;
     }
+    final descricaoOriginal = _descricao.trim().isNotEmpty
+        ? _descricao.trim()
+        : AppLocalizations.of(context).noDescription;
+    final descricaoInterpretada = (_descricaoInterpretada == null ||
+            _descricaoInterpretada!.trim().isEmpty)
+        ? descricaoOriginal
+        : _descricaoInterpretada!.trim();
     final meal = Meal.create(
-      descricao: _descricao.isNotEmpty
-          ? _descricao
-          : AppLocalizations.of(context).noDescription,
+      descricao: descricaoInterpretada,
+      descricaoOriginal: descricaoOriginal,
       calorias: _calorias,
       origem: _usouAudio ? MealOrigem.audio : MealOrigem.texto,
       dataSelecionada: vm.dataSelecionada,
@@ -205,6 +213,7 @@ class _AddMealPageState extends State<AddMealPage> {
       adaptivePageRoute(
         context: context,
         builder: (_) => ReviewEstimatePage(
+          descricaoOriginal: _descricao,
           descricaoInterpretada: estimate.descricaoInterpretada,
           calorias: _calorias,
           confidence: estimate.confidence,
@@ -217,7 +226,7 @@ class _AddMealPageState extends State<AddMealPage> {
 
     if (result == null) return;
     setState(() {
-      _descricao = result.descricao;
+      _descricaoInterpretada = result.descricao;
       _calorias = result.calorias;
       _macronutrients = result.macronutrients;
     });

@@ -6,7 +6,7 @@ import 'meal_repository.dart';
 
 class SqliteMealRepository implements MealRepository {
   static const _databaseName = 'calorie_counter.db';
-  static const _databaseVersion = 2;
+  static const _databaseVersion = 3;
   static const _tableMeals = 'meals';
 
   final Database _database;
@@ -24,6 +24,7 @@ class SqliteMealRepository implements MealRepository {
           CREATE TABLE $_tableMeals (
             id TEXT PRIMARY KEY,
             descricao TEXT NOT NULL,
+            descricaoOriginal TEXT,
             calorias INTEGER NOT NULL,
             timestamp TEXT NOT NULL,
             origem TEXT NOT NULL,
@@ -44,6 +45,10 @@ class SqliteMealRepository implements MealRepository {
               'ALTER TABLE $_tableMeals ADD COLUMN carbohydrateGrams INTEGER');
           await db
               .execute('ALTER TABLE $_tableMeals ADD COLUMN fatGrams INTEGER');
+        }
+        if (oldVersion < 3) {
+          await db.execute(
+              'ALTER TABLE $_tableMeals ADD COLUMN descricaoOriginal TEXT');
         }
       },
     );

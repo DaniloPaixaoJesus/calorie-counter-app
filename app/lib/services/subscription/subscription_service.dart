@@ -105,6 +105,7 @@ class SubscriptionService extends ChangeNotifier {
           userEmail: remoteSettings.userEmail,
           userPhotoAssetPath: remoteSettings.userPhotoAssetPath,
           googleAuthToken: remoteSettings.googleAuthToken,
+          trialStartDate: remoteSettings.trialStartDate,
           birthDate: remoteSettings.birthDate,
           gender: remoteSettings.gender,
           dailyCalorieGoal: remoteSettings.dailyCalorieGoal,
@@ -140,7 +141,10 @@ class SubscriptionService extends ChangeNotifier {
     var updated = _settings.copyWith(dailyCalorieGoal: normalizedGoal);
     final userBffService = _userBffService;
     if (userBffService != null && updated.userId != null) {
-      updated = await userBffService.updateProfile(updated);
+      updated = (await userBffService.updateProfile(updated)).copyWith(
+        trialStartDate: _settings.trialStartDate,
+        googleAuthToken: _settings.googleAuthToken,
+      );
     }
     await _save(updated);
   }
@@ -159,7 +163,10 @@ class SubscriptionService extends ChangeNotifier {
     );
     final userBffService = _userBffService;
     if (userBffService != null && updated.userId != null) {
-      updated = await userBffService.updateProfile(updated);
+      updated = (await userBffService.updateProfile(updated)).copyWith(
+        trialStartDate: _settings.trialStartDate,
+        googleAuthToken: _settings.googleAuthToken,
+      );
     }
     await _save(updated);
   }

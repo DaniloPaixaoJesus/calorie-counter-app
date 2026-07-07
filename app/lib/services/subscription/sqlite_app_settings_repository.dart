@@ -76,6 +76,7 @@ class SqliteAppSettingsRepository implements AppSettingsRepository {
     await _ensureColumn(db, 'userEmail', 'TEXT');
     await _ensureColumn(db, 'userPhotoAssetPath', 'TEXT');
     await _ensureColumn(db, 'googleAuthToken', 'TEXT');
+    await _ensureColumn(db, 'trialStartDate', 'TEXT');
     await _ensureColumn(db, 'birthDate', 'TEXT');
     await _ensureColumn(db, 'gender', 'TEXT');
     await _ensureColumn(

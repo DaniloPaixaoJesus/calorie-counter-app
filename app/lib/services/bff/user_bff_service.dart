@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:calorie_counter_app/models/app_settings.dart';
+import 'package:calorie_counter_app/models/macronutrients.dart';
 import 'package:calorie_counter_app/models/meal.dart';
 import 'package:calorie_counter_app/services/auth/google_auth_service.dart';
 import 'package:calorie_counter_app/services/bff/bff_client.dart';
@@ -57,7 +58,30 @@ class UserBffService {
       bearerToken: settings.googleAuthToken,
     );
 
-    return _settingsFromResponse(response);
+    return _settingsFromResponse(response).copyWith(
+      googleAuthToken: settings.googleAuthToken,
+    );
+  }
+
+  Future<List<Meal>> listMeals({
+    required String userId,
+    required String? bearerToken,
+  }) async {
+    final response = await client.get(
+      '/users/$userId/meals',
+      bearerToken: bearerToken,
+    );
+
+    _ensureSuccess(response);
+    final decoded = jsonDecode(response.body);
+    if (decoded is! List) {
+      throw const UserBffException('Resposta inválida do BFF');
+    }
+
+    return decoded
+        .whereType<Map<String, dynamic>>()
+        .map(_mealFromResponse)
+        .toList();
   }
 
   Future<void> addMeal({
@@ -70,6 +94,7 @@ class UserBffService {
       {
         'id': meal.id,
         'descricao': meal.descricao,
+        'descricaoOriginal': meal.descricaoOriginal,
         'calorias': meal.calorias,
         'timestamp': meal.timestamp.toUtc().toIso8601String(),
         'origem': meal.origem.name,
@@ -104,11 +129,37 @@ class UserBffService {
       userName: _readString(decoded, 'name'),
       userPhotoAssetPath: _readString(decoded, 'photoUrl'),
       googleAuthToken: null,
+      trialStartDate: _parseDate(_readString(decoded, 'createdAt')),
       birthDate: _parseDate(_readString(decoded, 'birthDate')),
       gender: _readString(decoded, 'gender'),
       dailyCalorieGoal: _readInt(decoded, 'dailyCalorieGoal') ?? 2000,
       remainingDailyEstimations: 3,
       lastResetDate: DateTime.now(),
+    );
+  }
+
+  Meal _mealFromResponse(Map<String, dynamic> json) {
+    final macros = json['macronutrients'];
+    final macrosJson = macros is Map<String, dynamic> ? macros : null;
+    return Meal(
+      id: _readString(json, 'id') ??
+          DateTime.now().microsecondsSinceEpoch.toString(),
+      descricao: _readString(json, 'descricao') ?? '',
+      descricaoOriginal: _readString(json, 'descricaoOriginal'),
+      calorias: _readInt(json, 'calorias') ?? 0,
+      timestamp: DateTime.tryParse(_readString(json, 'timestamp') ?? '') ??
+          DateTime.now(),
+      origem: _parseOrigem(_readString(json, 'origem')),
+      aiConfidence: _readDouble(json, 'aiConfidence'),
+      nota: _readString(json, 'nota'),
+      iconKey: _readString(json, 'iconKey') ?? 'default',
+      macronutrients: macrosJson == null
+          ? null
+          : Macronutrients.fromGramValues(
+              proteinGrams: _readInt(macrosJson, 'proteinGrams') ?? 0,
+              carbohydrateGrams: _readInt(macrosJson, 'carbohydrateGrams') ?? 0,
+              fatGrams: _readInt(macrosJson, 'fatGrams') ?? 0,
+            ),
     );
   }
 
@@ -144,6 +195,20 @@ class UserBffService {
     if (value is int) return value;
     if (value is num) return value.round();
     return null;
+  }
+
+  double? _readDouble(Map<String, dynamic> json, String key) {
+    final value = json[key];
+    if (value is double) return value;
+    if (value is num) return value.toDouble();
+    return null;
+  }
+
+  MealOrigem _parseOrigem(String? value) {
+    for (final origem in MealOrigem.values) {
+      if (origem.name == value) return origem;
+    }
+    return MealOrigem.texto;
   }
 
   DateTime? _parseDate(String? value) {

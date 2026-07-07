@@ -134,7 +134,8 @@ class _EditMealPageState extends State<EditMealPage> {
           ),
         ),
         const SizedBox(height: AppSpacing.lg),
-        _infoRow(context, l10n.description, meal.descricao),
+        _infoRow(context, l10n.interpretedDescription, meal.descricao),
+        _infoRow(context, l10n.originalDescription, meal.descricaoOriginal),
         _infoRow(context, l10n.calories, '${meal.calorias} kcal'),
         if (isPremium) ...[
           MacronutrientsSummaryCard(

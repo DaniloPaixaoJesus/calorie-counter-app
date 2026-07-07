@@ -23,6 +23,13 @@ class MealListItem extends StatelessWidget {
     final iconData = MealIconMapper.toIconData(meal.iconKey);
     final colorScheme = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context);
+    final originalDiffers =
+        meal.descricaoOriginal.trim() != meal.descricao.trim();
+    final subtitleParts = [
+      if (originalDiffers)
+        '${l10n.originalDescription}: ${meal.descricaoOriginal}',
+      if (meal.nota != null && meal.nota!.trim().isNotEmpty) meal.nota!,
+    ];
     return Semantics(
       label: l10n.pick(
         en: '${meal.descricao}, ${meal.calorias} kilocalories',
@@ -42,11 +49,11 @@ class MealListItem extends StatelessWidget {
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
         ),
-        subtitle: meal.nota == null || meal.nota!.isEmpty
+        subtitle: subtitleParts.isEmpty
             ? null
             : Text(
-                meal.nota!,
-                maxLines: 2,
+                subtitleParts.join('\n'),
+                maxLines: 3,
                 overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.bodySmall,
               ),

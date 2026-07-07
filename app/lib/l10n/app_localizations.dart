@@ -470,6 +470,16 @@ class AppLocalizations {
       );
   String get description =>
       pick(en: 'Description', pt: 'Descricao', es: 'Descripción');
+  String get interpretedDescription => pick(
+        en: 'Interpreted by AI',
+        pt: 'Interpretado pela IA',
+        es: 'Interpretado por IA',
+      );
+  String get originalDescription => pick(
+        en: 'Original entry',
+        pt: 'Entrada original',
+        es: 'Entrada original',
+      );
   String get calories => pick(en: 'Calories', pt: 'Calorias', es: 'Calorías');
   String get source => pick(en: 'Source', pt: 'Origem', es: 'Origen');
   String get audio => pick(en: 'Audio', pt: 'Audio', es: 'Audio');
@@ -561,6 +571,11 @@ class AppLocalizations {
         pt: 'Usuario Premium',
         es: 'Usuario Premium',
       );
+  String helloUser(String name) => pick(
+        en: 'Hello, $name!',
+        pt: 'Olá!, $name!',
+        es: 'Hola, $name!',
+      );
   String get emailNotInformed => pick(
         en: 'E-mail not informed',
         pt: 'E-mail nao informado',
@@ -632,6 +647,26 @@ class AppLocalizations {
         es: 'AAAA-MM-DD',
       );
   String get gender => pick(en: 'Gender', pt: 'Genero', es: 'Género');
+  String get masculine => pick(
+        en: 'Male',
+        pt: 'Masculino',
+        es: 'Masculino',
+      );
+  String get feminine => pick(
+        en: 'Female',
+        pt: 'Feminino',
+        es: 'Femenino',
+      );
+  String get otherGender => pick(
+        en: 'Other',
+        pt: 'Outro',
+        es: 'Otro',
+      );
+  String ageYears(int age) => pick(
+        en: '$age years old',
+        pt: '$age anos',
+        es: '$age años',
+      );
   String get profileUpdated => pick(
         en: 'Profile updated.',
         pt: 'Perfil atualizado.',

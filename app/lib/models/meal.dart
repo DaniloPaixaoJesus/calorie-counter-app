@@ -7,6 +7,7 @@ enum MealOrigem { texto, audio }
 class Meal {
   final String id;
   final String descricao;
+  final String descricaoOriginal;
   final int calorias;
   final DateTime timestamp;
   final MealOrigem origem;
@@ -18,6 +19,7 @@ class Meal {
   const Meal({
     required this.id,
     required this.descricao,
+    String? descricaoOriginal,
     required this.calorias,
     required this.timestamp,
     required this.origem,
@@ -25,10 +27,11 @@ class Meal {
     this.nota,
     this.iconKey = IconKeyRegistry.defaultKey,
     this.macronutrients,
-  });
+  }) : descricaoOriginal = descricaoOriginal ?? descricao;
 
   factory Meal.create({
     required String descricao,
+    String? descricaoOriginal,
     required int calorias,
     required MealOrigem origem,
     required DateTime dataSelecionada,
@@ -54,6 +57,7 @@ class Meal {
     return Meal(
       id: const Uuid().v4(),
       descricao: descricao,
+      descricaoOriginal: descricaoOriginal ?? descricao,
       calorias: calorias,
       timestamp: timestampAjustado,
       origem: origem,
@@ -66,6 +70,7 @@ class Meal {
 
   Meal copyWith({
     String? descricao,
+    String? descricaoOriginal,
     int? calorias,
     double? aiConfidence,
     String? nota,
@@ -75,6 +80,7 @@ class Meal {
     return Meal(
       id: id,
       descricao: descricao ?? this.descricao,
+      descricaoOriginal: descricaoOriginal ?? this.descricaoOriginal,
       calorias: calorias ?? this.calorias,
       timestamp: timestamp,
       origem: origem,
@@ -89,6 +95,7 @@ class Meal {
     return {
       'id': id,
       'descricao': descricao,
+      'descricaoOriginal': descricaoOriginal,
       'calorias': calorias,
       'timestamp': timestamp.toIso8601String(),
       'origem': origem.name,
@@ -107,6 +114,7 @@ class Meal {
     return Meal(
       id: map['id'] as String,
       descricao: map['descricao'] as String,
+      descricaoOriginal: map['descricaoOriginal'] as String?,
       calorias: (map['calorias'] as num).toInt(),
       timestamp: DateTime.parse(map['timestamp'] as String),
       origem: MealOrigem.values.firstWhere(

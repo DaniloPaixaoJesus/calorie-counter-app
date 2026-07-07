@@ -7,6 +7,7 @@ import 'package:calorie_counter_app/features/home/view_model.dart';
 import 'package:calorie_counter_app/l10n/app_localizations.dart';
 import 'package:calorie_counter_app/models/app_settings.dart';
 import 'package:calorie_counter_app/models/macronutrients.dart';
+import 'package:calorie_counter_app/models/meal.dart';
 import 'package:calorie_counter_app/services/auth/google_auth_service.dart';
 import 'package:calorie_counter_app/services/subscription/subscription_service.dart';
 import 'package:flutter/material.dart';
@@ -23,7 +24,8 @@ class ProfileInsightsPage extends StatefulWidget {
 class _ProfileInsightsPageState extends State<ProfileInsightsPage> {
   late final TextEditingController _goalController;
   late final TextEditingController _birthDateController;
-  late final TextEditingController _genderController;
+  String? _selectedGender;
+  Future<List<Meal>>? _profileMealsFuture;
 
   @override
   void initState() {
@@ -37,14 +39,20 @@ class _ProfileInsightsPageState extends State<ProfileInsightsPage> {
           ? ''
           : DateFormat('yyyy-MM-dd').format(settings.birthDate!),
     );
-    _genderController = TextEditingController(text: settings.gender ?? '');
+    _selectedGender = _normalizeGender(settings.gender);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _profileMealsFuture ??=
+        context.read<HomeViewModel>().fetchMealsFromBffForProfile();
   }
 
   @override
   void dispose() {
     _goalController.dispose();
     _birthDateController.dispose();
-    _genderController.dispose();
     super.dispose();
   }
 
@@ -63,7 +71,7 @@ class _ProfileInsightsPageState extends State<ProfileInsightsPage> {
     }
     await context.read<SubscriptionService>().updateUserProfile(
           birthDate: birthDate,
-          gender: _genderController.text,
+          gender: _selectedGender,
           dailyCalorieGoal: goal,
         );
     if (!mounted) return;
@@ -71,6 +79,22 @@ class _ProfileInsightsPageState extends State<ProfileInsightsPage> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(AppLocalizations.of(context).profileUpdated)),
     );
+  }
+
+  Future<void> _pickBirthDate() async {
+    final currentText = _birthDateController.text.trim();
+    final currentDate = currentText.isEmpty
+        ? null
+        : DateTime.tryParse('${currentText}T00:00:00');
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: currentDate ?? DateTime(now.year - 25, now.month, now.day),
+      firstDate: DateTime(1900),
+      lastDate: DateTime(now.year, now.month, now.day),
+    );
+    if (picked == null) return;
+    _birthDateController.text = DateFormat('yyyy-MM-dd').format(picked);
   }
 
   Future<void> _logout() async {
@@ -88,7 +112,6 @@ class _ProfileInsightsPageState extends State<ProfileInsightsPage> {
     final vm = context.watch<HomeViewModel>();
     final settings = context.watch<SubscriptionService>().settings;
     final l10n = AppLocalizations.of(context);
-    final days = _lastSevenDays(context, vm);
     final horizontalPadding =
         LayoutBreakpoints.isSmall(context) ? AppSpacing.md : AppSpacing.lg;
 
@@ -103,27 +126,47 @@ class _ProfileInsightsPageState extends State<ProfileInsightsPage> {
             child: ListView(
               padding: EdgeInsets.all(horizontalPadding),
               children: [
-                _UserSummary(settings: settings),
-                const SizedBox(height: AppSpacing.md),
-                _GoalCard(
-                  controller: _goalController,
-                  birthDateController: _birthDateController,
-                  genderController: _genderController,
-                  onSave: _saveGoal,
+                FutureBuilder<List<Meal>>(
+                  future: _profileMealsFuture,
+                  builder: (context, snapshot) {
+                    final profileMeals = snapshot.data ?? vm.meals;
+                    final days = _lastSevenDays(context, profileMeals);
+                    final stats = _ProfileStats.fromMeals(
+                      settings: settings,
+                      meals: profileMeals,
+                    );
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _UserSummary(settings: settings, stats: stats),
+                        const SizedBox(height: AppSpacing.md),
+                        _GoalCard(
+                          controller: _goalController,
+                          birthDateController: _birthDateController,
+                          selectedGender: _selectedGender,
+                          onBirthDateTap: _pickBirthDate,
+                          onGenderChanged: (value) {
+                            setState(() => _selectedGender = value);
+                          },
+                          onSave: _saveGoal,
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        OutlinedButton.icon(
+                          onPressed: _logout,
+                          icon: const Icon(Icons.logout_rounded),
+                          label: Text(l10n.logout),
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        _CaloriesChartCard(
+                          days: days,
+                          dailyGoal: settings.dailyCalorieGoal,
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        _MacroLineChartCard(days: days),
+                      ],
+                    );
+                  },
                 ),
-                const SizedBox(height: AppSpacing.md),
-                OutlinedButton.icon(
-                  onPressed: _logout,
-                  icon: const Icon(Icons.logout_rounded),
-                  label: Text(l10n.logout),
-                ),
-                const SizedBox(height: AppSpacing.md),
-                _CaloriesChartCard(
-                  days: days,
-                  dailyGoal: settings.dailyCalorieGoal,
-                ),
-                const SizedBox(height: AppSpacing.md),
-                _MacroLineChartCard(days: days),
               ],
             ),
           ),
@@ -132,7 +175,7 @@ class _ProfileInsightsPageState extends State<ProfileInsightsPage> {
     );
   }
 
-  List<_DailyInsight> _lastSevenDays(BuildContext context, HomeViewModel vm) {
+  List<_DailyInsight> _lastSevenDays(BuildContext context, List<Meal> meals) {
     final now = DateTime.now();
     final dates = List<DateTime>.generate(7, (index) {
       final day = now.subtract(Duration(days: 6 - index));
@@ -147,13 +190,13 @@ class _ProfileInsightsPageState extends State<ProfileInsightsPage> {
       for (final date in dates)
         _DailyInsight(
           label: formatter.format(date),
-          calories: vm.meals
+          calories: meals
               .where((meal) =>
                   meal.timestamp.year == date.year &&
                   meal.timestamp.month == date.month &&
                   meal.timestamp.day == date.day)
               .fold(0, (sum, meal) => sum + meal.calorias),
-          macronutrients: vm.meals
+          macronutrients: meals
               .where((meal) =>
                   meal.timestamp.year == date.year &&
                   meal.timestamp.month == date.month &&
@@ -165,6 +208,18 @@ class _ProfileInsightsPageState extends State<ProfileInsightsPage> {
               ),
         ),
     ];
+  }
+
+  String? _normalizeGender(String? value) {
+    final normalized = value?.trim().toLowerCase();
+    if (normalized == null || normalized.isEmpty) return null;
+    if (normalized == 'male' || normalized == 'masculino') return 'masculino';
+    if (normalized == 'female' ||
+        normalized == 'feminino' ||
+        normalized == 'femenino') {
+      return 'feminino';
+    }
+    return 'outro';
   }
 }
 
@@ -180,19 +235,83 @@ class _DailyInsight {
   });
 }
 
+class _ProfileStats {
+  final DateTime memberSince;
+  final int currentStreak;
+  final int bestStreak;
+
+  const _ProfileStats({
+    required this.memberSince,
+    required this.currentStreak,
+    required this.bestStreak,
+  });
+
+  factory _ProfileStats.fromMeals({
+    required AppSettings settings,
+    required List<Meal> meals,
+  }) {
+    final daysWithMeals = <DateTime>{};
+    for (final meal in meals) {
+      daysWithMeals.add(
+        DateTime(meal.timestamp.year, meal.timestamp.month, meal.timestamp.day),
+      );
+    }
+
+    final sortedDays = daysWithMeals.toList()..sort();
+    final firstMealDate = sortedDays.isEmpty ? null : sortedDays.first;
+
+    return _ProfileStats(
+      memberSince: settings.trialStartDate ?? firstMealDate ?? DateTime.now(),
+      currentStreak: _currentStreak(daysWithMeals),
+      bestStreak: _bestStreak(sortedDays),
+    );
+  }
+
+  static int _currentStreak(Set<DateTime> daysWithMeals) {
+    var cursor = DateTime.now();
+    cursor = DateTime(cursor.year, cursor.month, cursor.day);
+    var streak = 0;
+    while (daysWithMeals.contains(cursor)) {
+      streak++;
+      cursor = cursor.subtract(const Duration(days: 1));
+    }
+    return streak;
+  }
+
+  static int _bestStreak(List<DateTime> sortedDays) {
+    if (sortedDays.isEmpty) return 0;
+    var best = 1;
+    var current = 1;
+    for (var i = 1; i < sortedDays.length; i++) {
+      final previous = sortedDays[i - 1];
+      final currentDay = sortedDays[i];
+      if (currentDay.difference(previous).inDays == 1) {
+        current++;
+      } else {
+        current = 1;
+      }
+      best = math.max(best, current);
+    }
+    return best;
+  }
+}
+
 class _UserSummary extends StatelessWidget {
   final AppSettings settings;
+  final _ProfileStats stats;
 
-  const _UserSummary({required this.settings});
+  const _UserSummary({
+    required this.settings,
+    required this.stats,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final memberSince = settings.trialStartDate ?? DateTime(2025, 4, 15);
     final l10n = AppLocalizations.of(context);
     final memberSinceLabel = DateFormat(
       'dd/MM/yyyy',
       AppLocalizations.localeNameOf(context),
-    ).format(memberSince);
+    ).format(stats.memberSince);
 
     return Card(
       child: Padding(
@@ -217,13 +336,13 @@ class _UserSummary extends StatelessWidget {
                   icon: Icons.local_fire_department_rounded,
                   iconColor: const Color(0xFFF05A24),
                   title: l10n.currentStreak,
-                  value: l10n.daysCount(12),
+                  value: l10n.daysCount(stats.currentStreak),
                 ),
                 _ProfileMetric(
                   icon: Icons.emoji_events_rounded,
                   iconColor: const Color(0xFF2E7D32),
                   title: l10n.bestStreak,
-                  value: l10n.daysCount(28),
+                  value: l10n.daysCount(stats.bestStreak),
                 ),
                 _ProfileMetric(
                   icon: Icons.star_rounded,
@@ -247,6 +366,13 @@ class _UserHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final demographics = [
+      if (_age(settings.birthDate) != null)
+        l10n.ageYears(_age(settings.birthDate)!),
+      if (_localizedGender(l10n, settings.gender) != null)
+        _localizedGender(l10n, settings.gender)!,
+    ];
     final profileInfo = Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -274,6 +400,17 @@ class _UserHeader extends StatelessWidget {
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
               ),
+              if (demographics.isNotEmpty) ...[
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  demographics.join(' • '),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                ),
+              ],
               const SizedBox(height: AppSpacing.md),
               const _PlanStatus(),
             ],
@@ -314,6 +451,30 @@ class _UserHeader extends StatelessWidget {
         );
       },
     );
+  }
+
+  int? _age(DateTime? birthDate) {
+    if (birthDate == null) return null;
+    final today = DateTime.now();
+    var age = today.year - birthDate.year;
+    final birthdayThisYear =
+        DateTime(today.year, birthDate.month, birthDate.day);
+    if (today.isBefore(birthdayThisYear)) age--;
+    return age < 0 ? null : age;
+  }
+
+  String? _localizedGender(AppLocalizations l10n, String? value) {
+    final normalized = value?.trim().toLowerCase();
+    if (normalized == null || normalized.isEmpty) return null;
+    if (normalized == 'masculino' || normalized == 'male') {
+      return l10n.masculine;
+    }
+    if (normalized == 'feminino' ||
+        normalized == 'female' ||
+        normalized == 'femenino') {
+      return l10n.feminine;
+    }
+    return l10n.otherGender;
   }
 }
 
@@ -433,13 +594,17 @@ class _ProfilePhoto extends StatelessWidget {
 class _GoalCard extends StatelessWidget {
   final TextEditingController controller;
   final TextEditingController birthDateController;
-  final TextEditingController genderController;
+  final String? selectedGender;
+  final VoidCallback onBirthDateTap;
+  final ValueChanged<String?> onGenderChanged;
   final VoidCallback onSave;
 
   const _GoalCard({
     required this.controller,
     required this.birthDateController,
-    required this.genderController,
+    required this.selectedGender,
+    required this.onBirthDateTap,
+    required this.onGenderChanged,
     required this.onSave,
   });
 
@@ -460,18 +625,35 @@ class _GoalCard extends StatelessWidget {
             const SizedBox(height: AppSpacing.md),
             TextField(
               controller: birthDateController,
-              keyboardType: TextInputType.datetime,
+              readOnly: true,
+              onTap: onBirthDateTap,
               decoration: InputDecoration(
                 labelText: AppLocalizations.of(context).birthDate,
                 hintText: AppLocalizations.of(context).birthDateHint,
+                suffixIcon: const Icon(Icons.calendar_month_rounded),
               ),
             ),
             const SizedBox(height: AppSpacing.md),
-            TextField(
-              controller: genderController,
+            DropdownButtonFormField<String>(
+              initialValue: selectedGender,
+              onChanged: onGenderChanged,
               decoration: InputDecoration(
                 labelText: AppLocalizations.of(context).gender,
               ),
+              items: [
+                DropdownMenuItem(
+                  value: 'masculino',
+                  child: Text(AppLocalizations.of(context).masculine),
+                ),
+                DropdownMenuItem(
+                  value: 'feminino',
+                  child: Text(AppLocalizations.of(context).feminine),
+                ),
+                DropdownMenuItem(
+                  value: 'outro',
+                  child: Text(AppLocalizations.of(context).otherGender),
+                ),
+              ],
             ),
             const SizedBox(height: AppSpacing.md),
             Row(

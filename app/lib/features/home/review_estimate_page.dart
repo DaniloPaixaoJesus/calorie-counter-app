@@ -18,6 +18,7 @@ class ReviewEstimateResult {
 }
 
 class ReviewEstimatePage extends StatefulWidget {
+  final String descricaoOriginal;
   final String descricaoInterpretada;
   final int calorias;
   final double confidence;
@@ -27,6 +28,7 @@ class ReviewEstimatePage extends StatefulWidget {
 
   const ReviewEstimatePage({
     super.key,
+    required this.descricaoOriginal,
     required this.descricaoInterpretada,
     required this.calorias,
     required this.confidence,
@@ -111,6 +113,22 @@ class _ReviewEstimatePageState extends State<ReviewEstimatePage> {
                                   fontWeight: FontWeight.w700,
                                 ),
                           ),
+                          if (widget.descricaoOriginal.trim().isNotEmpty &&
+                              widget.descricaoOriginal.trim() !=
+                                  widget.descricaoInterpretada.trim()) ...[
+                            const SizedBox(height: AppSpacing.xs),
+                            Text(
+                              '${l10n.originalDescription}: ${widget.descricaoOriginal}',
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                            ),
+                          ],
                           const SizedBox(height: AppSpacing.xs),
                           Text(
                             '${widget.calorias} kcal',
@@ -126,6 +144,16 @@ class _ReviewEstimatePageState extends State<ReviewEstimatePage> {
                     ),
                   ],
                 ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              _TextSection(
+                label: l10n.originalDescription,
+                value: widget.descricaoOriginal,
+              ),
+              const SizedBox(height: AppSpacing.md),
+              _TextSection(
+                label: l10n.interpretedDescription,
+                value: widget.descricaoInterpretada,
               ),
               const SizedBox(height: AppSpacing.lg),
               Text(
@@ -193,6 +221,37 @@ class _ReviewEstimatePageState extends State<ReviewEstimatePage> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _TextSection extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _TextSection({
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Text(
+          value,
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+      ],
     );
   }
 }

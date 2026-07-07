@@ -232,7 +232,9 @@ class _PremiumHeader extends StatelessWidget {
         ),
         const SizedBox(width: AppSpacing.xs),
         Text(
-          'Premium',
+          AppLocalizations.of(context).helloUser(
+            settings.userName ?? AppLocalizations.of(context).premiumUser,
+          ),
           style: Theme.of(context).textTheme.labelLarge?.copyWith(
                 fontWeight: FontWeight.w800,
               ),

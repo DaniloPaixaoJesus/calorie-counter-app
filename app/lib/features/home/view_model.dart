@@ -195,6 +195,24 @@ class HomeViewModel extends ChangeNotifier {
     }
   }
 
+  Future<List<Meal>> fetchMealsFromBffForProfile() async {
+    final settings = _subscriptionService.settings;
+    final userId = settings.userId;
+    final userBffService = _userBffService;
+    if (userBffService == null || userId == null || userId.isEmpty) {
+      return meals;
+    }
+
+    try {
+      return await userBffService.listMeals(
+        userId: userId,
+        bearerToken: settings.googleAuthToken,
+      );
+    } catch (_) {
+      return meals;
+    }
+  }
+
   Future<void> updateMeal(Meal meal) async {
     await _repository.update(meal);
     _homeErrorMessage = null;
