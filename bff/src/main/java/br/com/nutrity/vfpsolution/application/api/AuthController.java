@@ -26,4 +26,10 @@ public class AuthController {
     public ResponseEntity<UserProfileDto> authenticateGoogle(@Valid @RequestBody GoogleAuthRequest request) {
         return ResponseEntity.ok(userPersistenceService.authenticateWithGoogle(request));
     }
+
+    @Operation(summary = "Recupera uma conta Google com assinatura Premium ativa")
+    @PostMapping("/google/restore")
+    public ResponseEntity<UserProfileDto> restoreGoogle(@Valid @RequestBody GoogleAuthRequest request) {
+        return ResponseEntity.ok(userPersistenceService.restorePremiumWithGoogle(request));
+    }
 }

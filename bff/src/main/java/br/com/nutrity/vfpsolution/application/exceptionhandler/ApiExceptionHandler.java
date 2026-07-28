@@ -1,6 +1,7 @@
 package br.com.nutrity.vfpsolution.application.exceptionhandler;
 
 import br.com.nutrity.vfpsolution.domain.exception.BusinessException;
+import br.com.nutrity.vfpsolution.domain.exception.PremiumSubscriptionNotFoundException;
 import br.com.nutrity.vfpsolution.domain.sync.SyncExceptions;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.fasterxml.jackson.databind.exc.PropertyBindingException;
@@ -231,6 +232,17 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(SyncExceptions.PremiumRequired.class)
     public ResponseEntity<ApiError> handlePremiumRequired(SyncExceptions.PremiumRequired ex) {
         return syncError(HttpStatus.FORBIDDEN, "PREMIUM_REQUIRED", ex.getMessage());
+    }
+
+    @ExceptionHandler(PremiumSubscriptionNotFoundException.class)
+    public ResponseEntity<ApiError> handlePremiumSubscriptionNotFound(
+            PremiumSubscriptionNotFoundException ex
+    ) {
+        return syncError(
+                HttpStatus.NOT_FOUND,
+                "PREMIUM_SUBSCRIPTION_NOT_FOUND",
+                ex.getMessage()
+        );
     }
 
     @ExceptionHandler(SyncExceptions.IdempotencyConflict.class)

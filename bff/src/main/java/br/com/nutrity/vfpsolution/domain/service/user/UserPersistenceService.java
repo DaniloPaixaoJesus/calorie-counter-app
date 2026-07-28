@@ -8,6 +8,7 @@ import br.com.nutrity.vfpsolution.domain.entityrequest.user.CreateMealRequest;
 import br.com.nutrity.vfpsolution.domain.entityrequest.user.GoogleAuthRequest;
 import br.com.nutrity.vfpsolution.domain.entityrequest.user.UpdateUserProfileRequest;
 import br.com.nutrity.vfpsolution.domain.exception.BusinessException;
+import br.com.nutrity.vfpsolution.domain.exception.PremiumSubscriptionNotFoundException;
 import br.com.nutrity.vfpsolution.domain.repository.UserMealRepository;
 import br.com.nutrity.vfpsolution.domain.repository.UserProfileRepository;
 import org.springframework.stereotype.Service;
@@ -67,6 +68,25 @@ public class UserPersistenceService {
                 now
         );
 
+        return toDto(userProfileRepository.save(user));
+    }
+
+    @Transactional
+    public UserProfileDto restorePremiumWithGoogle(GoogleAuthRequest request) {
+        googleOAuthValidator.validate(request);
+
+        String email = request.email().trim().toLowerCase(Locale.ROOT);
+        OffsetDateTime now = OffsetDateTime.now();
+        UserProfile user = userProfileRepository.findByEmail(email)
+                .filter(candidate -> candidate.hasActivePremium(now))
+                .orElseThrow(PremiumSubscriptionNotFoundException::new);
+
+        user.updateFromGoogle(
+                firstNonBlank(request.name(), user.getName()),
+                firstNonBlank(request.photoUrl(), user.getPhotoUrl()),
+                normalizeLocale(request.locale(), user.getLocale()),
+                now
+        );
         return toDto(userProfileRepository.save(user));
     }
 
