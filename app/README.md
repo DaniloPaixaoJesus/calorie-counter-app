@@ -41,6 +41,8 @@ flutter run \
 ```
 
 Em desenvolvimento, existe um valor padrao apontando para o Cloud Run do projeto.
+O login Google não depende de `NUTRITY_BFF_API_KEY`. A chave continua necessária
+para as rotas autenticadas de dados e sincronização.
 
 ## Funcionalidades
 

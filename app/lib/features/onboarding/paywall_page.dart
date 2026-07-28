@@ -4,6 +4,7 @@ import 'package:calorie_counter_app/design_system/layout_breakpoints.dart';
 import 'package:calorie_counter_app/features/home/home_shell_page.dart';
 import 'package:calorie_counter_app/l10n/app_localizations.dart';
 import 'package:calorie_counter_app/services/auth/google_auth_service.dart';
+import 'package:calorie_counter_app/services/bff/user_bff_service.dart';
 import 'package:calorie_counter_app/services/subscription/subscription_service.dart';
 import 'package:calorie_counter_app/utils/adaptive_page_route.dart';
 import 'package:flutter/material.dart';
@@ -217,6 +218,7 @@ class _PremiumGoogleLoginPageState extends State<_PremiumGoogleLoginPage> {
     if (_isLoadingGoogleLogin) return;
     final googleLoginCancelled =
         AppLocalizations.of(context).googleLoginCancelled;
+    final googleLoginFailed = AppLocalizations.of(context).googleLoginFailed;
 
     setState(() {
       _isLoadingGoogleLogin = true;
@@ -242,6 +244,12 @@ class _PremiumGoogleLoginPageState extends State<_PremiumGoogleLoginPage> {
     } on GoogleAuthException catch (error) {
       if (!mounted) return;
       setState(() => _googleLoginError = error.message);
+    } on UserBffException catch (error) {
+      if (!mounted) return;
+      setState(() => _googleLoginError = error.message);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _googleLoginError = googleLoginFailed);
     } finally {
       if (mounted) {
         setState(() => _isLoadingGoogleLogin = false);

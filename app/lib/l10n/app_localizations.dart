@@ -217,6 +217,11 @@ class AppLocalizations {
         pt: 'Login Google cancelado.',
         es: 'Inicio con Google cancelado.',
       );
+  String get googleLoginFailed => pick(
+        en: 'Could not complete sign-in. Please try again.',
+        pt: 'Não foi possível concluir o login. Tente novamente.',
+        es: 'No se pudo completar el inicio de sesión. Inténtalo de nuevo.',
+      );
   String get secureCloudData => pick(
         en: 'Your data will be secure\nand synced in the cloud.',
         pt: 'Seus dados estarão seguros\ne sincronizados na nuvem.',
