@@ -12,10 +12,12 @@ import 'package:provider/provider.dart';
 
 class PaywallPage extends StatefulWidget {
   final GoogleAuthService? restoreGoogleAuthService;
+  final bool restorePurchaseOnOpen;
 
   const PaywallPage({
     super.key,
     this.restoreGoogleAuthService,
+    this.restorePurchaseOnOpen = false,
   });
 
   @override
@@ -33,6 +35,9 @@ class _PaywallPageState extends State<PaywallPage> {
     super.initState();
     _restoreGoogleAuthService =
         widget.restoreGoogleAuthService ?? GoogleAuthService();
+    if (widget.restorePurchaseOnOpen) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _restorePurchase());
+    }
   }
 
   void _openLogin(BuildContext context) {

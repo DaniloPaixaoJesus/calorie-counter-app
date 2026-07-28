@@ -24,7 +24,9 @@ O estado deve possuir rótulo semântico e texto; cor ou ícone isolado não sã
 
 ## Recuperação de compra
 
-1. A tela de planos oferece a ação “Recuperar compra” na área Premium.
+1. A seleção de planos exibida após o carregamento oferece diretamente a ação
+   “Recuperar compra”; a ação também permanece disponível nos detalhes do
+   Premium.
 2. A ação abre a autenticação Google e consulta o BFF sem criar conta ou
    conceder premium.
 3. Se o e-mail pertencer a uma conta com premium ativo, o app restaura a

@@ -37,7 +37,8 @@ Inicie o BFF com perfil de desenvolvimento e execute o app apontando `NUTRITY_BF
 
 ## Cenário 2 — Recuperação de compra
 
-1. Na seleção de planos, abra Premium e toque em “Recuperar compra”.
+1. Após o carregamento inicial, confirme que “Recuperar compra” aparece
+   diretamente na seleção de planos e toque nessa ação.
 2. Entre com uma conta Google que possua premium ativo no BFF.
 3. Confirme que a sessão é restaurada, a Home é aberta e os dados remotos são
    recuperados pelo bootstrap.
@@ -109,7 +110,7 @@ Além dos comandos, validar o OpenAPI em [contracts/openapi.yaml](contracts/open
 |---|---|
 | `dart format --output=none --set-exit-if-changed lib test` | Aprovado |
 | `flutter analyze` | Aprovado, sem problemas |
-| `flutter test` | Aprovado, 74 testes |
+| `flutter test` | Aprovado, 75 testes |
 | `./mvnw -q test` | Aprovado, 20 testes |
 | Migração Flyway em H2 de teste | Aprovada durante `SyncPersistenceTest` |
 | Compatibilidade OpenAPI no app e BFF | Aprovada pelas suítes de contrato |
@@ -127,6 +128,8 @@ testes de data cobrem a virada do dia com o app aberto e a conversão de
 Os testes de recuperação de compra comprovam que somente uma conta Premium
 ativa restaura a sessão e inicia o bootstrap; e-mail sem plano não cria conta,
 mantém o estado local sem premium e retorna à seleção de planos com aviso.
+Também comprovam que a seleção de planos aberta automaticamente após o Splash
+expõe a recuperação sem exigir a abertura prévia dos detalhes do Premium.
 
 Os cenários manuais 1–7 e os critérios CS-001–CS-007 permanecem pendentes de
 execução em dispositivo com BFF ativo, controle de conectividade e contas

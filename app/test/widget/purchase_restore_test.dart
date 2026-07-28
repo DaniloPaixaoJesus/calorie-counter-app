@@ -1,5 +1,6 @@
 import 'package:calorie_counter_app/features/home/view_model.dart';
 import 'package:calorie_counter_app/features/onboarding/plan_selection_page.dart';
+import 'package:calorie_counter_app/features/onboarding/splash_page.dart';
 import 'package:calorie_counter_app/l10n/app_localizations.dart';
 import 'package:calorie_counter_app/models/app_settings.dart';
 import 'package:calorie_counter_app/services/ai_adapter/ai_adapter_mock.dart';
@@ -39,8 +40,9 @@ class _RestoreBffFake extends UserBffService {
 
 Widget _app(
   SubscriptionService service,
-  GoogleAuthService googleAuthService,
-) {
+  GoogleAuthService googleAuthService, {
+  Widget? home,
+}) {
   return MultiProvider(
     providers: [
       ChangeNotifierProvider.value(value: service),
@@ -62,9 +64,10 @@ Widget _app(
         GlobalCupertinoLocalizations.delegate,
       ],
       theme: NutritionTheme.light,
-      home: PlanSelectionPage(
-        restoreGoogleAuthService: googleAuthService,
-      ),
+      home: home ??
+          PlanSelectionPage(
+            restoreGoogleAuthService: googleAuthService,
+          ),
     ),
   );
 }
@@ -79,18 +82,7 @@ void main() {
     );
     await tester.pumpWidget(_app(service, google));
 
-    final premiumPlan = find.ancestor(
-      of: find.text('Premium'),
-      matching: find.byType(InkWell),
-    );
-    await tester.ensureVisible(premiumPlan);
-    await tester.tap(premiumPlan);
-    await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(
-      find.text('Recuperar compra'),
-      300,
-      scrollable: find.byType(Scrollable).last,
-    );
+    await tester.ensureVisible(find.text('Recuperar compra'));
     await tester.tap(find.text('Recuperar compra'));
     await tester.pumpAndSettle();
 
@@ -103,6 +95,24 @@ void main() {
     );
     expect(google.signedOut, isTrue);
     expect(service.isPremium, isFalse);
+  });
+
+  testWidgets('seleção exibida após o Splash oferece recuperação de compra',
+      (tester) async {
+    final google = _GoogleAuthFake();
+    final service = await SubscriptionService.load(
+      InMemoryAppSettingsRepository(),
+      userBffService: _RestoreBffFake(null),
+    );
+    await tester.pumpWidget(
+      _app(service, google, home: const SplashPage()),
+    );
+
+    await tester.pump(const Duration(milliseconds: 1200));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Escolha seu plano'), findsOneWidget);
+    expect(find.text('Recuperar compra'), findsOneWidget);
   });
 
   testWidgets('plano ativo autentica e abre o app', (tester) async {

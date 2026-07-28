@@ -167,6 +167,8 @@
 - [ ] T074 Validar manualmente todos os critérios CS-001 a CS-007 e atualizar os resultados em `specs/004-sincronizar-dados-offline/quickstart.md`
 - [X] T075 [P] [US1] Cobrir em widget test o aviso com o e-mail consultado após recuperação sem conta Premium ativa em `app/test/widget/purchase_restore_test.dart`
 - [X] T076 [US1] Retornar à seleção de planos e exibir o e-mail sem conta Premium ativa em `app/lib/features/onboarding/paywall_page.dart`, `app/lib/features/onboarding/plan_selection_page.dart` e `app/lib/l10n/app_localizations.dart`
+- [X] T077 [P] [US1] Cobrir em widget test a recuperação disponível diretamente na seleção aberta pelo Splash em `app/test/widget/purchase_restore_test.dart`
+- [X] T078 [US1] Expor recuperação direta na seleção de planos reutilizando o fluxo seguro do paywall em `app/lib/features/onboarding/plan_selection_page.dart` e `app/lib/features/onboarding/paywall_page.dart`
 
 ---
 

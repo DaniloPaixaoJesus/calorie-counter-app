@@ -26,11 +26,15 @@ class PlanSelectionPage extends StatelessWidget {
     );
   }
 
-  Future<void> _openPremium(BuildContext context) async {
+  Future<void> _openPaywall(
+    BuildContext context, {
+    required bool restorePurchaseOnOpen,
+  }) async {
     final result = await Navigator.of(context).push<PaywallResult>(
       MaterialPageRoute(
         builder: (_) => PaywallPage(
           restoreGoogleAuthService: restoreGoogleAuthService,
+          restorePurchaseOnOpen: restorePurchaseOnOpen,
         ),
       ),
     );
@@ -44,6 +48,12 @@ class PlanSelectionPage extends StatelessWidget {
       ),
     );
   }
+
+  Future<void> _openPremium(BuildContext context) =>
+      _openPaywall(context, restorePurchaseOnOpen: false);
+
+  Future<void> _restorePurchase(BuildContext context) =>
+      _openPaywall(context, restorePurchaseOnOpen: true);
 
   @override
   Widget build(BuildContext context) {
@@ -116,6 +126,12 @@ class PlanSelectionPage extends StatelessWidget {
                     color: const Color(0xFFB56A00),
                     background: const Color(0xFFFFF3D8),
                     onTap: () => _openPremium(context),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  TextButton.icon(
+                    onPressed: () => _restorePurchase(context),
+                    icon: const Icon(Icons.restore_rounded),
+                    label: Text(l10n.restorePurchase),
                   ),
                   const SizedBox(height: AppSpacing.xl),
                   FilledButton(
