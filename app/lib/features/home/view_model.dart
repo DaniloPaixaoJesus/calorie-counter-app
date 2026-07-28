@@ -59,6 +59,10 @@ class HomeViewModel extends ChangeNotifier {
 
   List<Meal> get meals => _repository.getAll();
 
+  void refreshMeals() {
+    notifyListeners();
+  }
+
   List<Meal> get mealsDoDia {
     final yyyy = dataSelecionada.year;
     final mm = dataSelecionada.month;

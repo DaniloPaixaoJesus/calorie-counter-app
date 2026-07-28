@@ -66,6 +66,7 @@ Future<void> main() async {
   final userBffService = UserBffService(localeProvider: _currentLocaleName);
   SyncCoordinator? syncCoordinator;
   SyncTriggerService? syncTriggers;
+  HomeViewModel? homeViewModel;
   late SubscriptionSyncSession syncSession;
   final subscriptionService = await SubscriptionService.load(
     appSettingsRepository,
@@ -131,6 +132,7 @@ Future<void> main() async {
           await subscriptionService
               .applySyncedDailyCalorieGoal(goal.targetValue);
         }
+        homeViewModel?.refreshMeals();
       },
     );
     syncCoordinator = coordinator;
@@ -163,6 +165,15 @@ Future<void> main() async {
       disconnectIdentityProvider: GoogleAuthService().signOut,
     );
   }
+  final configuredHomeViewModel = HomeViewModel(
+    repository: repository,
+    aiAdapter: _createAiAdapter(subscriptionService),
+    estimateQuotaRepository: estimateQuotaRepository,
+    subscriptionService: subscriptionService,
+    userBffService: userBffService,
+    onLocalMutation: syncTriggers?.onMutation,
+  );
+  homeViewModel = configuredHomeViewModel;
 
   runApp(
     MultiProvider(
@@ -171,16 +182,7 @@ Future<void> main() async {
         if (syncViewModel != null)
           ChangeNotifierProvider.value(value: syncViewModel),
         if (logoutCoordinator != null) Provider.value(value: logoutCoordinator),
-        ChangeNotifierProvider(
-          create: (_) => HomeViewModel(
-            repository: repository,
-            aiAdapter: _createAiAdapter(subscriptionService),
-            estimateQuotaRepository: estimateQuotaRepository,
-            subscriptionService: subscriptionService,
-            userBffService: userBffService,
-            onLocalMutation: syncTriggers?.onMutation,
-          ),
-        ),
+        ChangeNotifierProvider.value(value: configuredHomeViewModel),
       ],
       child: const CalorieCounterApp(),
     ),

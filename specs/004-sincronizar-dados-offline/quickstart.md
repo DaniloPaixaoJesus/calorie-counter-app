@@ -98,8 +98,8 @@ Além dos comandos, validar o OpenAPI em [contracts/openapi.yaml](contracts/open
 |---|---|
 | `dart format --output=none --set-exit-if-changed lib test` | Aprovado |
 | `flutter analyze` | Aprovado, sem problemas |
-| `flutter test` | Aprovado, 66 testes |
-| `./mvnw -q test` | Aprovado, 16 testes |
+| `flutter test` | Aprovado, 67 testes |
+| `./mvnw -q test` | Aprovado, 17 testes |
 | Migração Flyway em H2 de teste | Aprovada durante `SyncPersistenceTest` |
 | Compatibilidade OpenAPI no app e BFF | Aprovada pelas suítes de contrato |
 
@@ -108,7 +108,9 @@ tombstones, lotes de até 100 operações, outbox, política free da IA com
 premium inativo, contrato HTTP, persistência JPA e fluxos unitários de logout.
 Também comprova gravação local antes do disparo remoto, retry automático após
 indisponibilidade, espera de sincronização concorrente no logout e não
-recriação da sessão no banco após a limpeza.
+recriação da sessão no banco após a limpeza. O teste de regressão do bootstrap
+comprova ainda que refeições preexistentes em `nutrity_meals` entram no feed
+de sincronização e que a Home é atualizada após aplicá-las localmente.
 
 Os cenários manuais 1–6 e os critérios CS-001–CS-007 permanecem pendentes de
 execução em dispositivo com BFF ativo, controle de conectividade e contas
