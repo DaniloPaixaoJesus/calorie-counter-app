@@ -79,8 +79,10 @@ public class AppApiKeyFilter extends OncePerRequestFilter {
             path = path.substring(contextPath.length());
         }
 
-        return path.equals("/auth") || path.startsWith("/auth/")
-                || path.equals("/users") || path.startsWith("/users/");
+        // O bootstrap do login não pode depender de um segredo embarcado no
+        // aplicativo móvel. /auth/google valida o token diretamente no Google;
+        // a API key permanece como proteção adicional para dados do usuário.
+        return path.equals("/users") || path.startsWith("/users/");
     }
 
     private boolean allowRequest(String apiKey, String clientIp) {

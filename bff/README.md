@@ -130,15 +130,19 @@ curl --location 'https://nutrity-bff-695228964694.southamerica-east1.run.app/bff
 
 Para adicionar novos providers, implemente `AiProviderAdapter` e registre a classe como bean Spring.
 
-## Segurança do endpoint de IA
+## Segurança dos endpoints
 
-As rotas `/ai/**` exigem o header configurado em `APP_API_KEY_HEADER`:
+As rotas autenticadas `/users/**` exigem o header configurado em
+`APP_API_KEY_HEADER`, além do token Google Bearer:
 
 ```http
 X-App-Api-Key: <APP_API_KEY>
 ```
 
-Também há rate limit em memória por API key + IP do cliente. O limite padrão é `APP_API_RATE_LIMIT_PER_MINUTE=30`.
+`POST /auth/google` não exige API key: esse endpoint valida diretamente o token
+Google recebido e permite iniciar a sessão sem embarcar um segredo no app. Há
+rate limit em memória por API key + IP nas rotas protegidas; o limite padrão é
+`APP_API_RATE_LIMIT_PER_MINUTE=30`.
 
 O app mobile também aplica um limite local de 60 estimativas por dia para ajudar no controle de uso durante o MVP.
 
