@@ -113,6 +113,7 @@ As decisões, alternativas e riscos estão consolidados em [research.md](researc
 - [contracts/openapi.yaml](contracts/openapi.yaml): contrato HTTP do lote bidirecional, autenticação, idempotência, paginação e erros.
 - [contracts/sync-ui.md](contracts/sync-ui.md): estados observáveis, login não bloqueante, premium pausado e confirmação de logout.
 - [quickstart.md](quickstart.md): roteiro de validação ponta a ponta e portões de qualidade.
+- [adr/001-persistencia-remota-e-migracoes.md](adr/001-persistencia-remota-e-migracoes.md): decisão transversal de PostgreSQL e Flyway.
 
 ### Sequência de implementação proposta
 
@@ -146,8 +147,8 @@ As decisões, alternativas e riscos estão consolidados em [research.md](researc
 
 | Decisão | Justificativa | Alternativa mais simples avaliada |
 |---|---|---|
-| Adicionar migrações versionadas no BFF | Dados remotos precisam sobreviver a releases com schema previsível | `ddl-auto=update` não fornece rollback, auditoria nem teste de migração |
-| Usar PostgreSQL em produção | H2 em memória perde dados ao reiniciar e não atende persistência de conta | Manter H2 apenas para testes |
+| Adicionar migrações versionadas no BFF | Dados remotos precisam sobreviver a releases com schema previsível; ver ADR-001 | `ddl-auto=update` não fornece rollback, auditoria nem teste de migração |
+| Usar PostgreSQL em produção | H2 em memória perde dados ao reiniciar e não atende persistência de conta; ver ADR-001 | Manter H2 apenas para desenvolvimento e testes |
 | Não adicionar detector de conectividade no MVP | Login, retorno ao foreground, mutações e retry manual já fornecem gatilhos suficientes | Plugin de conectividade adicionaria dependência sem garantir acesso real ao BFF |
 | Não adotar biblioteca nova de estado | Provider/ChangeNotifier atual atende a exposição dos estados de sync | Uma nova biblioteca aumentaria migração sem benefício necessário |
 

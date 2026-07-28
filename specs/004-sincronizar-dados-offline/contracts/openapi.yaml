@@ -10,6 +10,8 @@ paths:
     post:
       summary: Envia mutações locais e recebe mudanças remotas
       operationId: synchronizeUserData
+      x-timeout-seconds: 30
+      description: O cliente deve cancelar após 30 segundos, preservar a fila e repetir com os mesmos operationIds.
       security:
         - appApiKey: []
           googleBearer: []

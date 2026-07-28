@@ -89,3 +89,23 @@ cd ../bff
 ```
 
 Além dos comandos, validar o OpenAPI em [contracts/openapi.yaml](contracts/openapi.yaml), os estados de UI em [contracts/sync-ui.md](contracts/sync-ui.md) e os cenários manuais acima.
+
+## Evidências da implementação — 27/07/2026
+
+| Verificação automatizada | Resultado |
+|---|---|
+| `dart format --output=none --set-exit-if-changed lib test` | Aprovado |
+| `flutter analyze` | Aprovado, sem problemas |
+| `flutter test` | Aprovado, 62 testes |
+| `./mvnw -q test` | Aprovado, 12 testes |
+| Migração Flyway em H2 de teste | Aprovada durante `SyncPersistenceTest` |
+| Compatibilidade OpenAPI no app e BFF | Aprovada pelas suítes de contrato |
+
+A suíte automatizada comprova domínio de conflitos, remote-wins inicial,
+tombstones, lotes de até 100 operações, outbox, política free da IA com
+premium inativo, contrato HTTP, persistência JPA e fluxos unitários de logout.
+
+Os cenários manuais 1–6 e os critérios CS-001–CS-007 permanecem pendentes de
+execução em dispositivo com BFF ativo, controle de conectividade e contas
+Google de teste. Os testes de integração SQLite e widgets ainda abertos em
+`tasks.md` também não foram substituídos por esta evidência automatizada.

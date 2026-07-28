@@ -4,7 +4,7 @@
 
 **Criado em**: 2026-07-27
 
-**Status**: Rascunho
+**Status**: Aprovada para implementação
 
 **Entrada**: Descrição do usuário: "Sincronizar os dados de uso não autenticado e autenticado, online e offline. Sem login, as informações permanecem apenas no app. Ao entrar com uma conta Google premium, enviar ao BFF os dados locais ainda não cadastrados para o usuário e carregar no banco local os dados existentes no BFF. Ao sair da conta, limpar o banco de dados local do app."
 
@@ -73,7 +73,7 @@ Como pessoa autenticada, quero que os dados da minha conta sejam removidos do di
 ### Casos Limite
 
 - O login premium é concluído, mas a rede cai durante a união dos dados; o progresso já confirmado deve ser preservado e a operação deve poder continuar sem duplicar registros.
-- O mesmo registro possui versões local e remota diferentes; a versão remota deve prevalecer e a decisão deve ser informada de forma não intrusiva.
+- Durante a integração inicial, o mesmo registro possui versões local e remota diferentes; a versão remota deve prevalecer e a decisão deve ser informada de forma não intrusiva.
 - Dois registros têm conteúdo semelhante, mas identidades diferentes; ambos devem ser preservados, pois sem identidade comum não são considerados duplicados.
 - A conectividade oscila ou o serviço remoto excede o tempo de espera; o app deve limitar novas tentativas, manter as pendências e continuar funcional offline.
 - O token de acesso expira durante a sincronização; nenhum dado deve ser apagado e a pessoa deve ser orientada a autenticar-se novamente.
@@ -109,7 +109,7 @@ Como pessoa autenticada, quero que os dados da minha conta sejam removidos do di
 - **RF-021**: O sistema DEVE sincronizar inclusões, alterações e remoções realizadas por uma pessoa premium autenticada, inclusive quando originadas offline.
 - **RF-022**: O sistema DEVE registrar somente informações operacionais mínimas para diagnosticar a sincronização, sem incluir conteúdo nutricional, tokens ou outros dados pessoais.
 - **RF-023**: Após a integração inicial, quando o mesmo registro tiver alterações conflitantes originadas em dispositivos diferentes, o sistema DEVE manter a alteração realizada mais recentemente, conforme o momento registrado no dispositivo em que a alteração ocorreu.
-- **RF-024**: Nesta primeira versão, o sistema DEVE sincronizar somente refeições, seus dados nutricionais associados e metas nutricionais.
+- **RF-024**: Nesta primeira versão, o sistema DEVE sincronizar somente refeições, seus dados nutricionais associados e a meta nutricional de calorias diárias.
 - **RF-025**: Quando o premium expirar durante uma sessão autenticada, o sistema DEVE pausar a sincronização, preservar os dados e pendências locais e manter novas alterações pendentes até a renovação.
 - **RF-026**: Enquanto o premium estiver inativo, solicitações de IA DEVEM seguir as mesmas condições, limites e elegibilidade aplicáveis a uma pessoa sem assinatura ativa.
 - **RF-027**: Após a renovação do premium, o sistema DEVE retomar a sincronização das pendências preservadas sem duplicar registros.
@@ -123,7 +123,7 @@ Como pessoa autenticada, quero que os dados da minha conta sejam removidos do di
 - **Cópia remota**: Representação associada à conta premium, usada para continuidade entre sessões e dispositivos.
 - **Pendência de sincronização**: Alteração local ainda não confirmada remotamente, identificando a operação, o registro e seu estado de tentativa.
 - **Estado de sincronização**: Situação observável do processo, incluindo pendente, em andamento, concluído, interrompido e com falha recuperável.
-- **Meta nutricional**: Objetivo nutricional definido pela pessoa, com identidade estável, período de validade, valores-alvo e informações de modificação necessárias à sincronização.
+- **Meta nutricional**: Objetivo diário de calorias definido pela pessoa, com identidade estável, período de validade, valor-alvo e informações de modificação necessárias à sincronização.
 
 ## Critérios de Sucesso *(obrigatório)*
 
@@ -139,7 +139,7 @@ Como pessoa autenticada, quero que os dados da minha conta sejam removidos do di
 
 ## Premissas
 
-- O escopo sincronizável desta versão limita-se a refeições, seus dados nutricionais associados e metas nutricionais; perfil, preferências e configurações exclusivas do dispositivo permanecem locais.
+- O escopo sincronizável desta versão limita-se a refeições, seus dados nutricionais associados e à meta de calorias diárias; perfil, preferências e configurações exclusivas do dispositivo permanecem locais.
 - A autenticação Google e a validação do status premium já existem ou serão disponibilizadas como dependências desta funcionalidade.
 - A identidade estável de um registro é a única base segura para deduplicação; sem identidade compartilhada, registros semelhantes são tratados como distintos.
 - Na integração inicial, a cópia remota prevalece quando o mesmo registro diverge, evitando que dados já consolidados na conta sejam sobrescritos silenciosamente.
