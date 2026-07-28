@@ -34,9 +34,14 @@ class PlanSelectionPage extends StatelessWidget {
         ),
       ),
     );
-    if (!context.mounted || result != PaywallResult.noActivePlan) return;
+    if (!context.mounted || result == null) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(AppLocalizations.of(context).noActivePremiumPlan)),
+      SnackBar(
+        content: Text(
+          AppLocalizations.of(context)
+              .noActivePremiumPlanForEmail(result.email),
+        ),
+      ),
     );
   }
 

@@ -96,7 +96,9 @@ void main() {
 
     expect(find.text('Escolha seu plano'), findsOneWidget);
     expect(
-      find.text('Não encontramos um plano Premium ativo para esta conta.'),
+      find.text(
+        'O e-mail restore@example.com não possui uma conta Premium ativa.',
+      ),
       findsOneWidget,
     );
     expect(google.signedOut, isTrue);

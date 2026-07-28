@@ -43,7 +43,8 @@ Inicie o BFF com perfil de desenvolvimento e execute o app apontando `NUTRITY_BF
    recuperados pelo bootstrap.
 4. Repita com um e-mail inexistente e com uma conta sem premium ativo.
 5. Confirme que nenhuma conta ou assinatura é criada, o Google é desconectado,
-   a seleção de planos volta a ser exibida e o aviso de plano inativo aparece.
+   a seleção de planos volta a ser exibida e o aviso identifica o e-mail
+   consultado como sem conta Premium ativa.
 
 ## Cenário 3 — Offline, retry e conflito
 

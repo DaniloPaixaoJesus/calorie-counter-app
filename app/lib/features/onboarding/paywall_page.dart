@@ -62,7 +62,7 @@ class _PaywallPageState extends State<PaywallPage> {
       if (!restored) {
         await _restoreGoogleAuthService.signOut();
         if (!mounted) return;
-        Navigator.of(context).pop(PaywallResult.noActivePlan);
+        Navigator.of(context).pop(PaywallResult.noActivePlan(account.email));
         return;
       }
       Navigator.of(context).pushAndRemoveUntil(
@@ -183,7 +183,11 @@ class _PaywallPageState extends State<PaywallPage> {
 
 enum _PremiumPlan { monthly, yearly }
 
-enum PaywallResult { noActivePlan }
+class PaywallResult {
+  final String email;
+
+  const PaywallResult.noActivePlan(this.email);
+}
 
 class _PremiumPlanCard extends StatelessWidget {
   final String title;

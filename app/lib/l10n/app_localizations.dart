@@ -202,10 +202,10 @@ class AppLocalizations {
         pt: 'Recuperando compra...',
         es: 'Restaurando compra...',
       );
-  String get noActivePremiumPlan => pick(
-        en: 'No active Premium plan was found for this account.',
-        pt: 'Não encontramos um plano Premium ativo para esta conta.',
-        es: 'No encontramos un plan Premium activo para esta cuenta.',
+  String noActivePremiumPlanForEmail(String email) => pick(
+        en: 'The email $email does not have an active Premium account.',
+        pt: 'O e-mail $email não possui uma conta Premium ativa.',
+        es: 'El correo $email no tiene una cuenta Premium activa.',
       );
   String get accessYourAccount => pick(
         en: 'Access your account',

@@ -36,7 +36,7 @@ Como pessoa que usou o app sem login, quero entrar com minha conta Google premiu
 4. **Dado** que a sincronização é interrompida e depois repetida, **Quando** ela é retomada, **Então** registros já processados não são duplicados e os restantes são sincronizados.
 5. **Dado** que o login premium foi concluído e a sincronização inicial continua em andamento, **Quando** a pessoa usa o app, **Então** os dados locais ficam disponíveis imediatamente e novas alterações são registradas como pendentes sem interromper a integração.
 6. **Dado** que a pessoa está na seleção de planos, **Quando** escolhe recuperar compra e autentica uma conta Google com premium ativo, **Então** o app restaura a sessão, abre a área autenticada e inicia a recuperação dos dados da conta.
-7. **Dado** que a pessoa tenta recuperar compra com uma conta sem premium ativo, **Quando** a validação termina, **Então** nenhuma sessão premium é criada, uma mensagem informa que não há plano ativo e a seleção de planos volta a ser exibida.
+7. **Dado** que a pessoa tenta recuperar compra com uma conta sem premium ativo, **Quando** a validação termina, **Então** nenhuma sessão premium é criada, uma mensagem identifica o e-mail consultado e informa que ele não possui conta Premium ativa, e a seleção de planos volta a ser exibida.
 
 ---
 
@@ -117,7 +117,7 @@ Como pessoa autenticada, quero que os dados da minha conta sejam removidos do di
 - **RF-026**: Enquanto o premium estiver inativo, solicitações de IA DEVEM seguir as mesmas condições, limites e elegibilidade aplicáveis a uma pessoa sem assinatura ativa.
 - **RF-027**: Após a renovação do premium, o sistema DEVE retomar a sincronização das pendências preservadas sem duplicar registros.
 - **RF-028**: O sistema NÃO DEVE bloquear o uso do app enquanto a sincronização inicial estiver em andamento; os dados locais DEVEM permanecer disponíveis e as novas alterações DEVEM entrar na fila de sincronização.
-- **RF-029**: A tela de planos DEVE oferecer recuperação de compra por Google; somente uma conta já existente com premium ativo DEVE restaurar a sessão e iniciar o bootstrap, enquanto uma conta inexistente ou sem premium ativo DEVE permanecer desautenticada e retornar à seleção de planos com aviso.
+- **RF-029**: A tela de planos DEVE oferecer recuperação de compra por Google; somente uma conta já existente com premium ativo DEVE restaurar a sessão e iniciar o bootstrap, enquanto uma conta inexistente ou sem premium ativo DEVE permanecer desautenticada e retornar à seleção de planos com aviso que identifique o e-mail consultado.
 
 ### Entidades Principais
 

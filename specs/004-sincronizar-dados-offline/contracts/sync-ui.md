@@ -31,7 +31,7 @@ O estado deve possuir rótulo semântico e texto; cor ou ícone isolado não sã
    sessão, abre a Home e inicia o bootstrap em segundo plano.
 4. Se a conta não existir ou não possuir premium ativo, o app desconecta a
    identidade Google selecionada, retorna à seleção de planos e informa que
-   nenhum plano ativo foi encontrado.
+   o e-mail consultado não possui uma conta Premium ativa.
 5. Cancelamento ou falha técnica mantém a pessoa no paywall e apresenta erro
    recuperável.
 

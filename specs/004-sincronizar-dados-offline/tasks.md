@@ -165,6 +165,8 @@
 - [X] T072 Executar `dart format`, `flutter analyze` e toda a suíte Flutter a partir de `app/`
 - [X] T073 Executar `./mvnw test` e toda a suíte de contrato/persistência a partir de `bff/`
 - [ ] T074 Validar manualmente todos os critérios CS-001 a CS-007 e atualizar os resultados em `specs/004-sincronizar-dados-offline/quickstart.md`
+- [X] T075 [P] [US1] Cobrir em widget test o aviso com o e-mail consultado após recuperação sem conta Premium ativa em `app/test/widget/purchase_restore_test.dart`
+- [X] T076 [US1] Retornar à seleção de planos e exibir o e-mail sem conta Premium ativa em `app/lib/features/onboarding/paywall_page.dart`, `app/lib/features/onboarding/plan_selection_page.dart` e `app/lib/l10n/app_localizations.dart`
 
 ---
 
