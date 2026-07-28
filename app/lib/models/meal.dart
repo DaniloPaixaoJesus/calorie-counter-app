@@ -127,13 +127,14 @@ class Meal {
 
   factory Meal.fromMap(Map<String, Object?> map) {
     final origemName = map['origem'] as String? ?? MealOrigem.texto.name;
+    final timestamp = DateTime.parse(map['timestamp'] as String).toLocal();
 
     return Meal(
       id: map['id'] as String,
       descricao: map['descricao'] as String,
       descricaoOriginal: map['descricaoOriginal'] as String?,
       calorias: (map['calorias'] as num).toInt(),
-      timestamp: DateTime.parse(map['timestamp'] as String),
+      timestamp: timestamp,
       origem: MealOrigem.values.firstWhere(
         (value) => value.name == origemName,
         orElse: () => MealOrigem.texto,
@@ -143,7 +144,7 @@ class Meal {
       iconKey: IconKeyRegistry.normalize(map['iconKey'] as String?),
       macronutrients: _macronutrientsFromMap(map),
       modifiedAt: map['modifiedAt'] == null
-          ? DateTime.parse(map['timestamp'] as String).toUtc()
+          ? timestamp.toUtc()
           : DateTime.parse(map['modifiedAt'] as String).toUtc(),
       deletedAt: map['deletedAt'] == null
           ? null

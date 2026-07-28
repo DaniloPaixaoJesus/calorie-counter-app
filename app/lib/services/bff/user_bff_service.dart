@@ -141,14 +141,15 @@ class UserBffService {
   Meal _mealFromResponse(Map<String, dynamic> json) {
     final macros = json['macronutrients'];
     final macrosJson = macros is Map<String, dynamic> ? macros : null;
+    final timestamp =
+        DateTime.tryParse(_readString(json, 'timestamp') ?? '')?.toLocal();
     return Meal(
       id: _readString(json, 'id') ??
           DateTime.now().microsecondsSinceEpoch.toString(),
       descricao: _readString(json, 'descricao') ?? '',
       descricaoOriginal: _readString(json, 'descricaoOriginal'),
       calorias: _readInt(json, 'calorias') ?? 0,
-      timestamp: DateTime.tryParse(_readString(json, 'timestamp') ?? '') ??
-          DateTime.now(),
+      timestamp: timestamp ?? DateTime.now(),
       origem: _parseOrigem(_readString(json, 'origem')),
       aiConfidence: _readDouble(json, 'aiConfidence'),
       nota: _readString(json, 'nota'),

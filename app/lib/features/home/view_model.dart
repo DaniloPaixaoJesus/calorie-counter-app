@@ -22,7 +22,9 @@ class HomeViewModel extends ChangeNotifier {
   final SubscriptionService _subscriptionService;
   final UserBffService? _userBffService;
   final Future<void> Function()? _onLocalMutation;
+  final DateTime Function() _now;
   late DateTime dataSelecionada;
+  late DateTime _lastKnownToday;
 
   HomeViewModel({
     required MealRepository repository,
@@ -31,6 +33,7 @@ class HomeViewModel extends ChangeNotifier {
     SubscriptionService? subscriptionService,
     UserBffService? userBffService,
     Future<void> Function()? onLocalMutation,
+    DateTime Function()? now,
   })  : _repository = repository,
         _aiAdapter = aiAdapter,
         _estimateQuotaRepository =
@@ -38,9 +41,11 @@ class HomeViewModel extends ChangeNotifier {
         _subscriptionService =
             subscriptionService ?? SubscriptionService.fallback(),
         _userBffService = userBffService,
-        _onLocalMutation = onLocalMutation {
+        _onLocalMutation = onLocalMutation,
+        _now = now ?? DateTime.now {
     // Initialize dataSelecionada to today (Feature 002)
-    dataSelecionada = DateTime.now().toLocalDate();
+    _lastKnownToday = _now().toLocalDate();
+    dataSelecionada = _lastKnownToday;
     _subscriptionService.addListener(notifyListeners);
   }
 
@@ -48,18 +53,27 @@ class HomeViewModel extends ChangeNotifier {
   bool get podeVoltar => true;
 
   bool get podeAvancar {
-    final hoje = DateTime.now().toLocalDate();
+    final hoje = _now().toLocalDate();
     return dataSelecionada.isBefore(hoje);
   }
 
   bool get eHoje {
-    final hoje = DateTime.now().toLocalDate();
+    final hoje = _now().toLocalDate();
     return dataSelecionada == hoje;
   }
 
   List<Meal> get meals => _repository.getAll();
 
   void refreshMeals() {
+    notifyListeners();
+  }
+
+  void refreshCurrentDate() {
+    final today = _now().toLocalDate();
+    final wasFollowingToday = dataSelecionada == _lastKnownToday;
+    _lastKnownToday = today;
+    if (!wasFollowingToday || dataSelecionada == today) return;
+    dataSelecionada = today;
     notifyListeners();
   }
 
@@ -252,7 +266,8 @@ class HomeViewModel extends ChangeNotifier {
   }
 
   void voltarParaHoje() {
-    dataSelecionada = DateTime.now().toLocalDate();
+    _lastKnownToday = _now().toLocalDate();
+    dataSelecionada = _lastKnownToday;
     notifyListeners();
   }
 

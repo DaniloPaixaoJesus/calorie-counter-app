@@ -174,6 +174,7 @@ class _AddMealPageState extends State<AddMealPage> {
       );
       return;
     }
+    vm.refreshCurrentDate();
     final descricaoOriginal = _descricao.trim().isNotEmpty
         ? _descricao.trim()
         : AppLocalizations.of(context).noDescription;

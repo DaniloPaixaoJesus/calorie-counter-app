@@ -16,7 +16,7 @@
 | `description` | texto | Obrigatório, 2–1.000 caracteres |
 | `originalDescription` | texto opcional | Máximo 1.000 caracteres |
 | `calories` | inteiro | 0–20.000 |
-| `mealAt` | instante | Data/hora da refeição |
+| `mealAt` | instante | Data/hora da refeição; transmitida com offset e convertida para o fuso local antes do agrupamento por dia no app |
 | `origin` | enum | `text` ou `audio` |
 | `aiConfidence` | decimal opcional | 0–1 |
 | `note` | texto opcional | Máximo 2.000 caracteres |

@@ -42,6 +42,40 @@ void main() {
     expect(find.text('Adicionar'), findsOneWidget);
   });
 
+  testWidgets('abrir cadastro após meia-noite atualiza a data corrente',
+      (WidgetTester tester) async {
+    var now = DateTime(2026, 7, 26, 23, 59);
+    final viewModel = HomeViewModel(
+      repository: InMemoryRepository(),
+      aiAdapter: AiAdapterMock(responseDelay: Duration.zero),
+      now: () => now,
+    );
+    await tester.pumpWidget(
+      ChangeNotifierProvider.value(
+        value: viewModel,
+        child: MaterialApp(
+          locale: const Locale('pt', 'BR'),
+          supportedLocales: AppLocalizations.supportedLocales,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          theme: NutritionTheme.light,
+          home: const HomeShellPage(),
+        ),
+      ),
+    );
+    expect(viewModel.dataSelecionada, DateTime(2026, 7, 26));
+
+    now = DateTime(2026, 7, 27, 0, 1);
+    await tester.tap(find.text('Adicionar'));
+    await tester.pumpAndSettle();
+
+    expect(viewModel.dataSelecionada, DateTime(2026, 7, 27));
+  });
+
   testWidgets('salvar refeicao volta para Home e atualiza lista', (
     WidgetTester tester,
   ) async {

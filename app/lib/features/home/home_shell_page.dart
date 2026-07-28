@@ -7,6 +7,7 @@ import 'package:calorie_counter_app/features/sync/presentation/sync_view_model.d
 
 import 'add_meal_entry_page.dart';
 import 'home_page.dart';
+import 'view_model.dart';
 
 class HomeShellPage extends StatefulWidget {
   final bool? showAds;
@@ -17,8 +18,33 @@ class HomeShellPage extends StatefulWidget {
   State<HomeShellPage> createState() => _HomeShellPageState();
 }
 
-class _HomeShellPageState extends State<HomeShellPage> {
+class _HomeShellPageState extends State<HomeShellPage>
+    with WidgetsBindingObserver {
   int _currentIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && mounted) {
+      context.read<HomeViewModel>().refreshCurrentDate();
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  void _selectDestination(int index) {
+    context.read<HomeViewModel>().refreshCurrentDate();
+    setState(() => _currentIndex = index);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +70,7 @@ class _HomeShellPageState extends State<HomeShellPage> {
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
-        onDestinationSelected: (index) => setState(() => _currentIndex = index),
+        onDestinationSelected: _selectDestination,
         destinations: [
           NavigationDestination(
             icon: const Icon(Icons.home_outlined),
