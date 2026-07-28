@@ -77,6 +77,42 @@ public class UserMeal {
             Integer carbohydrateGrams,
             Integer fatGrams
     ) {
+        this(
+                id,
+                user,
+                descricao,
+                descricaoOriginal,
+                calorias,
+                timestamp,
+                origem,
+                aiConfidence,
+                nota,
+                iconKey,
+                proteinGrams,
+                carbohydrateGrams,
+                fatGrams,
+                OffsetDateTime.now(),
+                null
+        );
+    }
+
+    public UserMeal(
+            String id,
+            UserProfile user,
+            String descricao,
+            String descricaoOriginal,
+            Integer calorias,
+            OffsetDateTime timestamp,
+            String origem,
+            Double aiConfidence,
+            String nota,
+            String iconKey,
+            Integer proteinGrams,
+            Integer carbohydrateGrams,
+            Integer fatGrams,
+            OffsetDateTime modifiedAt,
+            OffsetDateTime deletedAt
+    ) {
         this.id = id;
         this.user = user;
         this.descricao = descricao;
@@ -90,7 +126,38 @@ public class UserMeal {
         this.proteinGrams = proteinGrams;
         this.carbohydrateGrams = carbohydrateGrams;
         this.fatGrams = fatGrams;
-        this.modifiedAt = OffsetDateTime.now();
+        this.modifiedAt = modifiedAt;
+        this.deletedAt = deletedAt;
+    }
+
+    public void applySynchronizedVersion(
+            String descricao,
+            String descricaoOriginal,
+            Integer calorias,
+            OffsetDateTime timestamp,
+            String origem,
+            Double aiConfidence,
+            String nota,
+            String iconKey,
+            Integer proteinGrams,
+            Integer carbohydrateGrams,
+            Integer fatGrams,
+            OffsetDateTime modifiedAt,
+            OffsetDateTime deletedAt
+    ) {
+        this.descricao = descricao;
+        this.descricaoOriginal = descricaoOriginal;
+        this.calorias = calorias;
+        this.timestamp = timestamp;
+        this.origem = origem;
+        this.aiConfidence = aiConfidence;
+        this.nota = nota;
+        this.iconKey = iconKey;
+        this.proteinGrams = proteinGrams;
+        this.carbohydrateGrams = carbohydrateGrams;
+        this.fatGrams = fatGrams;
+        this.modifiedAt = modifiedAt;
+        this.deletedAt = deletedAt;
     }
 
     public String getId() {

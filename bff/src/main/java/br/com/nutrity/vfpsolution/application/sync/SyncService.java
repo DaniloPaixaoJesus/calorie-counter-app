@@ -53,12 +53,14 @@ public class SyncService {
         Optional<SyncStore.ProcessedOperation> replay=store.findProcessed(userId,input.operationId());
         if(replay.isPresent()){
             if(!replay.get().digest().equals(digest)) throw new SyncExceptions.IdempotencyConflict();
+            store.materialize(userId,replay.get().result());
             return result(input.operationId(),replay.get().status(),replay.get().result());
         }
         Optional<SyncModels.Change> current=store.findCurrent(userId,mutation.entityType(),mutation.entityId());
         boolean wins=current.isEmpty() || (!bootstrap && wins(mutation,current.get()));
         SyncModels.ResultStatus status=wins?SyncModels.ResultStatus.APPLIED:SyncModels.ResultStatus.IGNORED;
         SyncModels.Change canonical=wins?store.saveChange(userId,mutation):current.orElseThrow();
+        store.materialize(userId,canonical);
         store.saveProcessed(userId,input.operationId(),digest,status,canonical);
         return result(input.operationId(),status,canonical);
     }

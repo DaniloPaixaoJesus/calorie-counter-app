@@ -121,7 +121,7 @@ public class UserPersistenceService {
     @Transactional(readOnly = true)
     public List<MealDto> listMeals(String userId) {
         findUserEntity(userId);
-        return userMealRepository.findByUserIdOrderByTimestampDesc(userId).stream()
+        return userMealRepository.findByUserIdAndDeletedAtIsNullOrderByTimestampDesc(userId).stream()
                 .map(this::toDto)
                 .toList();
     }

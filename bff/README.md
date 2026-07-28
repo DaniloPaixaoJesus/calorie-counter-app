@@ -132,17 +132,18 @@ Para adicionar novos providers, implemente `AiProviderAdapter` e registre a clas
 
 ## Segurança dos endpoints
 
-As rotas autenticadas `/users/**` exigem o header configurado em
-`APP_API_KEY_HEADER`, além do token Google Bearer:
+As rotas autenticadas `/users/**` exigem token Google Bearer validado. O header
+configurado em `APP_API_KEY_HEADER` é opcional e pode ser usado como camada
+operacional adicional:
 
 ```http
 X-App-Api-Key: <APP_API_KEY>
 ```
 
-`POST /auth/google` não exige API key: esse endpoint valida diretamente o token
-Google recebido e permite iniciar a sessão sem embarcar um segredo no app. Há
-rate limit em memória por API key + IP nas rotas protegidas; o limite padrão é
-`APP_API_RATE_LIMIT_PER_MINUTE=30`.
+`POST /auth/google` também não exige API key: esse endpoint valida diretamente
+o token Google recebido e permite iniciar a sessão sem embarcar um segredo no
+app. Há rate limit em memória por credencial + IP nas rotas protegidas; o limite
+padrão é `APP_API_RATE_LIMIT_PER_MINUTE=30`.
 
 O app mobile também aplica um limite local de 60 estimativas por dia para ajudar no controle de uso durante o MVP.
 

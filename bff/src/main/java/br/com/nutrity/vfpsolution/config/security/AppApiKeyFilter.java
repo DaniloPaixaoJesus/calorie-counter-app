@@ -49,20 +49,19 @@ public class AppApiKeyFilter extends OncePerRequestFilter {
         }
 
         String expectedApiKey = properties.getKey();
-        if (expectedApiKey == null || expectedApiKey.isBlank()) {
-            writeError(request,response, HttpServletResponse.SC_SERVICE_UNAVAILABLE,
-                    "SECURITY_UNAVAILABLE","Serviço temporariamente indisponível");
-            return;
-        }
-
         String providedApiKey = request.getHeader(properties.getHeaderName());
-        if (!expectedApiKey.equals(providedApiKey)) {
+        boolean validApiKey = expectedApiKey != null
+                && !expectedApiKey.isBlank()
+                && expectedApiKey.equals(providedApiKey);
+        boolean hasGoogleBearer = hasBearerToken(request);
+        if (!validApiKey && !hasGoogleBearer) {
             writeError(request,response, HttpServletResponse.SC_UNAUTHORIZED,
-                    "UNAUTHORIZED","Credencial de aplicação inválida ou ausente");
+                    "UNAUTHORIZED","Autenticação Google inválida ou ausente");
             return;
         }
 
-        if (!allowRequest(providedApiKey, clientIp(request))) {
+        String rateLimitCredential = validApiKey ? providedApiKey : "google-bearer";
+        if (!allowRequest(rateLimitCredential, clientIp(request))) {
             response.setHeader("Retry-After","60");
             writeError(request,response, HttpStatus.TOO_MANY_REQUESTS.value(),
                     "RATE_LIMITED","Limite temporário de requisições excedido");
@@ -70,6 +69,13 @@ public class AppApiKeyFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private boolean hasBearerToken(HttpServletRequest request) {
+        String authorization = request.getHeader("Authorization");
+        return authorization != null
+                && authorization.regionMatches(true, 0, "Bearer ", 0, "Bearer ".length())
+                && !authorization.substring("Bearer ".length()).isBlank();
     }
 
     private boolean requiresProtection(HttpServletRequest request) {

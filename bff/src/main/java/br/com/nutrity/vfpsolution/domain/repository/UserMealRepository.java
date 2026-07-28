@@ -4,8 +4,11 @@ import br.com.nutrity.vfpsolution.domain.entity.UserMeal;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface UserMealRepository extends JpaRepository<UserMeal, String> {
 
-    List<UserMeal> findByUserIdOrderByTimestampDesc(String userId);
+    List<UserMeal> findByUserIdAndDeletedAtIsNullOrderByTimestampDesc(String userId);
+
+    Optional<UserMeal> findByIdAndUserId(String id, String userId);
 }
