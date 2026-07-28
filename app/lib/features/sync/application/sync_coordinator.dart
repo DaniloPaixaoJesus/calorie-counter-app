@@ -19,6 +19,7 @@ class SyncCoordinator extends ChangeNotifier {
   int _pendingCount = 0;
   String? _lastErrorCode;
   bool _running = false;
+  Future<bool>? _activeSynchronization;
 
   SyncCoordinator({
     required this.store,
@@ -53,7 +54,20 @@ class SyncCoordinator extends ChangeNotifier {
   Future<bool> flush() => synchronize();
 
   Future<bool> synchronize({bool forceBootstrap = false}) async {
-    if (_running) return false;
+    final active = _activeSynchronization;
+    if (active != null) return active;
+    final synchronization = _synchronize(forceBootstrap: forceBootstrap);
+    _activeSynchronization = synchronization;
+    try {
+      return await synchronization;
+    } finally {
+      if (identical(_activeSynchronization, synchronization)) {
+        _activeSynchronization = null;
+      }
+    }
+  }
+
+  Future<bool> _synchronize({required bool forceBootstrap}) async {
     final userId = session.userId;
     final token = session.bearerToken;
     if (userId == null || token == null || token.isEmpty) {

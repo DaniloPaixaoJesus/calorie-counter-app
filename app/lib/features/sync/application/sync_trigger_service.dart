@@ -11,6 +11,7 @@ class SyncTriggerService with WidgetsBindingObserver {
   final Duration maximumBackoff;
   Timer? _timer;
   int _attempt = 0;
+  bool _observingLifecycle = false;
 
   SyncTriggerService({
     required this.coordinator,
@@ -47,7 +48,11 @@ class SyncTriggerService with WidgetsBindingObserver {
     _timer = Timer(delay, _attemptSync);
   }
 
-  void start() => WidgetsBinding.instance.addObserver(this);
+  void start() {
+    if (_observingLifecycle) return;
+    WidgetsBinding.instance.addObserver(this);
+    _observingLifecycle = true;
+  }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
@@ -57,7 +62,10 @@ class SyncTriggerService with WidgetsBindingObserver {
   }
 
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
+    if (_observingLifecycle) {
+      WidgetsBinding.instance.removeObserver(this);
+      _observingLifecycle = false;
+    }
     _timer?.cancel();
   }
 }

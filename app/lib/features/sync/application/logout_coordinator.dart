@@ -12,7 +12,12 @@ abstract interface class LogoutDataCleaner {
 
 class SqliteLogoutDataCleaner implements LogoutDataCleaner {
   final AppDatabase appDatabase;
-  const SqliteLogoutDataCleaner(this.appDatabase);
+  final Future<void> Function()? onDataCleared;
+
+  const SqliteLogoutDataCleaner(
+    this.appDatabase, {
+    this.onDataCleared,
+  });
 
   @override
   Future<void> markCleanupPending() => appDatabase.database.execute(
@@ -20,17 +25,20 @@ class SqliteLogoutDataCleaner implements LogoutDataCleaner {
       );
 
   @override
-  Future<void> clearAccountData() =>
-      appDatabase.database.transaction((txn) async {
-        for (final table in [
-          'meals',
-          'nutrition_goals',
-          'sync_outbox',
-          'app_settings',
-        ]) {
-          await txn.delete(table);
-        }
-      });
+  Future<void> clearAccountData() async {
+    await appDatabase.database.transaction((txn) async {
+      for (final table in [
+        'meals',
+        'nutrition_goals',
+        'sync_outbox',
+        'app_settings',
+        'estimate_quota',
+      ]) {
+        await txn.delete(table);
+      }
+    });
+    await onDataCleared?.call();
+  }
 
   @override
   Future<void> clearCleanupPending() =>

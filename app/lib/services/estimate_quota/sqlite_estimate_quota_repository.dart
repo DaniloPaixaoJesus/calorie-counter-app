@@ -29,6 +29,20 @@ class SqliteEstimateQuotaRepository implements EstimateQuotaRepository {
     return SqliteEstimateQuotaRepository._(database, usedByDate);
   }
 
+  Future<void> reload() async {
+    final rows = await _database.query(_tableEstimateQuota);
+    _usedByDate
+      ..clear()
+      ..addEntries(
+        rows.map(
+          (row) => MapEntry(
+            row['dateKey'] as String,
+            row['usedCount'] as int,
+          ),
+        ),
+      );
+  }
+
   @override
   DailyEstimateQuota getForDate(DateTime date) {
     final key = _dateKey(date);

@@ -62,4 +62,16 @@ void main() {
     expect(service.isPremium, isFalse);
     expect(states.single.isPremium, isFalse);
   });
+
+  test('limpeza de sessão após logout não recria dados no repositório',
+      () async {
+    final repository = InMemoryAppSettingsRepository();
+    final service = await SubscriptionService.load(repository);
+    await service.activatePremium(userId: 'u-1');
+
+    await service.clearLocalSession();
+
+    expect(service.settings, same(AppSettings.empty));
+    expect((await repository.load()).userId, 'u-1');
+  });
 }

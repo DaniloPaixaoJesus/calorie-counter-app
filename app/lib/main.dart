@@ -138,7 +138,20 @@ Future<void> main() async {
     final triggers = SyncTriggerService(coordinator: coordinator);
     syncTriggers = triggers;
     syncViewModel = SyncViewModel(coordinator, triggers: triggers);
-    final cleaner = SqliteLogoutDataCleaner(appDatabase);
+    if (coordinator.pendingCount > 0) {
+      unawaited(triggers.onForeground());
+    }
+    final cleaner = SqliteLogoutDataCleaner(
+      appDatabase,
+      onDataCleared: () async {
+        if (repository is SqliteMealRepository) {
+          await repository.reload();
+        }
+        if (estimateQuotaRepository is SqliteEstimateQuotaRepository) {
+          await estimateQuotaRepository.reload();
+        }
+      },
+    );
     logoutCoordinator = LogoutCoordinator(
       flush: coordinator.flush,
       pendingCount: () async {
@@ -146,7 +159,7 @@ Future<void> main() async {
         return coordinator.pendingCount;
       },
       cleaner: cleaner,
-      clearSession: subscriptionService.logout,
+      clearSession: subscriptionService.clearLocalSession,
       disconnectIdentityProvider: GoogleAuthService().signOut,
     );
   }

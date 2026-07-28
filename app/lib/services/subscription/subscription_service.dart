@@ -177,6 +177,13 @@ class SubscriptionService extends ChangeNotifier {
         dailyCalorieGoal: _settings.dailyCalorieGoal,
       ),
     );
+    await _onPremiumStateChanged?.call(_settings);
+  }
+
+  Future<void> clearLocalSession() async {
+    _settings = AppSettings.empty;
+    notifyListeners();
+    await _onPremiumStateChanged?.call(_settings);
   }
 
   Future<void> updateDailyCalorieGoal(int goal) async {

@@ -95,7 +95,9 @@ class BffClient {
         HttpHeaders.contentTypeHeader,
         'application/json; charset=utf-8',
       );
-      request.headers.set(apiKeyHeader, apiKey);
+      if (apiKey.trim().isNotEmpty) {
+        request.headers.set(apiKeyHeader, apiKey.trim());
+      }
       if (bearerToken != null && bearerToken.trim().isNotEmpty) {
         request.headers.set(
             HttpHeaders.authorizationHeader, 'Bearer ${bearerToken.trim()}');
