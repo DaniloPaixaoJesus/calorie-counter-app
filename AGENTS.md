@@ -1,4 +1,4 @@
 <!-- SPECKIT START -->
-For additional context about technologies to be used, project structure,
-shell commands, and other important information, read the current plan
+Para contexto sobre tecnologias, estrutura, comandos e decisões desta feature,
+leia `specs/004-sincronizar-dados-offline/plan.md`.
 <!-- SPECKIT END -->

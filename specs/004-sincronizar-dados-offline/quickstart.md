@@ -1,0 +1,91 @@
+# Quickstart de Validação: Sincronização Online e Offline
+
+## Pré-requisitos
+
+- Flutter e Dart compatíveis com `app/pubspec.yaml`.
+- Java 21.
+- Banco de desenvolvimento configurado para o BFF.
+- Credenciais Google de teste e duas contas: uma premium ativa e uma sem premium.
+- API key e demais segredos fornecidos por ambiente, sem valores padrão no código.
+
+## Preparação
+
+```bash
+cd app
+flutter pub get
+flutter test
+
+cd ../bff
+./mvnw test
+```
+
+Inicie o BFF com perfil de desenvolvimento e execute o app apontando `NUTRITY_BFF_BASE_URL` para esse ambiente.
+
+## Cenário 1 — Bootstrap bidirecional
+
+1. Sem login, crie duas refeições e altere a meta calórica.
+2. Prepare na conta premium uma refeição de ID distinto e outra com o mesmo ID de uma refeição local, mas conteúdo diferente.
+3. Faça login.
+4. Continue usando o app enquanto o estado estiver “Sincronizando”.
+5. Confirme:
+   - nenhum bloqueio do CRUD local;
+   - IDs exclusivos presentes nos dois lados;
+   - versão remota mantida no conflito inicial;
+   - nenhuma duplicação após três retries;
+   - meta calórica convergente.
+
+## Cenário 2 — Offline, retry e conflito
+
+1. Com premium ativo, coloque o dispositivo A offline.
+2. Edite uma refeição em A e outra versão da mesma refeição no dispositivo B.
+3. Garanta que a edição de A tenha `modifiedAt` posterior.
+4. Reconecte A e sincronize.
+5. Confirme que a edição de A vence, os dois dispositivos convergem e a outbox é reconhecida uma única vez.
+
+Repita com remoção versus edição para validar tombstone e LWW.
+
+## Cenário 3 — Expiração e renovação
+
+1. Com sessão autenticada, altere o premium para inativo no BFF.
+2. Crie e edite dados no app.
+3. Confirme que:
+   - o uso local continua;
+   - as operações permanecem pendentes;
+   - não há envio enquanto inativo;
+   - a IA aplica limites free.
+4. Renove o premium e confirme envio automático sem duplicações.
+
+## Cenário 4 — Logout
+
+1. Crie uma pendência e deixe o BFF indisponível.
+2. Solicite logout.
+3. Confirme o aviso com quantidade de pendências e escolha “Sair e apagar”.
+4. Interrompa o app durante a limpeza e reabra.
+5. Confirme que a limpeza termina antes da UI e que não restam refeições, metas, outbox, cursor, token ou sessão.
+
+## Cenário 5 — Isolamento entre contas
+
+1. Sincronize a conta A e faça logout.
+2. Entre com a conta B usando IDs de entidade iguais aos usados por A.
+3. Confirme que B não lê, altera nem remove dados de A.
+
+## Cenário 6 — Volume e interrupções
+
+1. Prepare 1.000 registros locais e 1.000 remotos.
+2. Interrompa rede/processo entre lotes e retome.
+3. Valide convergência integral e ausência de duplicações.
+4. Com 100 pendências, confirme conclusão em até 30 segundos em condições normais.
+
+## Portões finais
+
+```bash
+cd app
+dart format --output=none --set-exit-if-changed lib test
+flutter analyze
+flutter test
+
+cd ../bff
+./mvnw test
+```
+
+Além dos comandos, validar o OpenAPI em [contracts/openapi.yaml](contracts/openapi.yaml), os estados de UI em [contracts/sync-ui.md](contracts/sync-ui.md) e os cenários manuais acima.

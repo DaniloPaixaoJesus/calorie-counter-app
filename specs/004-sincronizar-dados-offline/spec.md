@@ -1,0 +1,156 @@
+# Especificação da Funcionalidade: Sincronização de Dados Online e Offline
+
+**Feature Branch**: `004-sincronizar-dados-offline`
+
+**Criado em**: 2026-07-27
+
+**Status**: Rascunho
+
+**Entrada**: Descrição do usuário: "Sincronizar os dados de uso não autenticado e autenticado, online e offline. Sem login, as informações permanecem apenas no app. Ao entrar com uma conta Google premium, enviar ao BFF os dados locais ainda não cadastrados para o usuário e carregar no banco local os dados existentes no BFF. Ao sair da conta, limpar o banco de dados local do app."
+
+## Clarifications
+
+### Session 2026-07-27
+
+- Q: Quando dois dispositivos alterarem offline o mesmo registro e depois sincronizarem, qual versão deve prevalecer? → A: A alteração com data mais recente prevalece.
+- Q: Quais dados devem participar da sincronização nesta primeira versão? → A: Refeições e metas nutricionais.
+- Q: O que deve acontecer quando o premium expirar enquanto a pessoa continua autenticada? → A: Pausar a sincronização, manter os dados locais e guardar novas alterações até a renovação; o uso de IA segue as condições de uma pessoa sem assinatura ativa.
+- Q: Após o login premium, a pessoa pode usar o app enquanto a primeira sincronização ainda está em andamento? → A: Sim; usa os dados locais imediatamente e a integração ocorre em segundo plano.
+- Q: Qual momento define a alteração mais recente entre dispositivos? → A: O momento em que a alteração foi feita no dispositivo.
+
+## Cenários de Usuário e Testes *(obrigatório)*
+
+### História de Usuário 1 - Integrar dados locais ao entrar (Prioridade: P1)
+
+Como pessoa que usou o app sem login, quero entrar com minha conta Google premium e unir meus dados locais aos dados já associados à minha conta, para continuar meu histórico sem duplicações nem perdas.
+
+**Por que esta prioridade**: Esta é a principal transição da funcionalidade e protege o histórico criado antes da autenticação.
+
+**Teste independente**: Pode ser testado criando registros no modo não autenticado, preparando outros registros na conta premium, realizando o login e confirmando que ambos os conjuntos aparecem uma única vez no app e na conta.
+
+**Cenários de aceitação**:
+
+1. **Dado** que há dados somente no app e a conta premium não possui esses registros, **Quando** a pessoa entra com Google enquanto está online, **Então** os registros locais são associados à conta, salvos remotamente e continuam disponíveis no app.
+2. **Dado** que a conta premium possui dados que não existem no app, **Quando** a pessoa entra enquanto está online, **Então** esses dados são carregados para o armazenamento local e ficam disponíveis no app.
+3. **Dado** que o mesmo registro já existe local e remotamente, **Quando** a sincronização de login ocorre, **Então** o registro aparece apenas uma vez e a versão remota prevalece em caso de divergência.
+4. **Dado** que a sincronização é interrompida e depois repetida, **Quando** ela é retomada, **Então** registros já processados não são duplicados e os restantes são sincronizados.
+5. **Dado** que o login premium foi concluído e a sincronização inicial continua em andamento, **Quando** a pessoa usa o app, **Então** os dados locais ficam disponíveis imediatamente e novas alterações são registradas como pendentes sem interromper a integração.
+
+---
+
+### História de Usuário 2 - Continuar usando offline (Prioridade: P2)
+
+Como pessoa não autenticada ou como assinante premium autenticado, quero registrar e consultar informações sem internet, para que a indisponibilidade da rede não interrompa o uso principal do app.
+
+**Por que esta prioridade**: O uso offline é um princípio central do produto e impede perda de valor quando a rede ou o serviço remoto está indisponível.
+
+**Teste independente**: Pode ser testado desativando a rede, criando, consultando, alterando e removendo registros e verificando que todas as operações locais continuam disponíveis.
+
+**Cenários de aceitação**:
+
+1. **Dado** que a pessoa não está autenticada e está offline, **Quando** cria, consulta, altera ou remove dados, **Então** as mudanças são mantidas somente no dispositivo e permanecem acessíveis após reiniciar o app.
+2. **Dado** que uma pessoa premium autenticada fica offline, **Quando** altera seus dados, **Então** a alteração é salva localmente, identificada como pendente e enviada automaticamente quando a conectividade retornar.
+3. **Dado** que o serviço remoto está indisponível, **Quando** a sincronização falha, **Então** o app preserva os dados locais, informa o estado sem bloquear o uso e permite nova tentativa.
+4. **Dado** que o premium expira durante uma sessão autenticada, **Quando** a pessoa continua usando o app, **Então** a sincronização permanece pausada, as alterações ficam pendentes no dispositivo até a renovação e as chamadas de IA seguem as regras de uma pessoa sem assinatura ativa.
+
+---
+
+### História de Usuário 3 - Proteger dados ao sair (Prioridade: P3)
+
+Como pessoa autenticada, quero que os dados da minha conta sejam removidos do dispositivo ao sair, para que outra pessoa não tenha acesso ao meu histórico.
+
+**Por que esta prioridade**: A limpeza no logout reduz exposição de dados pessoais em dispositivos compartilhados.
+
+**Teste independente**: Pode ser testado realizando login, carregando dados da conta, efetuando logout e confirmando que nenhum dado ou pendência da conta permanece acessível localmente.
+
+**Cenários de aceitação**:
+
+1. **Dado** que a pessoa premium está autenticada e seus dados estão sincronizados, **Quando** confirma o logout, **Então** os dados locais, pendências de sincronização e informações locais da sessão são removidos.
+2. **Dado** que há alterações pendentes e existe conexão, **Quando** a pessoa solicita logout, **Então** o app tenta sincronizá-las antes da limpeza e informa caso alguma alteração não possa ser enviada.
+3. **Dado** que há alterações pendentes e não existe conexão, **Quando** a pessoa confirma que deseja sair mesmo assim, **Então** o app avisa que as alterações não sincronizadas serão perdidas, conclui o logout e limpa os dados locais.
+4. **Dado** que o logout foi concluído, **Quando** o app é reiniciado sem nova autenticação, **Então** ele inicia com uma base local vazia e permite um novo uso local independente.
+
+### Casos Limite
+
+- O login premium é concluído, mas a rede cai durante a união dos dados; o progresso já confirmado deve ser preservado e a operação deve poder continuar sem duplicar registros.
+- O mesmo registro possui versões local e remota diferentes; a versão remota deve prevalecer e a decisão deve ser informada de forma não intrusiva.
+- Dois registros têm conteúdo semelhante, mas identidades diferentes; ambos devem ser preservados, pois sem identidade comum não são considerados duplicados.
+- A conectividade oscila ou o serviço remoto excede o tempo de espera; o app deve limitar novas tentativas, manter as pendências e continuar funcional offline.
+- O token de acesso expira durante a sincronização; nenhum dado deve ser apagado e a pessoa deve ser orientada a autenticar-se novamente.
+- O dispositivo fica sem espaço durante a importação; os dados remotos não devem ser considerados integralmente disponíveis localmente e a pessoa deve receber orientação acionável.
+- A conta autenticada não possui premium ativo; a sincronização remota não deve começar e os dados locais existentes devem permanecer intactos.
+- O premium expira durante uma sessão autenticada; a sincronização deve ser pausada, sem apagar dados ou pendências, e retomada após a renovação.
+- O app é fechado durante o logout; na próxima abertura, a limpeza iniciada deve ser concluída antes de exibir dados ou permitir outra sessão.
+
+## Requisitos *(obrigatório)*
+
+### Requisitos Funcionais
+
+- **RF-001**: O sistema DEVE permitir criar, consultar, alterar e remover dados no modo não autenticado sem depender de conexão.
+- **RF-002**: No modo não autenticado, o sistema DEVE manter os dados exclusivamente no dispositivo e não os associar a uma conta.
+- **RF-003**: O sistema DEVE iniciar a integração entre dados locais e remotos somente após autenticação bem-sucedida com uma conta Google premium ativa.
+- **RF-004**: No primeiro login premium e em logins posteriores com dados locais, o sistema DEVE enviar para a conta todos os registros locais que ainda não estejam cadastrados remotamente.
+- **RF-005**: Após o login premium, o sistema DEVE carregar para o dispositivo todos os registros remotos da conta que ainda não estejam disponíveis localmente.
+- **RF-006**: O sistema DEVE atribuir uma identidade estável a cada registro e usar essa identidade para reconhecer o mesmo registro entre dispositivo e conta.
+- **RF-007**: A repetição de qualquer etapa de sincronização DEVE produzir o mesmo resultado, sem duplicar registros.
+- **RF-008**: Quando versões local e remota do mesmo registro divergirem no início da integração, o sistema DEVE manter a versão remota como versão válida.
+- **RF-009**: Registros de identidades diferentes DEVEM ser preservados, mesmo quando tiverem conteúdo semelhante.
+- **RF-010**: Depois do login premium, alterações feitas offline DEVEM ser aplicadas imediatamente no dispositivo e marcadas como pendentes de sincronização.
+- **RF-011**: O sistema DEVE tentar sincronizar automaticamente as pendências quando detectar conectividade adequada e também permitir nova tentativa iniciada pela pessoa.
+- **RF-012**: Falhas de rede, autenticação ou serviço remoto NÃO DEVEM impedir operações locais nem descartar dados ou pendências.
+- **RF-013**: O sistema DEVE apresentar estados compreensíveis de sincronização em andamento, concluída, pendente e com falha, incluindo orientação para recuperação quando necessária.
+- **RF-014**: Antes de um logout com pendências, o sistema DEVE tentar sincronizá-las quando houver conexão.
+- **RF-015**: Se ainda houver pendências no logout, o sistema DEVE informar que elas serão perdidas e exigir confirmação explícita para continuar.
+- **RF-016**: Ao concluir o logout, o sistema DEVE remover todos os dados da conta armazenados localmente, todas as pendências, os metadados de sincronização e as informações locais da sessão.
+- **RF-017**: Uma limpeza iniciada por logout DEVE ser concluída antes que dados sejam exibidos em uma abertura posterior do app.
+- **RF-018**: Após o logout, um novo uso sem autenticação DEVE começar com um conjunto local vazio e independente da conta anterior.
+- **RF-019**: Dados de uma conta NÃO DEVEM ser exibidos, enviados ou unidos com os de outra conta.
+- **RF-020**: O sistema DEVE preservar os dados locais existentes quando o login falhar, a conta não for premium ou a sincronização inicial não puder ser concluída.
+- **RF-021**: O sistema DEVE sincronizar inclusões, alterações e remoções realizadas por uma pessoa premium autenticada, inclusive quando originadas offline.
+- **RF-022**: O sistema DEVE registrar somente informações operacionais mínimas para diagnosticar a sincronização, sem incluir conteúdo nutricional, tokens ou outros dados pessoais.
+- **RF-023**: Após a integração inicial, quando o mesmo registro tiver alterações conflitantes originadas em dispositivos diferentes, o sistema DEVE manter a alteração realizada mais recentemente, conforme o momento registrado no dispositivo em que a alteração ocorreu.
+- **RF-024**: Nesta primeira versão, o sistema DEVE sincronizar somente refeições, seus dados nutricionais associados e metas nutricionais.
+- **RF-025**: Quando o premium expirar durante uma sessão autenticada, o sistema DEVE pausar a sincronização, preservar os dados e pendências locais e manter novas alterações pendentes até a renovação.
+- **RF-026**: Enquanto o premium estiver inativo, solicitações de IA DEVEM seguir as mesmas condições, limites e elegibilidade aplicáveis a uma pessoa sem assinatura ativa.
+- **RF-027**: Após a renovação do premium, o sistema DEVE retomar a sincronização das pendências preservadas sem duplicar registros.
+- **RF-028**: O sistema NÃO DEVE bloquear o uso do app enquanto a sincronização inicial estiver em andamento; os dados locais DEVEM permanecer disponíveis e as novas alterações DEVEM entrar na fila de sincronização.
+
+### Entidades Principais
+
+- **Conta do usuário**: Identidade autenticada por Google, com indicação de elegibilidade premium e separação obrigatória dos dados de outras contas.
+- **Registro sincronizável**: Informação de domínio mantida pelo app, como uma refeição, com identidade estável, conteúdo, momento da última alteração registrado no dispositivo de origem e estado de remoção.
+- **Cópia local**: Representação disponível no dispositivo e usada como fonte imediata para todas as operações, inclusive offline.
+- **Cópia remota**: Representação associada à conta premium, usada para continuidade entre sessões e dispositivos.
+- **Pendência de sincronização**: Alteração local ainda não confirmada remotamente, identificando a operação, o registro e seu estado de tentativa.
+- **Estado de sincronização**: Situação observável do processo, incluindo pendente, em andamento, concluído, interrompido e com falha recuperável.
+- **Meta nutricional**: Objetivo nutricional definido pela pessoa, com identidade estável, período de validade, valores-alvo e informações de modificação necessárias à sincronização.
+
+## Critérios de Sucesso *(obrigatório)*
+
+### Resultados Mensuráveis
+
+- **CS-001**: Em testes com até 1.000 registros locais e 1.000 remotos, 100% dos registros de identidades distintas ficam disponíveis no app e na conta após uma sincronização concluída, sem duplicações por identidade.
+- **CS-002**: 100% das operações de criar, consultar, alterar e remover dados continuam disponíveis durante indisponibilidade de rede.
+- **CS-003**: Após o retorno da conectividade, pelo menos 95% das sincronizações com até 100 pendências são concluídas em até 30 segundos em condições normais.
+- **CS-004**: Repetir a sincronização três vezes sobre o mesmo conjunto não altera a quantidade nem o conteúdo final dos registros.
+- **CS-005**: Em 100% dos logouts concluídos, nenhum dado, pendência ou informação de sessão da conta anterior pode ser acessado após reiniciar o app.
+- **CS-006**: Em testes de interrupção em cada etapa da integração, 100% dos registros locais não confirmados permanecem recuperáveis enquanto o logout não for confirmado.
+- **CS-007**: Pelo menos 90% das pessoas em teste conseguem identificar se seus dados estão sincronizados, pendentes ou com erro sem assistência.
+
+## Premissas
+
+- O escopo sincronizável desta versão limita-se a refeições, seus dados nutricionais associados e metas nutricionais; perfil, preferências e configurações exclusivas do dispositivo permanecem locais.
+- A autenticação Google e a validação do status premium já existem ou serão disponibilizadas como dependências desta funcionalidade.
+- A identidade estável de um registro é a única base segura para deduplicação; sem identidade compartilhada, registros semelhantes são tratados como distintos.
+- Na integração inicial, a cópia remota prevalece quando o mesmo registro diverge, evitando que dados já consolidados na conta sejam sobrescritos silenciosamente.
+- Após a integração inicial, cada alteração possui uma data e hora de modificação, com fuso definido, registrada no dispositivo de origem e comparável entre dispositivos para determinar a versão mais recente em caso de conflito.
+- Uma pessoa pode continuar usando o app localmente sem login ou sem premium, mas sincronização entre dispositivo e conta é benefício exclusivo de conta premium ativa.
+- Confirmar logout autoriza a exclusão irreversível das alterações que permanecerem somente no dispositivo, após aviso explícito.
+
+## Fora de Escopo
+
+- Sincronização remota para contas sem premium.
+- União automática entre duas contas de usuário diferentes.
+- Recuperação, após o logout, de dados que nunca foram confirmados remotamente.
+- Deduplicação baseada apenas em descrição, data, calorias ou semelhança de conteúdo.
+- Colaboração ou compartilhamento de dados entre usuários.

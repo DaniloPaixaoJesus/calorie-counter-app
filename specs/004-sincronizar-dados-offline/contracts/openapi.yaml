@@ -1,0 +1,327 @@
+openapi: 3.0.3
+info:
+  title: API de Sincronização Nutrity
+  version: 1.0.0
+  description: Sincronização bidirecional idempotente de refeições e meta calórica diária.
+servers:
+  - url: /bff-service
+paths:
+  /users/{userId}/sync:
+    post:
+      summary: Envia mutações locais e recebe mudanças remotas
+      operationId: synchronizeUserData
+      security:
+        - appApiKey: []
+          googleBearer: []
+      parameters:
+        - $ref: "#/components/parameters/UserId"
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          schema:
+            type: string
+            maxLength: 100
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SyncRequest"
+      responses:
+        "200":
+          description: Lote processado e página de mudanças retornada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SyncResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/PremiumRequired"
+        "409":
+          $ref: "#/components/responses/IdempotencyConflict"
+        "413":
+          $ref: "#/components/responses/BatchTooLarge"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+components:
+  securitySchemes:
+    appApiKey:
+      type: apiKey
+      in: header
+      name: X-App-Api-Key
+    googleBearer:
+      type: http
+      scheme: bearer
+      bearerFormat: Google ID token
+  parameters:
+    UserId:
+      name: userId
+      in: path
+      required: true
+      description: Deve corresponder à conta identificada pelo token.
+      schema:
+        type: string
+        maxLength: 80
+  schemas:
+    SyncRequest:
+      type: object
+      required: [deviceId, bootstrap, mutations]
+      properties:
+        deviceId:
+          type: string
+          format: uuid
+        bootstrap:
+          type: boolean
+          description: Ativa a regra remote-wins para conflitos da integração inicial.
+        cursor:
+          type: string
+          nullable: true
+          maxLength: 500
+          description: Cursor opaco recebido na resposta anterior; ausente inicia o feed.
+        mutations:
+          type: array
+          maxItems: 100
+          items:
+            $ref: "#/components/schemas/Mutation"
+    Mutation:
+      type: object
+      required:
+        - operationId
+        - entityType
+        - entityId
+        - operation
+        - modifiedAt
+      properties:
+        operationId:
+          type: string
+          format: uuid
+        entityType:
+          $ref: "#/components/schemas/EntityType"
+        entityId:
+          type: string
+          maxLength: 80
+        operation:
+          $ref: "#/components/schemas/Operation"
+        modifiedAt:
+          type: string
+          format: date-time
+          description: Instante da alteração registrado no dispositivo de origem.
+        payload:
+          oneOf:
+            - $ref: "#/components/schemas/MealPayload"
+            - $ref: "#/components/schemas/NutritionGoalPayload"
+          nullable: true
+          description: Obrigatório para upsert e ausente para delete.
+    EntityType:
+      type: string
+      enum: [meal, nutritionGoal]
+    Operation:
+      type: string
+      enum: [upsert, delete]
+    MealPayload:
+      type: object
+      required:
+        - description
+        - calories
+        - mealAt
+        - origin
+        - iconKey
+        - macronutrients
+      properties:
+        description:
+          type: string
+          minLength: 2
+          maxLength: 1000
+        originalDescription:
+          type: string
+          maxLength: 1000
+          nullable: true
+        calories:
+          type: integer
+          minimum: 0
+          maximum: 20000
+        mealAt:
+          type: string
+          format: date-time
+        origin:
+          type: string
+          enum: [text, audio]
+        aiConfidence:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 1
+          nullable: true
+        note:
+          type: string
+          maxLength: 2000
+          nullable: true
+        iconKey:
+          type: string
+          maxLength: 40
+        macronutrients:
+          $ref: "#/components/schemas/Macronutrients"
+    Macronutrients:
+      type: object
+      required: [proteinGrams, carbohydrateGrams, fatGrams]
+      properties:
+        proteinGrams:
+          type: integer
+          minimum: 0
+          maximum: 5000
+        carbohydrateGrams:
+          type: integer
+          minimum: 0
+          maximum: 5000
+        fatGrams:
+          type: integer
+          minimum: 0
+          maximum: 5000
+    NutritionGoalPayload:
+      type: object
+      required: [type, targetValue, unit, effectiveFrom]
+      properties:
+        type:
+          type: string
+          enum: [dailyCalories]
+        targetValue:
+          type: integer
+          minimum: 800
+          maximum: 6000
+        unit:
+          type: string
+          enum: [kcalPerDay]
+        effectiveFrom:
+          type: string
+          format: date
+        effectiveUntil:
+          type: string
+          format: date
+          nullable: true
+    SyncResponse:
+      type: object
+      required:
+        - results
+        - changes
+        - nextCursor
+        - hasMore
+        - premiumActive
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/MutationResult"
+        changes:
+          type: array
+          maxItems: 100
+          items:
+            $ref: "#/components/schemas/RemoteChange"
+        nextCursor:
+          type: string
+          description: Cursor opaco para a próxima página/ciclo.
+        hasMore:
+          type: boolean
+        premiumActive:
+          type: boolean
+    MutationResult:
+      type: object
+      required: [operationId, status, canonicalChange]
+      properties:
+        operationId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [applied, ignored]
+        canonicalChange:
+          $ref: "#/components/schemas/RemoteChange"
+    RemoteChange:
+      type: object
+      required:
+        - sequence
+        - entityType
+        - entityId
+        - operation
+        - modifiedAt
+      properties:
+        sequence:
+          type: integer
+          format: int64
+          minimum: 1
+        entityType:
+          $ref: "#/components/schemas/EntityType"
+        entityId:
+          type: string
+          maxLength: 80
+        operation:
+          $ref: "#/components/schemas/Operation"
+        modifiedAt:
+          type: string
+          format: date-time
+        payload:
+          oneOf:
+            - $ref: "#/components/schemas/MealPayload"
+            - $ref: "#/components/schemas/NutritionGoalPayload"
+          nullable: true
+    ApiError:
+      type: object
+      required: [code, message, correlationId]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        correlationId:
+          type: string
+  responses:
+    BadRequest:
+      description: Payload inválido
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+    Unauthorized:
+      description: Token ou API key ausente, inválido ou expirado
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+    PremiumRequired:
+      description: Premium inativo; a fila deve ser pausada e preservada
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+    IdempotencyConflict:
+      description: Um operationId existente foi reutilizado com conteúdo diferente
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+    BatchTooLarge:
+      description: O lote excedeu 100 mutações
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+    RateLimited:
+      description: Limite temporário excedido
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+    InternalError:
+      description: Falha interna sem exposição de detalhes
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
