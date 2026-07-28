@@ -37,6 +37,16 @@ O estado deve possuir rótulo semântico e texto; cor ou ícone isolado não sã
 5. Cancelamento ou falha técnica mantém a pessoa no paywall e apresenta erro
    recuperável.
 
+## Apresentação da seleção de planos
+
+- O cabeçalho deve separar visualmente a proposta da lista de opções.
+- Free e Premium devem ser cards inteiramente acionáveis, com ícone, selo,
+  benefícios, indicação de continuidade e rótulo semântico.
+- Premium deve possuir destaque visual superior sem depender apenas de cor.
+- Recuperação de compra e continuidade gratuita permanecem ações distintas.
+- Em largura compacta, todo o conteúdo deve continuar acessível por rolagem,
+  sem overflow ou truncamento das ações.
+
 ## Premium inativo
 
 - O uso local e a IA em modalidade free continuam disponíveis.

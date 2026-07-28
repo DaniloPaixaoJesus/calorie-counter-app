@@ -169,6 +169,8 @@
 - [X] T076 [US1] Retornar à seleção de planos e exibir o e-mail sem conta Premium ativa em `app/lib/features/onboarding/paywall_page.dart`, `app/lib/features/onboarding/plan_selection_page.dart` e `app/lib/l10n/app_localizations.dart`
 - [X] T077 [P] [US1] Cobrir em widget test a recuperação disponível diretamente na seleção aberta pelo Splash em `app/test/widget/purchase_restore_test.dart`
 - [X] T078 [US1] Expor recuperação direta na seleção de planos reutilizando o fluxo seguro do paywall em `app/lib/features/onboarding/plan_selection_page.dart` e `app/lib/features/onboarding/paywall_page.dart`
+- [X] T079 [P] [US1] Cobrir hierarquia visual e ausência de overflow da seleção em tela compacta em `app/test/widget/purchase_restore_test.dart`
+- [X] T080 [US1] Refinar cabeçalho, cards, benefícios e ações da seleção com Material 3 e tokens visuais em `app/lib/features/onboarding/plan_selection_page.dart` e `app/lib/design_system/app_radius.dart`
 
 ---
 

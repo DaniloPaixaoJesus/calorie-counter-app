@@ -38,6 +38,7 @@ Como pessoa que usou o app sem login, quero entrar com minha conta Google premiu
 6. **Dado** que a pessoa está na seleção de planos, **Quando** escolhe recuperar compra e autentica uma conta Google com premium ativo, **Então** o app restaura a sessão, abre a área autenticada e inicia a recuperação dos dados da conta.
 7. **Dado** que a pessoa tenta recuperar compra com uma conta sem premium ativo, **Quando** a validação termina, **Então** nenhuma sessão premium é criada, uma mensagem identifica o e-mail consultado e informa que ele não possui conta Premium ativa, e a seleção de planos volta a ser exibida.
 8. **Dado** que o carregamento inicial termina sem plano previamente selecionado, **Quando** a seleção de planos é exibida, **Então** a ação de recuperar compra fica disponível diretamente nessa tela, sem exigir que a pessoa abra primeiro os detalhes do Premium.
+9. **Dado** que a seleção de planos é exibida em uma tela compacta, **Quando** a pessoa compara as opções, **Então** título, benefícios, destaque Premium e ações permanecem legíveis, organizados e acessíveis sem overflow.
 
 ---
 
@@ -119,6 +120,7 @@ Como pessoa autenticada, quero que os dados da minha conta sejam removidos do di
 - **RF-027**: Após a renovação do premium, o sistema DEVE retomar a sincronização das pendências preservadas sem duplicar registros.
 - **RF-028**: O sistema NÃO DEVE bloquear o uso do app enquanto a sincronização inicial estiver em andamento; os dados locais DEVEM permanecer disponíveis e as novas alterações DEVEM entrar na fila de sincronização.
 - **RF-029**: A seleção de planos exibida após o carregamento e os detalhes do Premium DEVEM oferecer recuperação de compra por Google; somente uma conta já existente com premium ativo DEVE restaurar a sessão e iniciar o bootstrap, enquanto uma conta inexistente ou sem premium ativo DEVE permanecer desautenticada e retornar à seleção de planos com aviso que identifique o e-mail consultado.
+- **RF-030**: A seleção de planos DEVE apresentar hierarquia visual clara entre introdução, opções Free e Premium, recuperação de compra e continuidade gratuita, usando componentes Material 3, tokens visuais e layout adaptável sem alterar os fluxos de navegação.
 
 ### Entidades Principais
 

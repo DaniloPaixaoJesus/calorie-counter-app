@@ -46,6 +46,8 @@ Inicie o BFF com perfil de desenvolvimento e execute o app apontando `NUTRITY_BF
 5. Confirme que nenhuma conta ou assinatura é criada, o Google é desconectado,
    a seleção de planos volta a ser exibida e o aviso identifica o e-mail
    consultado como sem conta Premium ativa.
+6. Em uma tela com 320 px de largura, confirme que cabeçalho, cards, selos,
+   benefícios e ações permanecem legíveis e acessíveis por rolagem.
 
 ## Cenário 3 — Offline, retry e conflito
 
@@ -110,7 +112,7 @@ Além dos comandos, validar o OpenAPI em [contracts/openapi.yaml](contracts/open
 |---|---|
 | `dart format --output=none --set-exit-if-changed lib test` | Aprovado |
 | `flutter analyze` | Aprovado, sem problemas |
-| `flutter test` | Aprovado, 75 testes |
+| `flutter test` | Aprovado, 76 testes |
 | `./mvnw -q test` | Aprovado, 20 testes |
 | Migração Flyway em H2 de teste | Aprovada durante `SyncPersistenceTest` |
 | Compatibilidade OpenAPI no app e BFF | Aprovada pelas suítes de contrato |
@@ -130,6 +132,8 @@ ativa restaura a sessão e inicia o bootstrap; e-mail sem plano não cria conta,
 mantém o estado local sem premium e retorna à seleção de planos com aviso.
 Também comprovam que a seleção de planos aberta automaticamente após o Splash
 expõe a recuperação sem exigir a abertura prévia dos detalhes do Premium.
+O teste compacto valida ainda a hierarquia visual da seleção e a ausência de
+overflow em 320 × 640 px.
 
 Os cenários manuais 1–7 e os critérios CS-001–CS-007 permanecem pendentes de
 execução em dispositivo com BFF ativo, controle de conectividade e contas

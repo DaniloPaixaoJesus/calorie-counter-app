@@ -115,6 +115,28 @@ void main() {
     expect(find.text('Recuperar compra'), findsOneWidget);
   });
 
+  testWidgets('seleção de planos mantém hierarquia visual em tela compacta',
+      (tester) async {
+    await tester.binding.setSurfaceSize(const Size(320, 640));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final service = await SubscriptionService.load(
+      InMemoryAppSettingsRepository(),
+      userBffService: _RestoreBffFake(null),
+    );
+
+    await tester.pumpWidget(_app(service, _GoogleAuthFake()));
+
+    expect(find.byKey(const ValueKey('plan-selection-hero')), findsOneWidget);
+    expect(find.byKey(const ValueKey('free-plan-card')), findsOneWidget);
+    expect(find.byKey(const ValueKey('premium-plan-card')), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('restore-purchase-action')),
+      250,
+      scrollable: find.byType(Scrollable).last,
+    );
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('plano ativo autentica e abre o app', (tester) async {
     final google = _GoogleAuthFake();
     final service = await SubscriptionService.load(
