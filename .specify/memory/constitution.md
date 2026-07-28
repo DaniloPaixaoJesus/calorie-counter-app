@@ -1,190 +1,199 @@
-<!--
-Sync Impact Report
-- Version change: 2.0.0 -> 2.1.0
-- Modified principles:
-  - I. Idioma (normalizacao de linguagem normativa em portugues)
-  - II. Simplicidade acima de complexidade (normalizacao de linguagem normativa em portugues)
-  - III. Offline First (permitir internet somente para APIs de IA/LLM no MVP)
-  - IV. Arquitetura preparada para evolucao (normalizacao de linguagem normativa em portugues)
-  - V. Experiencia do Usuario (normalizacao de linguagem normativa em portugues)
-  - VI. Dados e Persistencia (normalizacao de linguagem normativa em portugues)
-  - VII. Testabilidade (normalizacao de linguagem normativa em portugues)
-  - VIII. Inteligencia Artificial (normalizacao de linguagem normativa em portugues)
-  - IX. MVP Primeiro (normalizacao de linguagem normativa em portugues)
-  - XI. Gerenciamento de Estado (normalizacao de linguagem normativa em portugues)
-  - XII. Portoes de Qualidade (normalizacao de linguagem normativa em portugues)
-- Added sections:
-  - none
-- Removed sections:
-  - none
-- Templates requiring updates:
-  - updated: none
-  - pending: none
-- Follow-up TODOs:
-  - none
--->
-
 # Constitution do Contador de Calorias Mobile
 
 ## Core Principles
 
 ### I. Idioma
 Todos os arquivos em `specs/**` DEVEM ser escritos integralmente em portugues do Brasil,
-incluindo `specification.md`, `plan.md`, `tasks.md`, `research.md`, `data-model.md`,
-`quickstart.md`, contratos, ADRs e qualquer outro artefato de especificacao.
+incluindo especificação, plano, tarefas, pesquisa, modelo de dados, quickstart, contratos e
+ADRs. Identificadores de codigo e termos consolidados da stack DEVEM permanecer em ingles.
 
-Racional: as especificacoes precisam ser acessiveis e compreensiveis para todas as pessoas do
-projeto, reduzindo ambiguidades e retrabalho.
+Racional: artefatos acessiveis reduzem ambiguidades sem contrariar convencoes tecnicas.
 
 ### II. Simplicidade acima de complexidade
-Cada funcionalidade DEVE adotar a solucao mais simples capaz de atender ao requisito.
-Abstracoes prematuras, arquiteturas excessivamente complexas, dependencias desnecessarias e
-padroes sofisticados sem beneficio claro sao proibidos no MVP. Toda nova dependencia DEVE
-ter justificativa explicita no plano tecnico.
+Cada funcionalidade DEVE adotar a solucao mais simples capaz de atender ao requisito atual.
+Abstracoes prematuras, dependencias desnecessarias e infraestrutura sem uso comprovado sao
+proibidas no MVP. Toda nova dependencia ou novo servico DEVE ter justificativa, alternativa
+mais simples avaliada e impacto operacional registrados no `plan.md`.
 
 Racional: simplicidade acelera entregas, melhora manutencao e reduz risco de regressao.
 
 ### III. Offline First
-O aplicativo DEVE funcionar integralmente sem conexao com a internet para as funcionalidades
-essenciais do MVP.
-
-A aplicacao PODE depender de internet apenas quando consumir APIs externas relacionadas a IA
-e LLM, de forma pontual e explicitamente documentada no `plan.md`.
-
-Qualquer dependencia de internet fora desse escopo NAO DEVE ser introduzida no MVP.
+Registro, consulta, edicao e remocao de refeicoes DEVEM continuar disponiveis sem internet.
+Operacoes remotas DEVEM expor estados de carregamento, timeout e erro e oferecer recuperacao
+sem perda dos dados locais. IA, autenticacao e sincronizacao PODEM exigir rede quando isso
+estiver explicito na especificacao e no plano. Indisponibilidade do BFF NAO DEVE impedir o
+uso das funcionalidades locais.
 
 Racional: o valor central do produto depende de uso rapido e confiavel em qualquer contexto.
 
-### IV. Arquitetura preparada para evolucao
-O codigo DEVE ser organizado em camadas claras (`presentation`, `application`, `domain`,
-`infrastructure`) ou estrutura equivalente aprovada no plano tecnico. A logica de negocio
-DEVE permanecer desacoplada de widgets Flutter, mecanismos de armazenamento, APIs externas e
-mecanismos de IA.
+### IV. Arquitetura e dependencias
+Codigo novo DEVE respeitar as fronteiras `presentation`, `application`, `domain` e
+`infrastructure`, ainda que agrupadas por feature. O dominio NAO DEVE importar Flutter,
+persistencia, HTTP, Spring ou SDKs de providers externos. Comunicacao com armazenamento,
+rede, autenticacao e IA DEVE ocorrer por contratos substituiveis.
 
-Racional: separacao de responsabilidades facilita evolucao, testes e substituicao de
-tecnologias.
+Dependencias DEVEM apontar para o dominio; adapters implementam contratos definidos nas
+camadas internas. Excecoes a essas fronteiras DEVEM constar na tabela de complexidade do
+plano e possuir estrategia de remocao.
 
-### V. Experiencia do Usuario
-Registrar uma refeicao DEVE exigir o menor numero possivel de interacoes. A interface DEVE
-ser limpa, intuitiva, responsiva, visualmente agradavel e consistente. Estados vazios,
-carregamento e erro DEVEM ser tratados explicitamente.
+Racional: fronteiras explicitas permitem testes isolados e troca de tecnologia.
 
-Racional: o sucesso do produto depende da velocidade de uso e da clareza da experiencia.
+### V. Material 3, acessibilidade e experiencia
+Material 3 (`useMaterial3: true`) e o sistema visual padrao do app. Cores, tipografia,
+espacamento, raios, elevacao e breakpoints DEVEM vir do tema ou de tokens centralizados;
+valores visuais repetidos diretamente em widgets NAO DEVEM ser introduzidos. Componentes
+Cupertino somente PODEM ser usados quando uma convencao nativa da plataforma justificar a
+excecao.
 
-### VI. Dados e Persistencia
-O modelo de dados DEVE priorizar clareza e simplicidade. O armazenamento inicial PODE ser em
-memoria ou local simples, desde que as decisoes de persistencia considerem migracao futura
-para sincronizacao em nuvem.
+Fluxos DEVEM minimizar interacoes e tratar estados vazio, carregando, sucesso, indisponivel
+e erro. Controles DEVEM possuir rotulos semanticos, area de toque adequada, contraste
+legivel, suporte a escala de texto e layout sem overflow nos tamanhos definidos no plano.
+Informacao NAO DEVE depender apenas de cor.
 
-Racional: preservar simplicidade inicial sem bloquear evolucao futura.
+Racional: consistencia visual e acessibilidade sao requisitos funcionais da experiencia.
 
-### VII. Testabilidade
-Toda regra de negocio relevante DEVE ser automatizavel em testes. Logica de negocio em
-widgets Flutter NAO DEVE ser introduzida. A estrategia de testes DEVE priorizar calculos,
-manipulacao de refeicoes, agregacoes, validacoes e persistencia.
+### VI. Dados, persistencia e sincronizacao
+SQLite e a fonte local de verdade para refeicoes no app. Acesso a dados DEVE ocorrer por
+repositorios; widgets e ViewModels NAO DEVEM executar SQL. Alteracoes de schema DEVEM usar
+migracoes versionadas, preservar dados existentes e possuir teste de migracao.
 
-Racional: testar regras centrais previne regressao funcional e aumenta confianca nas
-entregas.
+Modelos locais e DTOs remotos DEVEM permanecer separados. Datas persistidas ou transmitidas
+DEVEM ter fuso e formato definidos no contrato. Sincronizacao remota, quando adicionada,
+DEVE definir identidade, idempotencia, resolucao de conflitos e comportamento offline antes
+da implementacao.
 
-### VIII. Inteligencia Artificial
-Integracoes com IA sao funcionalidades futuras. O sistema DEVE ser projetado para permitir,
-no futuro, interpretacao de texto livre, extracao automatica de alimentos, estimativa
-automatica de calorias, reconhecimento por voz e reconhecimento por imagem. Funcionalidades
-de IA NAO DEVEM aumentar a complexidade do MVP.
+Racional: dados do usuario precisam sobreviver a evolucoes do produto com semantica clara.
 
-Racional: evoluir com seguranca sem comprometer foco e prazo da versao inicial.
+### VII. Testes por risco
+Toda regra de dominio e aplicacao alterada DEVE possuir teste unitario. Repositorios,
+migracoes, adapters externos e contratos HTTP alterados DEVEM possuir teste de integracao
+ou contrato. Fluxos e estados visuais criticos DEVEM possuir widget test. Correcoes de bug
+DEVEM incluir teste que falhe sem a correcao quando tecnicamente viavel.
+
+Testes DEVEM ser deterministas: relogio, rede, armazenamento e providers externos DEVEM ser
+controlaveis por doubles ou fixtures. Chamadas reais a servicos pagos NAO DEVEM ocorrer na
+suite automatizada padrao.
+
+Racional: a profundidade do teste acompanha o risco e protege as fronteiras arquiteturais.
+
+### VIII. IA isolada e degradavel
+Providers de IA DEVEM ser acessados por adapters; regras de negocio NAO DEVEM depender de
+um provider especifico. Prompts, parsing e validacao da resposta DEVEM ficar no BFF, e
+segredos de provider NUNCA DEVEM ser embarcados no app. Saidas de IA DEVEM ser tratadas como
+nao confiaveis, validadas contra o contrato e apresentadas ao usuario para revisao quando
+afetarem dados persistidos.
+
+Timeouts, limites de uso, fallback e mensagens de indisponibilidade DEVEM ser definidos.
+Logs NAO DEVEM conter prompts, tokens, descricoes de refeicoes ou respostas completas sem
+uma decisao explicita de privacidade.
+
+Racional: IA e uma dependencia probabilistica, remota e sensivel a custo e privacidade.
 
 ### IX. MVP Primeiro
-O projeto DEVE evoluir incrementalmente. Cada feature DEVE entregar valor isolado, ser
-utilizavel, ter criterios de aceite claros e permitir implementacao e validacao
-independentes. O sucesso inicial DEVE ser medido por simplicidade, velocidade de uso,
-estabilidade e clareza da interface, e nao pela quantidade de funcionalidades.
+O projeto DEVE evoluir em fatias verticais pequenas. Cada feature DEVE entregar valor
+isolado, ter criterios de aceite mensuraveis e permitir validacao independente. O sucesso
+inicial DEVE ser medido por velocidade de uso, estabilidade e clareza, nao pela quantidade
+de funcionalidades.
 
-Racional: entregas pequenas e validaveis maximizam aprendizado e reduzem risco.
+Racional: entregas pequenas maximizam aprendizado e reduzem risco.
 
-### X. Padroes Flutter e Dart
-O app DEVE seguir as convencoes oficiais de Flutter e Dart.
+### X. Arquitetura Flutter e Dart
+Flutter e Dart DEVEM seguir null safety, `flutter_lints`, `dart format` e APIs publicas com
+tipos explicitos. Widgets DEVEM ser pequenos, composiveis e preferencialmente imutaveis, com
+construtores `const` quando aplicavel. Regras de negocio e acesso a infraestrutura NAO DEVEM
+residir em widgets.
 
-Codigo Flutter DEVE priorizar:
+Provider com `ChangeNotifier` e a abordagem padrao de estado do MVP. Estado efemero de UI
+DEVE permanecer local; estado de feature fica em ViewModels; regras e invariantes ficam no
+dominio. Outra biblioteca de estado somente PODE ser adotada mediante ADR que demonstre
+necessidade, custo de migracao e beneficio verificavel.
 
-- widgets pequenos e composiveis;
-- separacao clara entre UI e logica de negocio;
-- modelos imutaveis quando pratico;
-- decisoes explicitas de gerenciamento de estado em `plan.md`;
-- Material 3 como base padrao de design;
-- nenhuma regra de negocio dentro de widgets.
+Racional: um padrao unico reduz acoplamento e evita complexidade concorrente.
 
-Codigo Dart DEVE priorizar:
+### XI. Arquitetura do BFF e contratos de API
+O BFF DEVE permanecer em Java 21 e Spring Boot, separado em API, dominio/aplicacao e
+infraestrutura. Controllers DEVEM limitar-se a transporte, autenticacao e delegacao;
+regras de negocio ficam em servicos e integracoes externas em adapters. DTOs de entrada
+DEVEM usar validacao declarativa e erros DEVEM seguir um formato consistente, sem expor
+stack traces ou detalhes internos.
 
-- null safety;
-- nomenclatura clara;
-- funcoes pequenas;
-- tipos explicitos em APIs publicas;
-- construtores `const` sempre que aplicavel;
-- formatacao com `dart format`;
-- analise estatica com `flutter analyze`.
+Contratos HTTP DEVEM ser documentados em `specs/**/contracts/` ou OpenAPI. Mudancas
+incompativeis DEVEM criar nova versao de endpoint ou incluir plano de migracao coordenado
+com o app. Operacoes de escrita remota DEVEM declarar idempotencia e limites de timeout.
 
-Racional: praticas consistentes de Flutter/Dart reduzem acoplamento da UI, melhoram
-manutenibilidade e tornam a base de codigo mais facil de evoluir.
+Racional: o BFF protege o cliente de providers externos e exige contratos previsiveis.
 
-### XI. Gerenciamento de Estado
-O gerenciamento de estado DEVE ser escolhido de forma intencional e justificado em
-`plan.md`.
+### XII. Seguranca, privacidade e observabilidade
+Segredos e credenciais DEVEM vir de variaveis de ambiente ou gerenciador de segredos e
+NUNCA ser versionados. Endpoints nao publicos DEVEM aplicar autenticacao/autorizacao,
+validacao de entrada e rate limiting proporcional ao risco. Dados pessoais e tokens NAO
+DEVEM aparecer em logs; coleta e retencao DEVEM ser minimizadas.
 
-Para o MVP, a abordagem viavel mais simples DEVE ser preferida. Bibliotecas de
-gerenciamento de estado mais complexas DEVEM ser introduzidas apenas quando houver beneficio
-claro.
+O BFF DEVE produzir logs estruturados com identificador de correlacao, operacao, resultado e
+latencia, sem payload sensivel. Health checks e metricas DEVEM permitir distinguir falha do
+BFF, autenticacao, persistencia e provider externo. O app DEVE registrar erros tecnicos sem
+conteudo pessoal e apresentar mensagens acionaveis ao usuario.
 
-Estado de UI, estado de aplicacao e regras de dominio DEVEM permanecer conceitualmente
-separados.
+Racional: operacao segura requer diagnostico suficiente sem comprometer privacidade.
 
-Racional: gerenciamento de estado e uma fonte comum de complexidade desnecessaria em projetos
-Flutter.
+### XIII. Portoes de qualidade
+Antes de concluir uma mudanca Flutter, DEVEM passar `dart format`, `flutter analyze`,
+`flutter test` e a validacao manual dos criterios de aceite afetados. Antes de concluir uma
+mudanca no BFF, DEVEM passar `./mvnw test` e os testes de contrato ou integracao afetados.
+Mudancas em ambos os lados DEVEM validar compatibilidade ponta a ponta do contrato.
 
-### XII. Portoes de Qualidade
-Antes de considerar uma funcionalidade concluida, o projeto DEVE passar por:
+Falhas somente PODEM ser aceitas com justificativa, risco, responsavel e prazo registrados
+no PR. Documentacao e quickstart afetados DEVEM ser atualizados na mesma entrega.
 
-- `dart format`;
-- `flutter analyze`;
-- testes automatizados relevantes para a funcionalidade;
-- validacao manual contra criterios de aceite.
+Racional: portoes objetivos impedem que defeitos conhecidos sejam tratados como conclusao.
 
-Racional: portoes de qualidade previnem regressoes simples e mantem o MVP estavel.
+## Decisoes Arquiteturais
+
+- O repositorio e um monorepo: cliente em `app/`, BFF em `bff/` e artefatos em `specs/`.
+- O cliente usa Flutter/Dart, Material 3, Provider/ChangeNotifier e SQLite.
+- O BFF usa Java 21, Spring Boot e adapters para providers externos.
+- O app preserva operacoes locais offline e usa o BFF para IA, autenticacao e dados remotos.
+- Contratos entre app e BFF DEVEM ser explicitos, versionaveis e testados nos dois lados.
+- Novas decisoes transversais ou trocas de stack DEVEM ser registradas em ADR no diretorio
+  da feature e referenciadas pelo `plan.md`.
 
 ## Diretrizes Tecnicas e de Produto
 
-- A versao inicial foca em registrar refeicoes rapidamente e acompanhar calorias diarias.
-- Decisoes de arquitetura e produto DEVEM preservar simplicidade operacional para o usuario.
-- Adocao de novas tecnologias DEVE provar ganho concreto para o problema atual.
+- A experiencia principal e registrar refeicoes rapidamente e acompanhar dados nutricionais.
+- Nova tecnologia DEVE resolver um requisito atual e respeitar os limites de privacidade.
+- Estimativas de IA DEVEM ser identificadas como estimativas e permanecer editaveis.
+- Performance, acessibilidade e comportamento offline DEVEM ter criterios mensuraveis na spec
+  quando forem afetados pela feature.
 
 ## Processo Obrigatorio de Desenvolvimento
 
 Toda nova funcionalidade DEVE seguir esta ordem:
 
 1. Specification
-2. Clarification (quando necessario)
-3. Plan
+2. Clarification, quando necessario
+3. Plan e Constitution Check
 4. Tasks
 5. Implementacao
-6. Testes
+6. Testes e portoes de qualidade
 7. Revisao
 
-Nenhuma implementacao pode comecar sem especificacao aprovada.
+Nenhuma implementacao PODE comecar sem especificacao aprovada. O Constitution Check DEVE
+ser repetido depois do design. Desvios DEVEM ser registrados antes da implementacao.
 
 ## Governance
 
-Esta constituicao prevalece sobre praticas conflitantes em artefatos de planejamento e
-execucao. Todo plano, lista de tarefas e revisao DEVE demonstrar conformidade explicita com
-os principios acima.
+Esta constituicao prevalece sobre praticas conflitantes em especificacoes, planos, tarefas e
+codigo. Todo PR DEVE verificar os principios afetados, os testes exigidos e eventuais
+violacoes justificadas.
 
-Emendas DEVEM incluir motivacao, impacto nos processos existentes e atualizacao de artefatos
-afetados. O versionamento segue SemVer:
+Emendas DEVEM registrar motivacao, impacto, migracao e artefatos sincronizados. A aprovacao
+ocorre pela revisao da mudanca no repositorio. O versionamento segue SemVer:
 
 - MAJOR: remocao ou redefinicao incompativel de principios ou governanca.
-- MINOR: novo principio, nova secao obrigatoria, ou expansao material de regras.
-- PATCH: clarificacoes editoriais sem mudanca de obrigatoriedade.
+- MINOR: novo principio, nova secao obrigatoria ou expansao material de regras.
+- PATCH: clarificacao editorial sem mudanca de obrigatoriedade.
 
-Compliance review DEVE acontecer em todo PR por meio de checklist de aderencia
-constitucional e durante a elaboracao de `plan.md` (Constitution Check).
+Compliance review DEVE ocorrer no `plan.md`, apos o design e em todo PR. Revisores DEVEM
+bloquear mudancas que violem uma regra sem justificativa e plano de adequacao.
 
-**Version**: 2.1.0 | **Ratified**: 2026-06-15 | **Last Amended**: 2026-06-15
+**Version**: 2.2.0 | **Ratified**: 2026-06-15 | **Last Amended**: 2026-07-27

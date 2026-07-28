@@ -55,10 +55,10 @@ app_dir: app
 
 **Teste independente**: botão microfone → gravação → parar → transcrição em `MealForm` → estimar → confirmar → lista atualizada.
 
-- [ ] T017 [US2] Adicionar permissão de microfone em `app/android/app/src/main/AndroidManifest.xml` (`RECORD_AUDIO`) e em `app/ios/Runner/Info.plist` (`NSMicrophoneUsageDescription`)
-- [ ] T018 [US2] Integrar `AudioTranscriptionAdapter` (implementação `OfflineAudioTranscriptionAdapter`) em `app/lib/features/home/add_meal_page.dart`: botão de microfone (ícone gravando/parado), chamar `startListening()`, escutar `transcriptionStream`, preencher `MealForm.descricao` ao receber `TranscriptionResult.text`, parar com `stopListening()`
-- [ ] T019 [US2] Implementar tratamento de erros de transcrição em `add_meal_page.dart`: capturar `TranscriptionError` no stream, exibir `SnackBar` ou `AlertDialog` com mensagem específica (permissão negada, sem áudio, timeout, etc.); guiar usuário para habilitar microfone se necessário (`FR-006`)
-- [ ] T020 [US2] Adicionar `app/test/widget/us2_audio_flow_test.dart`: testar fluxo com `OfflineAudioTranscriptionAdapter` mockado retornando `TranscriptionResult` com `isFinal: false` e depois `isFinal: true`; validar preenchimento do formulário e sequência estimativa → confirmação
+- [x] T017 [US2] Adicionar permissão de microfone em `app/android/app/src/main/AndroidManifest.xml` (`RECORD_AUDIO`) e em `app/ios/Runner/Info.plist` (`NSMicrophoneUsageDescription`)
+- [x] T018 [US2] Integrar `AudioTranscriptionAdapter` (implementação `OfflineAudioTranscriptionAdapter`) em `app/lib/features/home/add_meal_page.dart`: botão de microfone (ícone gravando/parado), chamar `startListening()`, escutar `transcriptionStream`, preencher `MealForm.descricao` ao receber `TranscriptionResult.text`, parar com `stopListening()`
+- [x] T019 [US2] Implementar tratamento de erros de transcrição em `add_meal_page.dart`: capturar `TranscriptionError` no stream, exibir `SnackBar` ou `AlertDialog` com mensagem específica (permissão negada, sem áudio, timeout, etc.); guiar usuário para habilitar microfone se necessário (`FR-006`)
+- [x] T020 [US2] Adicionar `app/test/widget/us2_audio_flow_test.dart`: testar fluxo com `OfflineAudioTranscriptionAdapter` mockado retornando `TranscriptionResult` com `isFinal: false` e depois `isFinal: true`; validar preenchimento do formulário e sequência estimativa → confirmação
 
 ---
 
@@ -79,9 +79,9 @@ app_dir: app
 ## Fase 6: Polish & Qualidade
 
 - [X] T026 [P] Executar `cd app && dart format . && flutter analyze` e resolver todos os warnings/hints; garantir zero erros de análise
-- [ ] T027 Validar contrastes de acessibilidade em `app/lib/themes/nutrition_theme.dart` (mínimo AA 4.5:1 para texto normal); ajustar cores se necessário e adicionar variante de alto contraste
-- [ ] T028 Garantir tratamento de edge cases: entrada ambígua (`confidence < 0.3` → forçar edição), áudio inaudível (`onError` no `SpeechService` → mensagem de erro), texto > 1000 chars → truncar visualmente na lista
-- [ ] T029 Executar suite completa `flutter test` em `app/` e garantir todos os testes passando; adicionar cobertura mínima dos fluxos US1/US2/US3
+- [x] T027 Validar contrastes de acessibilidade em `app/lib/themes/nutrition_theme.dart` (mínimo AA 4.5:1 para texto normal); ajustar cores se necessário e adicionar variante de alto contraste
+- [x] T028 Garantir tratamento de edge cases: entrada ambígua (`confidence < 0.3` → forçar edição), áudio inaudível (`onError` no `SpeechService` → mensagem de erro), texto > 1000 chars → truncar visualmente na lista
+- [x] T029 Executar suite completa `flutter test` em `app/` e garantir todos os testes passando; adicionar cobertura mínima dos fluxos US1/US2/US3
 
 ---
 
@@ -104,5 +104,4 @@ Fase 1 (Setup) → Fase 2 (Fundacionais) → Fase 3 (US1) → Fase 4 (US2) + Fas
 Fase 1 + Fase 2 + **Fase 3 (US1)** = app utilizável e validável de forma independente.
 
 ---
-
 

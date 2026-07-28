@@ -44,7 +44,7 @@ export PATH="$PWD/tools/flutter/bin:$PATH"
 Este repositório usa um layout de monorepo com os seguintes diretórios principais:
 
 - `/app` — aplicação cliente Flutter (onde ficarão `pubspec.yaml`, `lib/`, `android/`, `ios/`, etc.)
-- `/bff` — backend BFF (ainda não criado)
+- `/bff` — backend BFF Java 21/Spring Boot
 
 Quando executar comandos do Flutter para desenvolver/rodar o app, mude para o diretório `/app`:
 
@@ -56,14 +56,21 @@ flutter run -d emulator-5554
 
 ## 2) Instalar Java JDK
 
-- Recomendado: OpenJDK 17 ou versão compatível com o SDK Android.
+- Recomendado: OpenJDK 21, usado pelo BFF e compatível com o build atual.
 
 Exemplo (Ubuntu/Debian):
 
 ```bash
 sudo apt update
-sudo apt install openjdk-17-jdk
+sudo apt install openjdk-21-jdk
 java -version
+```
+
+Para validar o BFF:
+
+```bash
+cd bff
+./mvnw test
 ```
 
 ## 3) Android SDK / Android Studio / AVD
