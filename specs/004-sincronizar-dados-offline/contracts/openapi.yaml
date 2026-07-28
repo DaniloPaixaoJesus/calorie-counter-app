@@ -13,8 +13,7 @@ paths:
       x-timeout-seconds: 30
       description: O cliente deve cancelar após 30 segundos, preservar a fila e repetir com os mesmos operationIds.
       security:
-        - appApiKey: []
-          googleBearer: []
+        - googleBearer: []
       parameters:
         - $ref: "#/components/parameters/UserId"
         - name: X-Correlation-Id
@@ -52,10 +51,6 @@ paths:
           $ref: "#/components/responses/InternalError"
 components:
   securitySchemes:
-    appApiKey:
-      type: apiKey
-      in: header
-      name: X-App-Api-Key
     googleBearer:
       type: http
       scheme: bearer
@@ -288,7 +283,7 @@ components:
           schema:
             $ref: "#/components/schemas/ApiError"
     Unauthorized:
-      description: Token ou API key ausente, inválido ou expirado
+      description: Token Google ausente, inválido ou expirado
       content:
         application/json:
           schema:

@@ -47,4 +47,6 @@ O estado deve possuir rótulo semântico e texto; cor ou ícone isolado não sã
 - `409 IDEMPOTENCY_CONFLICT`: manter a operação e apresentar erro recuperável; não reenviar com payload alterado sob o mesmo ID.
 - `413 BATCH_TOO_LARGE`: dividir o lote sem perder ordem.
 - `429`: respeitar espera indicada e manter uso local.
-- `5xx`, timeout ou offline: preservar a fila e oferecer retry.
+- `5xx`, timeout ou offline: preservar a fila, tentar novamente
+  automaticamente com backoff enquanto o app estiver ativo e oferecer retry
+  manual.

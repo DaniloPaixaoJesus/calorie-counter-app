@@ -149,7 +149,7 @@ As decisões, alternativas e riscos estão consolidados em [research.md](researc
 |---|---|---|
 | Adicionar migrações versionadas no BFF | Dados remotos precisam sobreviver a releases com schema previsível; ver ADR-001 | `ddl-auto=update` não fornece rollback, auditoria nem teste de migração |
 | Usar PostgreSQL em produção | H2 em memória perde dados ao reiniciar e não atende persistência de conta; ver ADR-001 | Manter H2 apenas para desenvolvimento e testes |
-| Não adicionar detector de conectividade no MVP | Login, retorno ao foreground, mutações e retry manual já fornecem gatilhos suficientes | Plugin de conectividade adicionaria dependência sem garantir acesso real ao BFF |
+| Não adicionar detector de conectividade no MVP | A tentativa imediata e o retry temporizado com backoff validam o acesso real ao BFF e retomam a outbox no startup | Plugin de conectividade adicionaria dependência sem garantir acesso real ao BFF |
 | Não adotar biblioteca nova de estado | Provider/ChangeNotifier atual atende a exposição dos estados de sync | Uma nova biblioteca aumentaria migração sem benefício necessário |
 
 ## Rastreamento de Complexidade

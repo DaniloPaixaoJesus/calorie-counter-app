@@ -93,7 +93,11 @@
 
 ## 9. Gatilhos e retries
 
-**Decisão**: sincronizar após login premium, retorno ao foreground, mutação local, renovação e retry manual. Falhas temporárias usam backoff limitado enquanto o app está ativo; não será adicionada execução contínua em background no MVP.
+**Decisão**: sincronizar imediatamente após a transação local, além de login
+premium, retorno ao foreground, renovação e retry manual. Falhas de conectividade
+mantêm a outbox persistida e repetem enquanto o app está ativo, com intervalo
+limitado a dois minutos; pendências encontradas no startup retomam
+automaticamente. Não será adicionada execução contínua em background no MVP.
 
 **Justificativa**: minimiza dependências e consumo de bateria; uma checagem de conectividade não garante que o BFF esteja alcançável.
 
@@ -126,11 +130,17 @@
 
 ## 12. Segurança e observabilidade
 
-**Decisão**: remover segredo padrão embarcado, exigir configuração externa, validar API key e bearer, ownership, premium, tamanho do lote e payload. Registrar correlation ID, usuário pseudonimizado, contagens, cursor, resultado e latência, nunca conteúdo, email ou token.
+**Decisão**: remover segredo padrão embarcado e autenticar as rotas de usuário
+com Bearer Google validado, ownership, premium, rate limit, tamanho do lote e
+payload. Uma API key externa pode ser aceita como camada operacional adicional,
+mas não bloqueia a sincronização autenticada do aplicativo. Registrar
+correlation ID, usuário pseudonimizado, contagens, cursor, resultado e latência,
+nunca conteúdo, email ou token.
 
 **Justificativa**: atende a constituição e permite diagnosticar auth, persistência e sincronização.
 
 **Alternativas consideradas**:
 
-- Manter API key no binário: não é segredo efetivo e viola a política do projeto.
+- Tornar API key obrigatória no binário: não é segredo efetivo, quebra builds
+  sem `dart-define` e viola a política do projeto.
 - Logar payload para diagnóstico: risco desnecessário de privacidade.

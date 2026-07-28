@@ -6,7 +6,8 @@
 - Java 21.
 - Banco de desenvolvimento configurado para o BFF.
 - Credenciais Google de teste e duas contas: uma premium ativa e uma sem premium.
-- API key e demais segredos fornecidos por ambiente, sem valores padrão no código.
+- Credenciais Google de teste e, quando usada operacionalmente, API key
+  fornecida por ambiente, sem valor padrão no código.
 
 ## Preparação
 
@@ -39,8 +40,9 @@ Inicie o BFF com perfil de desenvolvimento e execute o app apontando `NUTRITY_BF
 1. Com premium ativo, coloque o dispositivo A offline.
 2. Edite uma refeição em A e outra versão da mesma refeição no dispositivo B.
 3. Garanta que a edição de A tenha `modifiedAt` posterior.
-4. Reconecte A e sincronize.
-5. Confirme que a edição de A vence, os dois dispositivos convergem e a outbox é reconhecida uma única vez.
+4. Reconecte A sem criar nova alteração nem tocar em “Tentar agora”.
+5. Aguarde a sincronização automática.
+6. Confirme que a edição de A vence, os dois dispositivos convergem e a outbox é reconhecida uma única vez.
 
 Repita com remoção versus edição para validar tombstone e LWW.
 
@@ -96,14 +98,17 @@ Além dos comandos, validar o OpenAPI em [contracts/openapi.yaml](contracts/open
 |---|---|
 | `dart format --output=none --set-exit-if-changed lib test` | Aprovado |
 | `flutter analyze` | Aprovado, sem problemas |
-| `flutter test` | Aprovado, 62 testes |
-| `./mvnw -q test` | Aprovado, 12 testes |
+| `flutter test` | Aprovado, 66 testes |
+| `./mvnw -q test` | Aprovado, 16 testes |
 | Migração Flyway em H2 de teste | Aprovada durante `SyncPersistenceTest` |
 | Compatibilidade OpenAPI no app e BFF | Aprovada pelas suítes de contrato |
 
 A suíte automatizada comprova domínio de conflitos, remote-wins inicial,
 tombstones, lotes de até 100 operações, outbox, política free da IA com
 premium inativo, contrato HTTP, persistência JPA e fluxos unitários de logout.
+Também comprova gravação local antes do disparo remoto, retry automático após
+indisponibilidade, espera de sincronização concorrente no logout e não
+recriação da sessão no banco após a limpeza.
 
 Os cenários manuais 1–6 e os critérios CS-001–CS-007 permanecem pendentes de
 execução em dispositivo com BFF ativo, controle de conectividade e contas
