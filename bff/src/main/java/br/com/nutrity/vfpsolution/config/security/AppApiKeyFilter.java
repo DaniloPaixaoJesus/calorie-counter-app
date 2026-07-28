@@ -15,6 +15,7 @@ import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.UUID;
 
 public class AppApiKeyFilter extends OncePerRequestFilter {
 
@@ -49,18 +50,22 @@ public class AppApiKeyFilter extends OncePerRequestFilter {
 
         String expectedApiKey = properties.getKey();
         if (expectedApiKey == null || expectedApiKey.isBlank()) {
-            writeError(response, HttpServletResponse.SC_SERVICE_UNAVAILABLE, "APP_API_KEY não configurada");
+            writeError(request,response, HttpServletResponse.SC_SERVICE_UNAVAILABLE,
+                    "SECURITY_UNAVAILABLE","Serviço temporariamente indisponível");
             return;
         }
 
         String providedApiKey = request.getHeader(properties.getHeaderName());
         if (!expectedApiKey.equals(providedApiKey)) {
-            writeError(response, HttpServletResponse.SC_UNAUTHORIZED, "API key inválida ou ausente");
+            writeError(request,response, HttpServletResponse.SC_UNAUTHORIZED,
+                    "UNAUTHORIZED","Credencial de aplicação inválida ou ausente");
             return;
         }
 
         if (!allowRequest(providedApiKey, clientIp(request))) {
-            writeError(response, HttpStatus.TOO_MANY_REQUESTS.value(), "Limite de requisições excedido");
+            response.setHeader("Retry-After","60");
+            writeError(request,response, HttpStatus.TOO_MANY_REQUESTS.value(),
+                    "RATE_LIMITED","Limite temporário de requisições excedido");
             return;
         }
 
@@ -101,11 +106,16 @@ public class AppApiKeyFilter extends OncePerRequestFilter {
         return request.getRemoteAddr();
     }
 
-    private void writeError(HttpServletResponse response, int status, String message) throws IOException {
+    private void writeError(HttpServletRequest request,HttpServletResponse response,int status,String code,String message)
+            throws IOException {
+        String correlationId=request.getHeader("X-Correlation-Id");
+        if(correlationId==null||correlationId.isBlank()||correlationId.length()>100)correlationId=UUID.randomUUID().toString();
         response.setStatus(status);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-        response.getWriter().write("{\"mensagem\":\"" + message + "\"}");
+        response.setHeader("X-Correlation-Id",correlationId);
+        response.getWriter().write("{\"code\":\""+code+"\",\"message\":\""+message+
+                "\",\"correlationId\":\""+correlationId+"\"}");
     }
 
     private static class WindowCounter {

@@ -7,6 +7,7 @@ import br.com.nutrity.vfpsolution.domain.dto.ai.MealEstimateDto;
 import br.com.nutrity.vfpsolution.domain.entityrequest.ai.MealEstimateRequest;
 import br.com.nutrity.vfpsolution.domain.exception.BusinessException;
 import br.com.nutrity.vfpsolution.domain.service.user.GoogleOAuthValidator;
+import br.com.nutrity.vfpsolution.domain.sync.PremiumStatusProvider;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,20 +22,25 @@ public class MealEstimateService {
     private final AiProviderProperties properties;
     private final Map<String, AiProviderAdapter> adapters;
     private final GoogleOAuthValidator googleOAuthValidator;
+    private final PremiumStatusProvider premiumStatusProvider;
 
     public MealEstimateService(
             AiProviderProperties properties,
             List<AiProviderAdapter> adapters,
-            GoogleOAuthValidator googleOAuthValidator
+            GoogleOAuthValidator googleOAuthValidator,
+            PremiumStatusProvider premiumStatusProvider
     ) {
         this.properties = properties;
         this.googleOAuthValidator = googleOAuthValidator;
+        this.premiumStatusProvider = premiumStatusProvider;
         this.adapters = adapters.stream()
                 .collect(Collectors.toMap(adapter -> normalize(adapter.provider()), Function.identity()));
     }
 
     public MealEstimateDto estimate(MealEstimateRequest request, String authorizationHeader) {
-        boolean premium = googleOAuthValidator.validateOptionalAuthorizationHeader(authorizationHeader).isPresent();
+        boolean premium = googleOAuthValidator.validateOptionalAuthorizationHeader(authorizationHeader)
+                .map(token -> premiumStatusProvider.isPremiumActiveByEmail(token.email()))
+                .orElse(false);
         String provider = normalize(firstNonBlank(request.provider(), properties.getDefaultProvider()));
         AiProviderAdapter adapter = adapters.get(provider);
 

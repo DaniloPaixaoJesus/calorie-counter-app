@@ -54,6 +54,11 @@ public class UserMeal {
     @Column(nullable = false)
     private Integer fatGrams;
 
+    @Column(nullable = false)
+    private OffsetDateTime modifiedAt;
+
+    private OffsetDateTime deletedAt;
+
     protected UserMeal() {
     }
 
@@ -85,6 +90,7 @@ public class UserMeal {
         this.proteinGrams = proteinGrams;
         this.carbohydrateGrams = carbohydrateGrams;
         this.fatGrams = fatGrams;
+        this.modifiedAt = OffsetDateTime.now();
     }
 
     public String getId() {
@@ -138,4 +144,7 @@ public class UserMeal {
     public Integer getFatGrams() {
         return fatGrams;
     }
+
+    public OffsetDateTime getModifiedAt() { return modifiedAt; }
+    public OffsetDateTime getDeletedAt() { return deletedAt; }
 }

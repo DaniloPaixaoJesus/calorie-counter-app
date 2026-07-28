@@ -1,6 +1,7 @@
 package br.com.nutrity.vfpsolution.application.exceptionhandler;
 
 import br.com.nutrity.vfpsolution.domain.exception.BusinessException;
+import br.com.nutrity.vfpsolution.domain.sync.SyncExceptions;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.fasterxml.jackson.databind.exc.PropertyBindingException;
 import com.fasterxml.jackson.databind.JsonMappingException.Reference;
@@ -33,10 +34,13 @@ import java.nio.file.AccessDeniedException;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.UUID;
 
 @Slf4j
 @ControllerAdvice
 public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
+
+    public record ApiError(String code, String message, String correlationId) {}
 
     public static final String END_USER_GENERAL_ERROR_MSG
             = "Ocorreu um erro inesperado. " +
@@ -217,6 +221,32 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
                 .build();
 
         return handleExceptionInternal(ex, customMessageHandler, new HttpHeaders(), status, request);
+    }
+
+    @ExceptionHandler(SyncExceptions.Unauthorized.class)
+    public ResponseEntity<ApiError> handleSyncUnauthorized(SyncExceptions.Unauthorized ex) {
+        return syncError(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", ex.getMessage());
+    }
+
+    @ExceptionHandler(SyncExceptions.PremiumRequired.class)
+    public ResponseEntity<ApiError> handlePremiumRequired(SyncExceptions.PremiumRequired ex) {
+        return syncError(HttpStatus.FORBIDDEN, "PREMIUM_REQUIRED", ex.getMessage());
+    }
+
+    @ExceptionHandler(SyncExceptions.IdempotencyConflict.class)
+    public ResponseEntity<ApiError> handleIdempotencyConflict(SyncExceptions.IdempotencyConflict ex) {
+        return syncError(HttpStatus.CONFLICT, "IDEMPOTENCY_CONFLICT", ex.getMessage());
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ApiError> handleIllegalArgument(IllegalArgumentException ex) {
+        return syncError(HttpStatus.BAD_REQUEST, "INVALID_REQUEST", ex.getMessage());
+    }
+
+    private ResponseEntity<ApiError> syncError(HttpStatus status, String code, String message) {
+        String correlationId = MDC.get("correlationId");
+        if (correlationId == null) correlationId = UUID.randomUUID().toString();
+        return ResponseEntity.status(status).body(new ApiError(code, message, correlationId));
     }
 
     private ResponseEntity<Object> handleValidationInternal(

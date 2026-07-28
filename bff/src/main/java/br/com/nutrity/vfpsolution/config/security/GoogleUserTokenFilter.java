@@ -12,6 +12,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.UUID;
 
 public class GoogleUserTokenFilter extends OncePerRequestFilter {
 
@@ -41,7 +42,7 @@ public class GoogleUserTokenFilter extends OncePerRequestFilter {
             request.setAttribute(USER_EMAIL_ATTRIBUTE, tokenInfo.email());
             filterChain.doFilter(request, response);
         } catch (BusinessException exception) {
-            writeError(response, HttpServletResponse.SC_UNAUTHORIZED, exception.getMessage());
+            writeError(request,response, HttpServletResponse.SC_UNAUTHORIZED);
         }
     }
 
@@ -54,10 +55,14 @@ public class GoogleUserTokenFilter extends OncePerRequestFilter {
         return path.equals("/users") || path.startsWith("/users/");
     }
 
-    private void writeError(HttpServletResponse response, int status, String message) throws IOException {
+    private void writeError(HttpServletRequest request,HttpServletResponse response,int status) throws IOException {
+        String correlationId=request.getHeader("X-Correlation-Id");
+        if(correlationId==null||correlationId.isBlank()||correlationId.length()>100)correlationId=UUID.randomUUID().toString();
         response.setStatus(status);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-        response.getWriter().write("{\"mensagem\":\"" + message + "\"}");
+        response.setHeader("X-Correlation-Id",correlationId);
+        response.getWriter().write("{\"code\":\"UNAUTHORIZED\",\"message\":\"Token inválido ou ausente\","
+                +"\"correlationId\":\""+correlationId+"\"}");
     }
 }

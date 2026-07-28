@@ -39,6 +39,8 @@ public class UserProfile {
     @Column(nullable = false)
     private Boolean premium;
 
+    private OffsetDateTime premiumExpiresAt;
+
     @Column(nullable = false)
     private OffsetDateTime createdAt;
 
@@ -70,6 +72,7 @@ public class UserProfile {
         this.dailyCalorieGoal = dailyCalorieGoal;
         this.locale = locale;
         this.premium = premium;
+        this.premiumExpiresAt = null;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -110,6 +113,21 @@ public class UserProfile {
         return premium;
     }
 
+    public OffsetDateTime getPremiumExpiresAt() {
+        return premiumExpiresAt;
+    }
+
+    public boolean hasActivePremium(OffsetDateTime now) {
+        return Boolean.TRUE.equals(premium)
+                && (premiumExpiresAt == null || premiumExpiresAt.isAfter(now));
+    }
+
+    public void updatePremiumStatus(boolean active, OffsetDateTime expiresAt, OffsetDateTime updatedAt) {
+        this.premium = active;
+        this.premiumExpiresAt = expiresAt;
+        this.updatedAt = updatedAt;
+    }
+
     public OffsetDateTime getCreatedAt() {
         return createdAt;
     }
@@ -122,7 +140,6 @@ public class UserProfile {
         this.name = name;
         this.photoUrl = photoUrl;
         this.locale = locale;
-        this.premium = true;
         this.updatedAt = updatedAt;
     }
 
