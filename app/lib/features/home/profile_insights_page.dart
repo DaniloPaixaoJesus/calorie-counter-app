@@ -4,6 +4,9 @@ import 'dart:ui' as ui;
 import 'package:calorie_counter_app/design_system/app_spacing.dart';
 import 'package:calorie_counter_app/design_system/layout_breakpoints.dart';
 import 'package:calorie_counter_app/features/home/view_model.dart';
+import 'package:calorie_counter_app/features/sync/application/logout_coordinator.dart';
+import 'package:calorie_counter_app/features/sync/presentation/pending_logout_dialog.dart';
+import 'package:calorie_counter_app/features/sync/presentation/sync_view_model.dart';
 import 'package:calorie_counter_app/l10n/app_localizations.dart';
 import 'package:calorie_counter_app/models/app_settings.dart';
 import 'package:calorie_counter_app/models/macronutrients.dart';
@@ -137,6 +140,23 @@ class _ProfileInsightsPageState extends State<ProfileInsightsPage> {
   }
 
   Future<void> _logout() async {
+    final coordinator = context.read<LogoutCoordinator?>();
+    if (coordinator != null) {
+      final result = await coordinator.prepare();
+      if (!mounted) return;
+      if (result == LogoutResult.confirmationRequired) {
+        final pending = context.read<SyncViewModel?>()?.pendingCount ?? 0;
+        final decision = await showPendingLogoutDialog(
+          context,
+          pendingCount: pending,
+        );
+        if (decision != PendingLogoutDecision.erase) return;
+        await coordinator.complete();
+      }
+      if (!mounted) return;
+      Navigator.of(context).pop();
+      return;
+    }
     try {
       await GoogleAuthService().signOut();
     } catch (_) {}

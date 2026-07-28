@@ -15,6 +15,9 @@ class Meal {
   final String? nota;
   final String iconKey;
   final Macronutrients? macronutrients;
+  final DateTime modifiedAt;
+  final DateTime? deletedAt;
+  final String? ownerUserId;
 
   const Meal({
     required this.id,
@@ -27,7 +30,11 @@ class Meal {
     this.nota,
     this.iconKey = IconKeyRegistry.defaultKey,
     this.macronutrients,
-  }) : descricaoOriginal = descricaoOriginal ?? descricao;
+    DateTime? modifiedAt,
+    this.deletedAt,
+    this.ownerUserId,
+  })  : descricaoOriginal = descricaoOriginal ?? descricao,
+        modifiedAt = modifiedAt ?? timestamp;
 
   factory Meal.create({
     required String descricao,
@@ -65,6 +72,7 @@ class Meal {
       nota: nota,
       iconKey: IconKeyRegistry.normalize(iconKey),
       macronutrients: macronutrients,
+      modifiedAt: DateTime.now().toUtc(),
     );
   }
 
@@ -76,6 +84,9 @@ class Meal {
     String? nota,
     String? iconKey,
     Macronutrients? macronutrients,
+    DateTime? modifiedAt,
+    DateTime? deletedAt,
+    String? ownerUserId,
   }) {
     return Meal(
       id: id,
@@ -88,6 +99,9 @@ class Meal {
       nota: nota ?? this.nota,
       iconKey: IconKeyRegistry.normalize(iconKey ?? this.iconKey),
       macronutrients: macronutrients ?? this.macronutrients,
+      modifiedAt: modifiedAt ?? DateTime.now().toUtc(),
+      deletedAt: deletedAt ?? this.deletedAt,
+      ownerUserId: ownerUserId ?? this.ownerUserId,
     );
   }
 
@@ -105,6 +119,9 @@ class Meal {
       'proteinGrams': macronutrients?.protein.grams,
       'carbohydrateGrams': macronutrients?.carbs.grams,
       'fatGrams': macronutrients?.fat.grams,
+      'modifiedAt': modifiedAt.toUtc().toIso8601String(),
+      'deletedAt': deletedAt?.toUtc().toIso8601String(),
+      'ownerUserId': ownerUserId,
     };
   }
 
@@ -125,6 +142,13 @@ class Meal {
       nota: map['nota'] as String?,
       iconKey: IconKeyRegistry.normalize(map['iconKey'] as String?),
       macronutrients: _macronutrientsFromMap(map),
+      modifiedAt: map['modifiedAt'] == null
+          ? DateTime.parse(map['timestamp'] as String).toUtc()
+          : DateTime.parse(map['modifiedAt'] as String).toUtc(),
+      deletedAt: map['deletedAt'] == null
+          ? null
+          : DateTime.parse(map['deletedAt'] as String).toUtc(),
+      ownerUserId: map['ownerUserId'] as String?,
     );
   }
 

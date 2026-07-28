@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
+import 'package:uuid/uuid.dart';
 import 'package:calorie_counter_app/features/home/view_model.dart';
 import 'package:calorie_counter_app/features/onboarding/splash_page.dart';
 import 'package:calorie_counter_app/l10n/app_localizations.dart';
@@ -21,6 +24,18 @@ import 'package:calorie_counter_app/services/subscription/in_memory_app_settings
 import 'package:calorie_counter_app/services/subscription/sqlite_app_settings_repository.dart';
 import 'package:calorie_counter_app/services/subscription/subscription_service.dart';
 import 'package:calorie_counter_app/themes/nutrition_theme.dart';
+import 'package:calorie_counter_app/features/sync/application/logout_coordinator.dart';
+import 'package:calorie_counter_app/features/sync/application/sync_coordinator.dart';
+import 'package:calorie_counter_app/features/sync/application/sync_trigger_service.dart';
+import 'package:calorie_counter_app/features/sync/domain/nutrition_goal.dart';
+import 'package:calorie_counter_app/features/sync/domain/sync_models.dart';
+import 'package:calorie_counter_app/features/sync/domain/sync_types.dart';
+import 'package:calorie_counter_app/features/sync/infrastructure/bff_sync_gateway.dart';
+import 'package:calorie_counter_app/features/sync/infrastructure/sqlite_sync_store.dart';
+import 'package:calorie_counter_app/features/sync/presentation/sync_view_model.dart';
+import 'package:calorie_counter_app/services/auth/google_auth_service.dart';
+import 'package:calorie_counter_app/services/bff/bff_client.dart';
+import 'package:calorie_counter_app/services/repository/app_database.dart';
 
 const bool _useMockAi = false;
 
@@ -32,8 +47,14 @@ Future<void> main() async {
   final MealRepository repository;
   final EstimateQuotaRepository estimateQuotaRepository;
   final AppSettingsRepository appSettingsRepository;
+  AppDatabase? appDatabase;
+  SqliteSyncStore? syncStore;
 
   if (_supportsSqliteStorage) {
+    appDatabase = await AppDatabase.open();
+    final cleaner = SqliteLogoutDataCleaner(appDatabase);
+    await cleaner.resumeInterruptedCleanup();
+    syncStore = SqliteSyncStore(appDatabase);
     repository = await SqliteMealRepository.open();
     estimateQuotaRepository = await SqliteEstimateQuotaRepository.open();
     appSettingsRepository = await SqliteAppSettingsRepository.open();
@@ -43,15 +64,100 @@ Future<void> main() async {
     appSettingsRepository = InMemoryAppSettingsRepository();
   }
   final userBffService = UserBffService(localeProvider: _currentLocaleName);
+  SyncCoordinator? syncCoordinator;
+  SyncTriggerService? syncTriggers;
+  late SubscriptionSyncSession syncSession;
   final subscriptionService = await SubscriptionService.load(
     appSettingsRepository,
     userBffService: userBffService,
+    onPremiumAuthenticated: (settings) async {
+      syncSession.update(settings);
+      await syncCoordinator?.bootstrap();
+    },
+    onPremiumStateChanged: (settings) async {
+      syncSession.update(settings);
+      if (settings.isPremium) await syncCoordinator?.retry();
+    },
+    onNutritionGoalChanged: syncStore == null
+        ? null
+        : (goal, settings) async {
+            final now = DateTime.now().toUtc();
+            await syncStore!.transaction(() async {
+              final nutritionGoal = NutritionGoal(
+                targetValue: goal,
+                effectiveFrom: DateTime(now.year, now.month, now.day),
+                modifiedAt: now,
+                ownerUserId: settings.userId,
+              );
+              await syncStore!.upsertGoal(nutritionGoal);
+              await syncStore.enqueue(SyncOperation(
+                operationId: const Uuid().v4(),
+                entityType: SyncEntityType.nutritionGoal,
+                entityId: NutritionGoal.canonicalId,
+                operation: SyncOperationType.upsert,
+                occurredAt: now,
+                ownerUserId: settings.userId,
+                payload: {
+                  'type': 'dailyCalories',
+                  'targetValue': nutritionGoal.targetValue,
+                  'unit': 'kcalPerDay',
+                  'effectiveFrom': nutritionGoal.effectiveFrom
+                      .toIso8601String()
+                      .split('T')
+                      .first,
+                },
+              ));
+            });
+            await syncCoordinator?.refreshPendingCount();
+            final triggers = syncTriggers;
+            if (triggers != null) unawaited(triggers.onMutation());
+          },
   );
+  syncSession = SubscriptionSyncSession(subscriptionService.settings);
+  SyncViewModel? syncViewModel;
+  LogoutCoordinator? logoutCoordinator;
+  if (syncStore != null && appDatabase != null) {
+    final coordinator = SyncCoordinator(
+      store: syncStore,
+      gateway: BffSyncGateway(BffClient()),
+      session: syncSession,
+      deviceId: await appDatabase.getOrCreateDeviceId(),
+      onDataChanged: () async {
+        if (repository is SqliteMealRepository) {
+          await repository.reload();
+        }
+        final goal = await syncStore!.goal(NutritionGoal.canonicalId);
+        if (goal != null) {
+          await subscriptionService
+              .applySyncedDailyCalorieGoal(goal.targetValue);
+        }
+      },
+    );
+    syncCoordinator = coordinator;
+    await coordinator.initialize();
+    final triggers = SyncTriggerService(coordinator: coordinator);
+    syncTriggers = triggers;
+    syncViewModel = SyncViewModel(coordinator, triggers: triggers);
+    final cleaner = SqliteLogoutDataCleaner(appDatabase);
+    logoutCoordinator = LogoutCoordinator(
+      flush: coordinator.flush,
+      pendingCount: () async {
+        await coordinator.refreshPendingCount();
+        return coordinator.pendingCount;
+      },
+      cleaner: cleaner,
+      clearSession: subscriptionService.logout,
+      disconnectIdentityProvider: GoogleAuthService().signOut,
+    );
+  }
 
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: subscriptionService),
+        if (syncViewModel != null)
+          ChangeNotifierProvider.value(value: syncViewModel),
+        if (logoutCoordinator != null) Provider.value(value: logoutCoordinator),
         ChangeNotifierProvider(
           create: (_) => HomeViewModel(
             repository: repository,
@@ -59,6 +165,7 @@ Future<void> main() async {
             estimateQuotaRepository: estimateQuotaRepository,
             subscriptionService: subscriptionService,
             userBffService: userBffService,
+            onLocalMutation: syncTriggers?.onMutation,
           ),
         ),
       ],
@@ -73,6 +180,7 @@ AiAdapter _createAiAdapter(SubscriptionService subscriptionService) {
       : BffAiAdapter(
           localeProvider: _currentLocaleName,
           authTokenProvider: () => subscriptionService.settings.googleAuthToken,
+          premiumActiveProvider: () => subscriptionService.isPremium,
         );
 }
 

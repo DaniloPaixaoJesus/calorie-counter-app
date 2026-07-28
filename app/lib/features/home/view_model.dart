@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:calorie_counter_app/models/macronutrients.dart';
 import 'package:calorie_counter_app/models/meal.dart';
@@ -19,6 +21,7 @@ class HomeViewModel extends ChangeNotifier {
   final EstimateQuotaRepository _estimateQuotaRepository;
   final SubscriptionService _subscriptionService;
   final UserBffService? _userBffService;
+  final Future<void> Function()? _onLocalMutation;
   late DateTime dataSelecionada;
 
   HomeViewModel({
@@ -27,13 +30,15 @@ class HomeViewModel extends ChangeNotifier {
     EstimateQuotaRepository? estimateQuotaRepository,
     SubscriptionService? subscriptionService,
     UserBffService? userBffService,
+    Future<void> Function()? onLocalMutation,
   })  : _repository = repository,
         _aiAdapter = aiAdapter,
         _estimateQuotaRepository =
             estimateQuotaRepository ?? InMemoryEstimateQuotaRepository(),
         _subscriptionService =
             subscriptionService ?? SubscriptionService.fallback(),
-        _userBffService = userBffService {
+        _userBffService = userBffService,
+        _onLocalMutation = onLocalMutation {
     // Initialize dataSelecionada to today (Feature 002)
     dataSelecionada = DateTime.now().toLocalDate();
     _subscriptionService.addListener(notifyListeners);
@@ -169,30 +174,9 @@ class HomeViewModel extends ChangeNotifier {
     _estimate = null;
     _estimateErrorMessage = null;
     _homeErrorMessage = null;
-    await _syncMealWithBff(meal);
+    final trigger = _onLocalMutation;
+    if (trigger != null) unawaited(trigger());
     notifyListeners();
-  }
-
-  Future<void> _syncMealWithBff(Meal meal) async {
-    final userId = _subscriptionService.settings.userId;
-    final userBffService = _userBffService;
-    if (userBffService == null || userId == null || userId.isEmpty) {
-      return;
-    }
-
-    try {
-      await userBffService.addMeal(
-        userId: userId,
-        meal: meal,
-        bearerToken: _subscriptionService.settings.googleAuthToken,
-      );
-    } on UserBffException catch (error) {
-      _homeErrorMessage = error.statusCode == null
-          ? error.message
-          : 'HTTP ${error.statusCode} - ${error.message}';
-    } catch (_) {
-      _homeErrorMessage = 'Erro inesperado ao sincronizar refeição.';
-    }
   }
 
   Future<List<Meal>> fetchMealsFromBffForProfile() async {
@@ -216,11 +200,15 @@ class HomeViewModel extends ChangeNotifier {
   Future<void> updateMeal(Meal meal) async {
     await _repository.update(meal);
     _homeErrorMessage = null;
+    final trigger = _onLocalMutation;
+    if (trigger != null) unawaited(trigger());
     notifyListeners();
   }
 
   Future<void> removeMeal(String id) async {
     await _repository.remove(id);
+    final trigger = _onLocalMutation;
+    if (trigger != null) unawaited(trigger());
     notifyListeners();
   }
 
@@ -294,6 +282,8 @@ class HomeViewModel extends ChangeNotifier {
 
     await _repository.remove(mealId);
     _homeErrorMessage = null;
+    final trigger = _onLocalMutation;
+    if (trigger != null) unawaited(trigger());
     notifyListeners();
   }
 

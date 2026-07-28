@@ -66,6 +66,43 @@ class AppLocalizations {
 
   String get loading =>
       pick(en: 'Loading...', pt: 'Carregando...', es: 'Cargando...');
+  String get syncLocal => pick(
+        en: 'Saved on this device',
+        pt: 'Dados salvos neste dispositivo',
+        es: 'Datos guardados en este dispositivo',
+      );
+  String get syncPending => pick(
+        en: 'Changes waiting to sync',
+        pt: 'Alterações aguardando sincronização',
+        es: 'Cambios pendientes de sincronización',
+      );
+  String get syncing => pick(
+        en: 'Syncing data',
+        pt: 'Sincronizando dados',
+        es: 'Sincronizando datos',
+      );
+  String get syncUpdated => pick(
+        en: 'Data synced',
+        pt: 'Dados sincronizados',
+        es: 'Datos sincronizados',
+      );
+  String get syncPaused => pick(
+        en: 'Sync paused; data preserved',
+        pt: 'Sincronização pausada; dados preservados',
+        es: 'Sincronización pausada; datos preservados',
+      );
+  String get syncAuthRequired => pick(
+        en: 'Sign in again to sync',
+        pt: 'Entre novamente para sincronizar',
+        es: 'Inicia sesión de nuevo para sincronizar',
+      );
+  String get syncFailed => pick(
+        en: 'Could not sync; your data is safe',
+        pt: 'Não foi possível sincronizar; seus dados estão seguros',
+        es: 'No se pudo sincronizar; tus datos están seguros',
+      );
+  String get retry =>
+      pick(en: 'Try again', pt: 'Tentar novamente', es: 'Reintentar');
   String get splashTagline => pick(
         en: 'Intelligence for\nyour daily choices',
         pt: 'Inteligência para\nsuas escolhas diárias',

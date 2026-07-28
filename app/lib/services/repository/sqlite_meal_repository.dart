@@ -1,12 +1,14 @@
-import 'package:path/path.dart' as p;
-import 'package:sqflite/sqflite.dart';
+import 'dart:convert';
 
+import 'package:sqflite/sqflite.dart';
+import 'package:uuid/uuid.dart';
+
+import '../../features/sync/domain/sync_types.dart';
 import '../../models/meal.dart';
+import 'app_database.dart';
 import 'meal_repository.dart';
 
 class SqliteMealRepository implements MealRepository {
-  static const _databaseName = 'calorie_counter.db';
-  static const _databaseVersion = 3;
   static const _tableMeals = 'meals';
 
   final Database _database;
@@ -15,46 +17,12 @@ class SqliteMealRepository implements MealRepository {
   SqliteMealRepository._(this._database, this._cache);
 
   static Future<SqliteMealRepository> open() async {
-    final databasePath = await getDatabasesPath();
-    final database = await openDatabase(
-      p.join(databasePath, _databaseName),
-      version: _databaseVersion,
-      onCreate: (db, version) async {
-        await db.execute('''
-          CREATE TABLE $_tableMeals (
-            id TEXT PRIMARY KEY,
-            descricao TEXT NOT NULL,
-            descricaoOriginal TEXT,
-            calorias INTEGER NOT NULL,
-            timestamp TEXT NOT NULL,
-            origem TEXT NOT NULL,
-            aiConfidence REAL,
-            nota TEXT,
-            iconKey TEXT NOT NULL,
-            proteinGrams INTEGER,
-            carbohydrateGrams INTEGER,
-            fatGrams INTEGER
-          )
-        ''');
-      },
-      onUpgrade: (db, oldVersion, newVersion) async {
-        if (oldVersion < 2) {
-          await db.execute(
-              'ALTER TABLE $_tableMeals ADD COLUMN proteinGrams INTEGER');
-          await db.execute(
-              'ALTER TABLE $_tableMeals ADD COLUMN carbohydrateGrams INTEGER');
-          await db
-              .execute('ALTER TABLE $_tableMeals ADD COLUMN fatGrams INTEGER');
-        }
-        if (oldVersion < 3) {
-          await db.execute(
-              'ALTER TABLE $_tableMeals ADD COLUMN descricaoOriginal TEXT');
-        }
-      },
-    );
+    final appDatabase = await AppDatabase.open();
+    final database = appDatabase.database;
 
     final rows = await database.query(
       _tableMeals,
+      where: 'deletedAt IS NULL',
       orderBy: 'timestamp DESC',
     );
     final meals = rows.map(Meal.fromMap).toList();
@@ -62,30 +30,34 @@ class SqliteMealRepository implements MealRepository {
     return SqliteMealRepository._(database, meals);
   }
 
-  @override
-  Future<void> add(Meal meal) async {
-    await _database.insert(
+  Future<void> reload() async {
+    final rows = await _database.query(
       _tableMeals,
-      meal.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
+      where: 'deletedAt IS NULL',
+      orderBy: 'timestamp DESC',
     );
     _cache
+      ..clear()
+      ..addAll(rows.map(Meal.fromMap));
+  }
+
+  @override
+  Future<void> add(Meal meal) async {
+    final persisted = meal.copyWith(modifiedAt: DateTime.now().toUtc());
+    await _writeWithOutbox(persisted, SyncOperationType.upsert);
+    _cache
       ..removeWhere((existing) => existing.id == meal.id)
-      ..add(meal)
+      ..add(persisted)
       ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
   }
 
   @override
   Future<void> update(Meal meal) async {
-    await _database.update(
-      _tableMeals,
-      meal.toMap(),
-      where: 'id = ?',
-      whereArgs: [meal.id],
-    );
+    final persisted = meal.copyWith(modifiedAt: DateTime.now().toUtc());
+    await _writeWithOutbox(persisted, SyncOperationType.upsert);
     final index = _cache.indexWhere((existing) => existing.id == meal.id);
     if (index == -1) return;
-    _cache[index] = meal;
+    _cache[index] = persisted;
     _cache.sort((a, b) => b.timestamp.compareTo(a.timestamp));
   }
 
@@ -94,12 +66,56 @@ class SqliteMealRepository implements MealRepository {
 
   @override
   Future<void> remove(String id) async {
-    await _database.delete(
-      _tableMeals,
-      where: 'id = ?',
-      whereArgs: [id],
+    final index = _cache.indexWhere((meal) => meal.id == id);
+    if (index == -1) return;
+    final now = DateTime.now().toUtc();
+    final tombstone = _cache[index].copyWith(
+      modifiedAt: now,
+      deletedAt: now,
     );
+    await _writeWithOutbox(tombstone, SyncOperationType.delete);
     _cache.removeWhere((meal) => meal.id == id);
+  }
+
+  Future<void> _writeWithOutbox(Meal meal, SyncOperationType operation) async {
+    final operationId = const Uuid().v4();
+    await _database.transaction((txn) async {
+      await txn.insert(
+        _tableMeals,
+        meal.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+      await txn.insert('sync_outbox', {
+        'operationId': operationId,
+        'entityType': SyncEntityType.meal.name,
+        'entityId': meal.id,
+        'operation': operation.name,
+        'occurredAt': meal.modifiedAt.toUtc().toIso8601String(),
+        'ownerUserId': meal.ownerUserId,
+        'status': 'pending',
+        'attemptCount': 0,
+        'payload':
+            operation == SyncOperationType.upsert ? _mealPayload(meal) : null,
+      });
+    });
+  }
+
+  static String _mealPayload(Meal meal) {
+    return jsonEncode({
+      'description': meal.descricao,
+      'originalDescription': meal.descricaoOriginal,
+      'calories': meal.calorias,
+      'mealAt': meal.timestamp.toUtc().toIso8601String(),
+      'origin': meal.origem == MealOrigem.audio ? 'audio' : 'text',
+      'aiConfidence': meal.aiConfidence,
+      'note': meal.nota,
+      'iconKey': meal.iconKey,
+      'macronutrients': {
+        'proteinGrams': meal.macronutrients?.protein.grams ?? 0,
+        'carbohydrateGrams': meal.macronutrients?.carbs.grams ?? 0,
+        'fatGrams': meal.macronutrients?.fat.grams ?? 0,
+      },
+    });
   }
 
   @override

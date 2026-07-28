@@ -1,5 +1,6 @@
 # Miscellaneous
 *.class
+*.jar
 *.log
 *.pyc
 *.swp
@@ -35,6 +36,7 @@ migrate_working_dir/
 **/.pub/
 **/build/
 **/coverage/
+**/target/
 
 # App Flutter no monorepo
 app/.metadata

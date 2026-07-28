@@ -23,7 +23,7 @@ class BffClient {
 
   static const defaultApiKey = String.fromEnvironment(
     'NUTRITY_BFF_API_KEY',
-    defaultValue: 'api_PD9d1LwncDiOINv6q2vyYxzTrVVyvEGc',
+    defaultValue: '',
   );
 
   static const defaultApiKeyHeader = String.fromEnvironment(

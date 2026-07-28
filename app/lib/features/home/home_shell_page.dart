@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:calorie_counter_app/l10n/app_localizations.dart';
 import 'package:calorie_counter_app/services/subscription/subscription_service.dart';
+import 'package:calorie_counter_app/features/sync/presentation/sync_status_widget.dart';
+import 'package:calorie_counter_app/features/sync/presentation/sync_view_model.dart';
 
 import 'add_meal_entry_page.dart';
 import 'home_page.dart';
@@ -21,6 +23,7 @@ class _HomeShellPageState extends State<HomeShellPage> {
   @override
   Widget build(BuildContext context) {
     final subscriptionService = context.watch<SubscriptionService?>();
+    final syncViewModel = context.watch<SyncViewModel?>();
     final showAds =
         widget.showAds ?? subscriptionService?.shouldShowAds ?? true;
     final pages = [
@@ -33,7 +36,12 @@ class _HomeShellPageState extends State<HomeShellPage> {
     final l10n = AppLocalizations.of(context);
 
     return Scaffold(
-      body: IndexedStack(index: _currentIndex, children: pages),
+      body: Column(
+        children: [
+          if (syncViewModel != null) SyncStatusWidget(viewModel: syncViewModel),
+          Expanded(child: IndexedStack(index: _currentIndex, children: pages)),
+        ],
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
         onDestinationSelected: (index) => setState(() => _currentIndex = index),

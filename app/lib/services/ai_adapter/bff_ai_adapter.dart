@@ -45,6 +45,7 @@ class BffAiAdapter implements AiAdapter {
   final Duration timeout;
   final String Function()? localeProvider;
   final String? Function()? authTokenProvider;
+  final bool Function()? premiumActiveProvider;
   final BffAiTransport _transport;
 
   BffAiAdapter({
@@ -54,6 +55,7 @@ class BffAiAdapter implements AiAdapter {
     this.timeout = const Duration(seconds: 30),
     this.localeProvider,
     this.authTokenProvider,
+    this.premiumActiveProvider,
     BffAiTransport? transport,
   })  : endpoint = endpoint ?? Uri.parse(_defaultEndpoint),
         _transport = transport ?? _postWithHttpClient;
@@ -73,7 +75,9 @@ class BffAiAdapter implements AiAdapter {
     if (apiKey.trim().isNotEmpty) {
       requestHeaders[apiKeyHeader] = apiKey;
     }
-    final authToken = authTokenProvider?.call();
+    final authToken = premiumActiveProvider?.call() == false
+        ? null
+        : authTokenProvider?.call();
     if (authToken != null && authToken.trim().isNotEmpty) {
       requestHeaders[HttpHeaders.authorizationHeader] =
           'Bearer ${authToken.trim()}';

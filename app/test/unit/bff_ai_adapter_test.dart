@@ -106,5 +106,29 @@ void main() {
         ),
       );
     });
+
+    test('não envia bearer quando premium está inativo', () async {
+      late Map<String, String> capturedHeaders;
+      final adapter = BffAiAdapter(
+        authTokenProvider: () => 'premium-token',
+        premiumActiveProvider: () => false,
+        transport: ({
+          required endpoint,
+          required headers,
+          required body,
+          required timeout,
+        }) async {
+          capturedHeaders = headers;
+          return const BffAiResponse(
+            statusCode: 200,
+            body: '{"calorias":100,"confidence":0.5,"iconKey":"default"}',
+          );
+        },
+      );
+
+      await adapter.estimateCalories('uma banana');
+
+      expect(capturedHeaders, isNot(contains('authorization')));
+    });
   });
 }
