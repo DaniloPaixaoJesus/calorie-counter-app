@@ -35,7 +35,17 @@ Inicie o BFF com perfil de desenvolvimento e execute o app apontando `NUTRITY_BF
    - nenhuma duplicação após três retries;
    - meta calórica convergente.
 
-## Cenário 2 — Offline, retry e conflito
+## Cenário 2 — Recuperação de compra
+
+1. Na seleção de planos, abra Premium e toque em “Recuperar compra”.
+2. Entre com uma conta Google que possua premium ativo no BFF.
+3. Confirme que a sessão é restaurada, a Home é aberta e os dados remotos são
+   recuperados pelo bootstrap.
+4. Repita com um e-mail inexistente e com uma conta sem premium ativo.
+5. Confirme que nenhuma conta ou assinatura é criada, o Google é desconectado,
+   a seleção de planos volta a ser exibida e o aviso de plano inativo aparece.
+
+## Cenário 3 — Offline, retry e conflito
 
 1. Com premium ativo, coloque o dispositivo A offline.
 2. Edite uma refeição em A e outra versão da mesma refeição no dispositivo B.
@@ -46,7 +56,7 @@ Inicie o BFF com perfil de desenvolvimento e execute o app apontando `NUTRITY_BF
 
 Repita com remoção versus edição para validar tombstone e LWW.
 
-## Cenário 3 — Expiração e renovação
+## Cenário 4 — Expiração e renovação
 
 1. Com sessão autenticada, altere o premium para inativo no BFF.
 2. Crie e edite dados no app.
@@ -57,7 +67,7 @@ Repita com remoção versus edição para validar tombstone e LWW.
    - a IA aplica limites free.
 4. Renove o premium e confirme envio automático sem duplicações.
 
-## Cenário 4 — Logout
+## Cenário 5 — Logout
 
 1. Crie uma pendência e deixe o BFF indisponível.
 2. Solicite logout.
@@ -65,13 +75,13 @@ Repita com remoção versus edição para validar tombstone e LWW.
 4. Interrompa o app durante a limpeza e reabra.
 5. Confirme que a limpeza termina antes da UI e que não restam refeições, metas, outbox, cursor, token ou sessão.
 
-## Cenário 5 — Isolamento entre contas
+## Cenário 6 — Isolamento entre contas
 
 1. Sincronize a conta A e faça logout.
 2. Entre com a conta B usando IDs de entidade iguais aos usados por A.
 3. Confirme que B não lê, altera nem remove dados de A.
 
-## Cenário 6 — Volume e interrupções
+## Cenário 7 — Volume e interrupções
 
 1. Prepare 1.000 registros locais e 1.000 remotos.
 2. Interrompa rede/processo entre lotes e retome.
@@ -98,8 +108,8 @@ Além dos comandos, validar o OpenAPI em [contracts/openapi.yaml](contracts/open
 |---|---|
 | `dart format --output=none --set-exit-if-changed lib test` | Aprovado |
 | `flutter analyze` | Aprovado, sem problemas |
-| `flutter test` | Aprovado, 70 testes |
-| `./mvnw -q test` | Aprovado, 17 testes |
+| `flutter test` | Aprovado, 74 testes |
+| `./mvnw -q test` | Aprovado, 20 testes |
 | Migração Flyway em H2 de teste | Aprovada durante `SyncPersistenceTest` |
 | Compatibilidade OpenAPI no app e BFF | Aprovada pelas suítes de contrato |
 
@@ -113,8 +123,11 @@ comprova ainda que refeições preexistentes em `nutrity_meals` entram no feed
 de sincronização e que a Home é atualizada após aplicá-las localmente. Os
 testes de data cobrem a virada do dia com o app aberto e a conversão de
 `mealAt` remoto para o fuso local antes de agrupar refeições.
+Os testes de recuperação de compra comprovam que somente uma conta Premium
+ativa restaura a sessão e inicia o bootstrap; e-mail sem plano não cria conta,
+mantém o estado local sem premium e retorna à seleção de planos com aviso.
 
-Os cenários manuais 1–6 e os critérios CS-001–CS-007 permanecem pendentes de
+Os cenários manuais 1–7 e os critérios CS-001–CS-007 permanecem pendentes de
 execução em dispositivo com BFF ativo, controle de conectividade e contas
 Google de teste. Os testes de integração SQLite e widgets ainda abertos em
 `tasks.md` também não foram substituídos por esta evidência automatizada.

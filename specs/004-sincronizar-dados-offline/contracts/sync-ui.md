@@ -22,6 +22,19 @@ O estado deve possuir rótulo semântico e texto; cor ou ícone isolado não sã
 4. O progresso pode ser retomado após fechamento ou falha.
 5. Conflitos de identidade no bootstrap adotam a versão remota sem diálogo bloqueante.
 
+## Recuperação de compra
+
+1. A tela de planos oferece a ação “Recuperar compra” na área Premium.
+2. A ação abre a autenticação Google e consulta o BFF sem criar conta ou
+   conceder premium.
+3. Se o e-mail pertencer a uma conta com premium ativo, o app restaura a
+   sessão, abre a Home e inicia o bootstrap em segundo plano.
+4. Se a conta não existir ou não possuir premium ativo, o app desconecta a
+   identidade Google selecionada, retorna à seleção de planos e informa que
+   nenhum plano ativo foi encontrado.
+5. Cancelamento ou falha técnica mantém a pessoa no paywall e apresenta erro
+   recuperável.
+
 ## Premium inativo
 
 - O uso local e a IA em modalidade free continuam disponíveis.

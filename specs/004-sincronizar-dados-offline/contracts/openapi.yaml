@@ -6,6 +6,32 @@ info:
 servers:
   - url: /bff-service
 paths:
+  /auth/google/restore:
+    post:
+      summary: Recupera uma sessão Premium existente por Google
+      operationId: restoreGooglePremiumPurchase
+      description: Valida a identidade Google e nunca cria conta nem concede premium.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GoogleAuthRequest"
+      responses:
+        "200":
+          description: Conta existente com premium ativo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/PremiumSubscriptionNotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
   /users/{userId}/sync:
     post:
       summary: Envia mutações locais e recebe mudanças remotas
@@ -65,6 +91,70 @@ components:
         type: string
         maxLength: 80
   schemas:
+    GoogleAuthRequest:
+      type: object
+      required: [email]
+      properties:
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+          maxLength: 160
+          nullable: true
+        photoUrl:
+          type: string
+          maxLength: 600
+          nullable: true
+        idToken:
+          type: string
+          maxLength: 4096
+          nullable: true
+        accessToken:
+          type: string
+          maxLength: 4096
+          nullable: true
+        locale:
+          type: string
+          maxLength: 12
+          nullable: true
+    UserProfile:
+      type: object
+      required: [id, email, premium, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+          nullable: true
+        photoUrl:
+          type: string
+          nullable: true
+        birthDate:
+          type: string
+          format: date
+          nullable: true
+        gender:
+          type: string
+          nullable: true
+        dailyCalorieGoal:
+          type: integer
+          nullable: true
+        locale:
+          type: string
+          nullable: true
+        premium:
+          type: boolean
+          enum: [true]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
     SyncRequest:
       type: object
       required: [deviceId, bootstrap, mutations]
@@ -290,6 +380,12 @@ components:
             $ref: "#/components/schemas/ApiError"
     PremiumRequired:
       description: Premium inativo; a fila deve ser pausada e preservada
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+    PremiumSubscriptionNotFound:
+      description: Conta inexistente ou sem premium ativo; nenhuma sessão é restaurada
       content:
         application/json:
           schema:
