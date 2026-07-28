@@ -32,6 +32,9 @@ public class SyncService {
     @Transactional
     public SyncResponse synchronize(String userId,SyncRequest request,String correlationId){
         Instant started=Instant.now();
+        if (request.bootstrap()) {
+            store.prepareBootstrap(userId);
+        }
         List<SyncResponse.MutationResult> results=new ArrayList<>();
         for(SyncRequest.Mutation input:request.mutations()) results.add(process(userId,input,request.bootstrap()));
         long cursor=parseCursor(request.cursor());

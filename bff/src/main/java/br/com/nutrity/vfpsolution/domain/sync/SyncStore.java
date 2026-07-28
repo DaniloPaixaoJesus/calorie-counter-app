@@ -5,6 +5,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface SyncStore {
+    default void prepareBootstrap(String userId) {
+    }
     Optional<ProcessedOperation> findProcessed(String userId, UUID operationId);
     Optional<SyncModels.Change> findCurrent(String userId, SyncModels.EntityType type, String entityId);
     SyncModels.Change saveChange(String userId, SyncModels.Mutation mutation);

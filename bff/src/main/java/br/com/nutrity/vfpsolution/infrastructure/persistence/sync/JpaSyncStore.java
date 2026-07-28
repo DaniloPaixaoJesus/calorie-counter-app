@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
 
+import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -36,6 +37,27 @@ public class JpaSyncStore implements SyncStore {
         this.users=users;
         this.meals=meals;
         this.mapper=mapper;
+    }
+    @Override
+    public void prepareBootstrap(String userId) {
+        for (UserMeal meal : meals.findByUserIdOrderByTimestampDesc(userId)) {
+            if (findCurrent(userId, SyncModels.EntityType.MEAL, meal.getId()).isPresent()) {
+                continue;
+            }
+            OffsetDateTime modifiedAt = meal.getModifiedAt();
+            SyncModels.Operation operation = meal.getDeletedAt() == null
+                    ? SyncModels.Operation.UPSERT
+                    : SyncModels.Operation.DELETE;
+            String seed = "bootstrap|" + userId + "|" + meal.getId() + "|" + modifiedAt.toInstant();
+            saveChange(userId, new SyncModels.Mutation(
+                    UUID.nameUUIDFromBytes(seed.getBytes(StandardCharsets.UTF_8)),
+                    SyncModels.EntityType.MEAL,
+                    meal.getId(),
+                    operation,
+                    modifiedAt,
+                    operation == SyncModels.Operation.DELETE ? null : mealPayload(meal)
+            ));
+        }
     }
     public Optional<ProcessedOperation> findProcessed(String userId, UUID operationId){
         return processed.findByUserIdAndOperationId(userId,operationId.toString()).flatMap(p ->
@@ -141,6 +163,39 @@ public class JpaSyncStore implements SyncStore {
             return mapper.readTree(payloadJson);
         } catch (JsonProcessingException exception) {
             throw new IllegalStateException("payload sincronizado inválido", exception);
+        }
+    }
+
+    private String mealPayload(UserMeal meal) {
+        var payload = mapper.createObjectNode();
+        payload.put("description", meal.getDescricao());
+        if (meal.getDescricaoOriginal() == null) {
+            payload.putNull("originalDescription");
+        } else {
+            payload.put("originalDescription", meal.getDescricaoOriginal());
+        }
+        payload.put("calories", meal.getCalorias());
+        payload.put("mealAt", meal.getTimestamp().toString());
+        payload.put("origin", "audio".equalsIgnoreCase(meal.getOrigem()) ? "audio" : "text");
+        if (meal.getAiConfidence() == null) {
+            payload.putNull("aiConfidence");
+        } else {
+            payload.put("aiConfidence", meal.getAiConfidence());
+        }
+        if (meal.getNota() == null) {
+            payload.putNull("note");
+        } else {
+            payload.put("note", meal.getNota());
+        }
+        payload.put("iconKey", meal.getIconKey());
+        var macros = payload.putObject("macronutrients");
+        macros.put("proteinGrams", meal.getProteinGrams());
+        macros.put("carbohydrateGrams", meal.getCarbohydrateGrams());
+        macros.put("fatGrams", meal.getFatGrams());
+        try {
+            return mapper.writeValueAsString(payload);
+        } catch (JsonProcessingException exception) {
+            throw new IllegalStateException("não foi possível preparar refeição para sincronização", exception);
         }
     }
 

@@ -10,5 +10,7 @@ public interface UserMealRepository extends JpaRepository<UserMeal, String> {
 
     List<UserMeal> findByUserIdAndDeletedAtIsNullOrderByTimestampDesc(String userId);
 
+    List<UserMeal> findByUserIdOrderByTimestampDesc(String userId);
+
     Optional<UserMeal> findByIdAndUserId(String id, String userId);
 }

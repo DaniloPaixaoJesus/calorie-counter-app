@@ -2,6 +2,7 @@ package br.com.nutrity.vfpsolution.infrastructure.persistence;
 
 import br.com.nutrity.vfpsolution.application.api.sync.SyncRequest;
 import br.com.nutrity.vfpsolution.application.sync.SyncService;
+import br.com.nutrity.vfpsolution.domain.entity.UserMeal;
 import br.com.nutrity.vfpsolution.domain.entity.UserProfile;
 import br.com.nutrity.vfpsolution.domain.repository.UserMealRepository;
 import br.com.nutrity.vfpsolution.domain.repository.UserProfileRepository;
@@ -80,6 +81,43 @@ class SyncPersistenceTest {
         assertEquals(420, persisted.getCalorias());
         assertEquals(OffsetDateTime.parse("2026-07-27T12:31:00Z"), persisted.getModifiedAt());
     }
+
+    @Test
+    void bootstrapPublishesMealsThatPredateTheSyncFeed() {
+        var user = users.save(user("user-bootstrap", "bootstrap@test.dev"));
+        meals.save(new UserMeal(
+                "legacy-meal",
+                user,
+                "Refeição já persistida",
+                "refeicao ja persistida",
+                510,
+                OffsetDateTime.parse("2026-07-26T19:00:00Z"),
+                "text",
+                null,
+                null,
+                "meal",
+                24,
+                58,
+                18,
+                OffsetDateTime.parse("2026-07-26T19:01:00Z"),
+                null
+        ));
+
+        var response = syncService.synchronize(
+                "user-bootstrap",
+                new SyncRequest(UUID.randomUUID(), true, null, List.of()),
+                "bootstrap-correlation"
+        );
+
+        assertEquals(1, response.changes().size());
+        var change = response.changes().getFirst();
+        assertEquals("legacy-meal", change.entityId());
+        assertEquals("meal", change.entityType());
+        assertEquals("upsert", change.operation());
+        assertEquals("Refeição já persistida", change.payload().path("description").asText());
+        assertEquals(510, change.payload().path("calories").asInt());
+    }
+
     private UserProfile user(String id,String email){
         var now=OffsetDateTime.now();
         return new UserProfile(id,email,"User",null,null,null,2000,"pt_BR",true,now,now);
