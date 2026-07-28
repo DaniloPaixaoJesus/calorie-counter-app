@@ -47,6 +47,26 @@ O estado deve possuir rótulo semântico e texto; cor ou ícone isolado não sã
 - Em largura compacta, todo o conteúdo deve continuar acessível por rolagem,
   sem overflow ou truncamento das ações.
 
+## Paywall mensal e anual
+
+- A barra superior deve conter somente a ação de voltar; “Planos Premium” deve
+  aparecer uma única vez, no cabeçalho do conteúdo.
+- O cabeçalho Premium deve introduzir a escolha sem competir com os preços.
+- Mensal e anual devem possuir indicador de seleção além da diferença de cor.
+- Preço, período e selo devem quebrar linha com segurança em telas compactas.
+- Benefícios comuns devem aparecer uma única vez após as opções.
+- A ação de continuar é primária; recuperação de compra é secundária.
+- Se a recuperação sem conta ativa partir do próprio paywall, exibir o erro em
+  um bloco acessível e manter a pessoa nessa tela.
+
+## Acesso ao perfil Premium
+
+- A Home deve separar a área segura de seu cabeçalho com apenas o token de
+  espaçamento mínimo, no modo Free e no Premium.
+- Na Home Premium, o nome e a foto do usuário são controles acionáveis que
+  levam à tela de perfil e metas.
+- Ambos devem possuir rótulo semântico e área de toque adequada.
+
 ## Premium inativo
 
 - O uso local e a IA em modalidade free continuam disponíveis.

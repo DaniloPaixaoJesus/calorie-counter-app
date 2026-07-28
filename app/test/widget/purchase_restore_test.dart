@@ -1,4 +1,5 @@
 import 'package:calorie_counter_app/features/home/view_model.dart';
+import 'package:calorie_counter_app/features/onboarding/paywall_page.dart';
 import 'package:calorie_counter_app/features/onboarding/plan_selection_page.dart';
 import 'package:calorie_counter_app/features/onboarding/splash_page.dart';
 import 'package:calorie_counter_app/l10n/app_localizations.dart';
@@ -135,6 +136,68 @@ void main() {
       scrollable: find.byType(Scrollable).last,
     );
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('paywall mantém hierarquia visual para mensal e anual',
+      (tester) async {
+    await tester.binding.setSurfaceSize(const Size(320, 640));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final service = await SubscriptionService.load(
+      InMemoryAppSettingsRepository(),
+      userBffService: _RestoreBffFake(null),
+    );
+    await tester.pumpWidget(
+      _app(
+        service,
+        _GoogleAuthFake(),
+        home: PaywallPage(
+          restoreGoogleAuthService: _GoogleAuthFake(),
+        ),
+      ),
+    );
+
+    expect(find.text('Planos Premium'), findsOneWidget);
+    expect(find.byKey(const ValueKey('premium-paywall-hero')), findsOneWidget);
+    expect(find.byKey(const ValueKey('monthly-plan-card')), findsOneWidget);
+    expect(find.byKey(const ValueKey('yearly-plan-card')), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('premium-benefits-panel')),
+      250,
+      scrollable: find.byType(Scrollable).last,
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('paywall exibe conta não encontrada sem tela intermediária',
+      (tester) async {
+    final google = _GoogleAuthFake();
+    final service = await SubscriptionService.load(
+      InMemoryAppSettingsRepository(),
+      userBffService: _RestoreBffFake(null),
+    );
+    await tester.pumpWidget(
+      _app(
+        service,
+        google,
+        home: PaywallPage(restoreGoogleAuthService: google),
+      ),
+    );
+
+    await tester.scrollUntilVisible(
+      find.text('Recuperar compra'),
+      300,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.tap(find.text('Recuperar compra'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text(
+        'O e-mail restore@example.com não possui uma conta Premium ativa.',
+      ),
+      findsOneWidget,
+    );
+    expect(google.signedOut, isTrue);
   });
 
   testWidgets('plano ativo autentica e abre o app', (tester) async {

@@ -109,9 +109,10 @@ class HomePage extends StatelessWidget {
             ),
             child: Column(
               children: [
-                const SizedBox(height: AppSpacing.md),
+                const SizedBox(height: AppSpacing.xs),
                 if (isPremium && settings?.userName != null) ...[
                   Padding(
+                    key: const ValueKey('home-top-header'),
                     padding:
                         EdgeInsets.symmetric(horizontal: horizontalPadding),
                     child: _PremiumHeader(
@@ -122,6 +123,7 @@ class HomePage extends StatelessWidget {
                   const SizedBox(height: AppSpacing.md),
                 ] else ...[
                   Padding(
+                    key: const ValueKey('home-top-header'),
                     padding:
                         EdgeInsets.symmetric(horizontal: horizontalPadding),
                     child: _FreeHeader(onTap: () => _openPremium(context)),
@@ -231,15 +233,34 @@ class _PremiumHeader extends StatelessWidget {
           size: 20,
         ),
         const SizedBox(width: AppSpacing.xs),
-        Text(
-          AppLocalizations.of(context).helloUser(
-            settings.userName ?? AppLocalizations.of(context).premiumUser,
-          ),
-          style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                fontWeight: FontWeight.w800,
+        Expanded(
+          child: Tooltip(
+            message: AppLocalizations.of(context).profileAndGoals,
+            child: InkWell(
+              key: const ValueKey('premium-user-name'),
+              borderRadius: BorderRadius.circular(999),
+              onTap: onProfileTap,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.xs,
+                  vertical: AppSpacing.sm,
+                ),
+                child: Text(
+                  AppLocalizations.of(context).helloUser(
+                    settings.userName ??
+                        AppLocalizations.of(context).premiumUser,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                ),
               ),
+            ),
+          ),
         ),
-        const Spacer(),
+        const SizedBox(width: AppSpacing.sm),
         Tooltip(
           message: AppLocalizations.of(context).profileAndGoals,
           child: InkWell(

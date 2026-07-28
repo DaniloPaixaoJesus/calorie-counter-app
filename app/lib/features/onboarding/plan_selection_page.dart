@@ -36,6 +36,7 @@ class PlanSelectionPage extends StatelessWidget {
         builder: (_) => PaywallPage(
           restoreGoogleAuthService: restoreGoogleAuthService,
           restorePurchaseOnOpen: restorePurchaseOnOpen,
+          returnToPlanSelectionOnNotFound: true,
         ),
       ),
     );

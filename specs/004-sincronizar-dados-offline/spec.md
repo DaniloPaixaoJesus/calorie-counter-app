@@ -39,6 +39,11 @@ Como pessoa que usou o app sem login, quero entrar com minha conta Google premiu
 7. **Dado** que a pessoa tenta recuperar compra com uma conta sem premium ativo, **Quando** a validação termina, **Então** nenhuma sessão premium é criada, uma mensagem identifica o e-mail consultado e informa que ele não possui conta Premium ativa, e a seleção de planos volta a ser exibida.
 8. **Dado** que o carregamento inicial termina sem plano previamente selecionado, **Quando** a seleção de planos é exibida, **Então** a ação de recuperar compra fica disponível diretamente nessa tela, sem exigir que a pessoa abra primeiro os detalhes do Premium.
 9. **Dado** que a seleção de planos é exibida em uma tela compacta, **Quando** a pessoa compara as opções, **Então** título, benefícios, destaque Premium e ações permanecem legíveis, organizados e acessíveis sem overflow.
+10. **Dado** que a pessoa está no paywall, **Quando** compara os planos mensal e anual, **Então** seleção, preço, período, economia e benefícios são apresentados com hierarquia visual clara e sem overflow.
+11. **Dado** que a recuperação iniciada diretamente no paywall não encontra uma conta Premium ativa, **Quando** a validação termina, **Então** a mensagem com o e-mail consultado é exibida no próprio paywall.
+12. **Dado** que uma pessoa Premium está na Home, **Quando** toca em seu nome, **Então** a tela de perfil e metas é aberta.
+13. **Dado** que a pessoa abre o paywall mensal e anual, **Quando** a tela é exibida, **Então** o título “Planos Premium” aparece somente no conteúdo principal, sem repetição na barra superior.
+14. **Dado** que a Home é exibida, **Quando** o cabeçalho superior é renderizado, **Então** existe apenas uma pequena margem entre a área segura e o cabeçalho, tanto no modo Free quanto Premium.
 
 ---
 
@@ -121,6 +126,11 @@ Como pessoa autenticada, quero que os dados da minha conta sejam removidos do di
 - **RF-028**: O sistema NÃO DEVE bloquear o uso do app enquanto a sincronização inicial estiver em andamento; os dados locais DEVEM permanecer disponíveis e as novas alterações DEVEM entrar na fila de sincronização.
 - **RF-029**: A seleção de planos exibida após o carregamento e os detalhes do Premium DEVEM oferecer recuperação de compra por Google; somente uma conta já existente com premium ativo DEVE restaurar a sessão e iniciar o bootstrap, enquanto uma conta inexistente ou sem premium ativo DEVE permanecer desautenticada e retornar à seleção de planos com aviso que identifique o e-mail consultado.
 - **RF-030**: A seleção de planos DEVE apresentar hierarquia visual clara entre introdução, opções Free e Premium, recuperação de compra e continuidade gratuita, usando componentes Material 3, tokens visuais e layout adaptável sem alterar os fluxos de navegação.
+- **RF-031**: O paywall DEVE diferenciar visualmente planos mensal e anual, indicar inequivocamente a opção selecionada, apresentar os benefícios uma única vez e permanecer utilizável em largura compacta.
+- **RF-032**: Quando uma recuperação sem conta Premium ativa não tiver a seleção de planos como tela de origem, o paywall DEVE permanecer aberto e exibir a mensagem localizada com o e-mail consultado.
+- **RF-033**: Na Home de uma pessoa Premium, tanto o nome exibido quanto a foto DEVEM abrir a tela de perfil e metas.
+- **RF-034**: O paywall mensal e anual DEVE exibir o título da tela uma única vez no conteúdo principal; a barra superior DEVE manter apenas a ação de voltar.
+- **RF-035**: A Home DEVE usar a menor margem vertical do design system entre a área segura e seu cabeçalho superior, igualmente para pessoas Free e Premium.
 
 ### Entidades Principais
 

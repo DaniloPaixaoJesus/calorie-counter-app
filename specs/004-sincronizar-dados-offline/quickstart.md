@@ -48,6 +48,16 @@ Inicie o BFF com perfil de desenvolvimento e execute o app apontando `NUTRITY_BF
    consultado como sem conta Premium ativa.
 6. Em uma tela com 320 px de largura, confirme que cabeçalho, cards, selos,
    benefícios e ações permanecem legíveis e acessíveis por rolagem.
+7. Abra o paywall a partir da Home, tente recuperar um e-mail sem conta ativa e
+   confirme que o aviso aparece no próprio paywall.
+8. Compare mensal e anual em 320 px e confirme indicador de seleção, preços,
+   períodos, selos e benefícios sem overflow.
+9. Com usuário Premium na Home, toque no nome e confirme a abertura do perfil;
+   repita tocando na foto.
+10. Confirme que “Planos Premium” aparece uma única vez no paywall e que sua
+    barra superior mantém somente a ação de voltar.
+11. Abra a Home nos modos Free e Premium e confirme que há apenas a menor
+    margem do design system entre a área segura e o cabeçalho.
 
 ## Cenário 3 — Offline, retry e conflito
 
@@ -112,7 +122,7 @@ Além dos comandos, validar o OpenAPI em [contracts/openapi.yaml](contracts/open
 |---|---|
 | `dart format --output=none --set-exit-if-changed lib test` | Aprovado |
 | `flutter analyze` | Aprovado, sem problemas |
-| `flutter test` | Aprovado, 76 testes |
+| `flutter test` | Aprovado, 79 testes |
 | `./mvnw -q test` | Aprovado, 20 testes |
 | Migração Flyway em H2 de teste | Aprovada durante `SyncPersistenceTest` |
 | Compatibilidade OpenAPI no app e BFF | Aprovada pelas suítes de contrato |
@@ -134,6 +144,9 @@ Também comprovam que a seleção de planos aberta automaticamente após o Splas
 expõe a recuperação sem exigir a abertura prévia dos detalhes do Premium.
 O teste compacto valida ainda a hierarquia visual da seleção e a ausência de
 overflow em 320 × 640 px.
+Os testes adicionais validam o paywall mensal/anual compacto, a mensagem de
+conta não encontrada mantida no paywall, o título único do paywall, a margem
+superior mínima da Home Free/Premium e o acesso ao perfil pelo nome Premium.
 
 Os cenários manuais 1–7 e os critérios CS-001–CS-007 permanecem pendentes de
 execução em dispositivo com BFF ativo, controle de conectividade e contas

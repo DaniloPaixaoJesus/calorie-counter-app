@@ -1,6 +1,8 @@
 import 'package:calorie_counter_app/design_system/app_radius.dart';
+import 'package:calorie_counter_app/design_system/app_elevation.dart';
 import 'package:calorie_counter_app/design_system/app_spacing.dart';
 import 'package:calorie_counter_app/design_system/layout_breakpoints.dart';
+import 'package:calorie_counter_app/design_system/premium_crown_icon.dart';
 import 'package:calorie_counter_app/features/home/home_shell_page.dart';
 import 'package:calorie_counter_app/l10n/app_localizations.dart';
 import 'package:calorie_counter_app/services/auth/google_auth_service.dart';
@@ -13,11 +15,13 @@ import 'package:provider/provider.dart';
 class PaywallPage extends StatefulWidget {
   final GoogleAuthService? restoreGoogleAuthService;
   final bool restorePurchaseOnOpen;
+  final bool returnToPlanSelectionOnNotFound;
 
   const PaywallPage({
     super.key,
     this.restoreGoogleAuthService,
     this.restorePurchaseOnOpen = false,
+    this.returnToPlanSelectionOnNotFound = false,
   });
 
   @override
@@ -67,7 +71,13 @@ class _PaywallPageState extends State<PaywallPage> {
       if (!restored) {
         await _restoreGoogleAuthService.signOut();
         if (!mounted) return;
-        Navigator.of(context).pop(PaywallResult.noActivePlan(account.email));
+        if (widget.returnToPlanSelectionOnNotFound) {
+          Navigator.of(context).pop(PaywallResult.noActivePlan(account.email));
+        } else {
+          setState(() {
+            _restoreError = l10n.noActivePremiumPlanForEmail(account.email);
+          });
+        }
         return;
       }
       Navigator.of(context).pushAndRemoveUntil(
@@ -92,16 +102,17 @@ class _PaywallPageState extends State<PaywallPage> {
     final horizontalPadding =
         LayoutBreakpoints.isSmall(context) ? AppSpacing.md : AppSpacing.lg;
     final l10n = AppLocalizations.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
+      backgroundColor: colorScheme.surfaceContainerLowest,
       appBar: AppBar(
+        backgroundColor: colorScheme.surfaceContainerLowest,
         leading: IconButton(
           tooltip: l10n.back,
           onPressed: () => Navigator.of(context).maybePop(),
           icon: const Icon(Icons.arrow_back_rounded),
         ),
-        title: Text(l10n.premiumPlans),
-        centerTitle: true,
       ),
       body: SafeArea(
         child: Center(
@@ -117,15 +128,69 @@ class _PaywallPageState extends State<PaywallPage> {
                 AppSpacing.lg,
               ),
               children: [
-                Text(
-                  l10n.chooseIdealPlan,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                Container(
+                  key: const ValueKey('premium-paywall-hero'),
+                  padding: const EdgeInsets.all(AppSpacing.lg),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        const Color(0xFFFFF3D8),
+                        colorScheme.primaryContainer.withValues(alpha: 0.72),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(AppRadius.xl),
+                    border: Border.all(
+                      color: const Color(0xFFB56A00).withValues(alpha: 0.28),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 52,
+                        height: 52,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: colorScheme.surface.withValues(alpha: 0.9),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const PremiumCrownIcon(size: 30),
                       ),
+                      const SizedBox(width: AppSpacing.lg),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              l10n.premiumPlans,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleLarge
+                                  ?.copyWith(
+                                    color: const Color(0xFF8A5600),
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                            ),
+                            const SizedBox(height: AppSpacing.xs),
+                            Text(
+                              l10n.chooseIdealPlan,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: AppSpacing.xl),
+                const SizedBox(height: AppSpacing.lg),
                 _PremiumPlanCard(
+                  key: const ValueKey('monthly-plan-card'),
                   title: l10n.monthly,
                   price: 'R\$ 14,90',
                   period: l10n.perMonth,
@@ -137,6 +202,7 @@ class _PaywallPageState extends State<PaywallPage> {
                 ),
                 const SizedBox(height: AppSpacing.lg),
                 _PremiumPlanCard(
+                  key: const ValueKey('yearly-plan-card'),
                   title: l10n.yearly,
                   price: 'R\$ 119,90',
                   period: l10n.perYear,
@@ -146,14 +212,38 @@ class _PaywallPageState extends State<PaywallPage> {
                     setState(() => _selectedPlan = _PremiumPlan.yearly);
                   },
                 ),
-                const SizedBox(height: AppSpacing.xl),
-                FilledButton(
+                const SizedBox(height: AppSpacing.lg),
+                Container(
+                  key: const ValueKey('premium-benefits-panel'),
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.lg,
+                    AppSpacing.lg,
+                    AppSpacing.lg,
+                    AppSpacing.sm,
+                  ),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surface,
+                    borderRadius: BorderRadius.circular(AppRadius.xl),
+                    border: Border.all(
+                      color: colorScheme.outlineVariant.withValues(alpha: 0.7),
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      for (final bullet in l10n.premiumPlanBullets)
+                        _PlanBullet(bullet),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                FilledButton.icon(
                   onPressed:
                       _isRestoringPurchase ? null : () => _openLogin(context),
-                  child: Text(l10n.continueLabel),
+                  icon: const Icon(Icons.workspace_premium_rounded),
+                  label: Text(l10n.continueLabel),
                 ),
                 const SizedBox(height: AppSpacing.sm),
-                TextButton.icon(
+                OutlinedButton.icon(
                   onPressed: _isRestoringPurchase ? null : _restorePurchase,
                   icon: _isRestoringPurchase
                       ? const SizedBox.square(
@@ -168,13 +258,34 @@ class _PaywallPageState extends State<PaywallPage> {
                   ),
                 ),
                 if (_restoreError != null) ...[
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(
-                    _restoreError!,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.error,
+                  const SizedBox(height: AppSpacing.sm),
+                  Container(
+                    key: const ValueKey('restore-purchase-error'),
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    decoration: BoxDecoration(
+                      color: colorScheme.errorContainer,
+                      borderRadius: BorderRadius.circular(AppRadius.md),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.info_outline_rounded,
+                          color: colorScheme.onErrorContainer,
                         ),
+                        const SizedBox(width: AppSpacing.sm),
+                        Expanded(
+                          child: Text(
+                            _restoreError!,
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: colorScheme.onErrorContainer,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ],
@@ -203,6 +314,7 @@ class _PremiumPlanCard extends StatelessWidget {
   final VoidCallback onTap;
 
   const _PremiumPlanCard({
+    super.key,
     required this.title,
     required this.price,
     required this.period,
@@ -214,77 +326,130 @@ class _PremiumPlanCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    const premiumColor = Color(0xFFB56A00);
     final borderColor = selected
-        ? colorScheme.primary.withValues(alpha: 0.65)
-        : const Color(0xFFD8B15A).withValues(alpha: 0.55);
+        ? premiumColor.withValues(alpha: 0.78)
+        : colorScheme.outlineVariant.withValues(alpha: 0.75);
+    final shape = RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(AppRadius.xl),
+      side: BorderSide(
+        color: borderColor,
+        width: selected ? 1.8 : 1,
+      ),
+    );
 
-    return InkWell(
-      borderRadius: BorderRadius.circular(AppRadius.lg),
-      onTap: onTap,
-      child: Ink(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        decoration: BoxDecoration(
-          color: colorScheme.surface,
-          border: Border.all(color: borderColor),
-          borderRadius: BorderRadius.circular(AppRadius.lg),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.sm,
-                  vertical: AppSpacing.xs,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFE78A),
-                  borderRadius: BorderRadius.circular(AppRadius.sm),
-                ),
-                child: Text(
-                  badge,
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: const Color(0xFF8A6A00),
-                        fontWeight: FontWeight.w800,
-                      ),
+    return Material(
+      color: Colors.transparent,
+      elevation: selected ? AppElevation.level2 : AppElevation.level1,
+      shadowColor: premiumColor.withValues(alpha: 0.2),
+      shape: shape,
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Ink(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          decoration: BoxDecoration(
+            color: selected ? null : colorScheme.surface,
+            gradient: selected
+                ? LinearGradient(
+                    colors: [
+                      colorScheme.surface,
+                      const Color(0xFFFFF3D8).withValues(alpha: 0.76),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  )
+                : null,
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                selected
+                    ? Icons.radio_button_checked_rounded
+                    : Icons.radio_button_off_rounded,
+                color: selected ? premiumColor : colorScheme.outline,
+                size: 24,
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            title,
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleLarge
+                                ?.copyWith(
+                                  color: selected
+                                      ? premiumColor
+                                      : colorScheme.onSurface,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.sm,
+                            vertical: AppSpacing.xs,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFFE78A),
+                            borderRadius: BorderRadius.circular(AppRadius.md),
+                          ),
+                          child: Text(
+                            badge,
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelSmall
+                                ?.copyWith(
+                                  color: const Color(0xFF8A6A00),
+                                  fontWeight: FontWeight.w800,
+                                ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.end,
+                      spacing: AppSpacing.xs,
+                      runSpacing: AppSpacing.xs,
+                      children: [
+                        Text(
+                          price,
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineSmall
+                              ?.copyWith(
+                                color: colorScheme.primary,
+                                fontWeight: FontWeight.w900,
+                              ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 3),
+                          child: Text(
+                            period,
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleSmall
+                                ?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              title,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  price,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        color: colorScheme.primary,
-                        fontWeight: FontWeight.w900,
-                      ),
-                ),
-                const SizedBox(width: AppSpacing.xs),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 3),
-                  child: Text(
-                    period,
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.md),
-            for (final bullet
-                in AppLocalizations.of(context).premiumPlanBullets)
-              _PlanBullet(bullet),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -456,19 +621,19 @@ class _PlanBullet extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            '- ',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  fontWeight: FontWeight.w800,
-                ),
+          Icon(
+            Icons.check_circle_rounded,
+            color: Theme.of(context).colorScheme.primary,
+            size: 18,
           ),
+          const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Text(
               text,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w600,
+                    height: 1.25,
                   ),
             ),
           ),

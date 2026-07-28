@@ -171,6 +171,15 @@
 - [X] T078 [US1] Expor recuperação direta na seleção de planos reutilizando o fluxo seguro do paywall em `app/lib/features/onboarding/plan_selection_page.dart` e `app/lib/features/onboarding/paywall_page.dart`
 - [X] T079 [P] [US1] Cobrir hierarquia visual e ausência de overflow da seleção em tela compacta em `app/test/widget/purchase_restore_test.dart`
 - [X] T080 [US1] Refinar cabeçalho, cards, benefícios e ações da seleção com Material 3 e tokens visuais em `app/lib/features/onboarding/plan_selection_page.dart` e `app/lib/design_system/app_radius.dart`
+- [X] T081 [P] [US1] Cobrir paywall mensal/anual compacto e erro de recuperação sem conta ativa em `app/test/widget/purchase_restore_test.dart`
+- [X] T082 [US1] Refinar cabeçalho, opções mensal/anual, benefícios e ações do paywall em `app/lib/features/onboarding/paywall_page.dart`
+- [X] T083 [US1] Manter o paywall aberto e exibir o e-mail quando a recuperação sem conta ativa não partir da seleção de planos em `app/lib/features/onboarding/paywall_page.dart`
+- [X] T084 [P] [US1] Cobrir navegação ao perfil pelo nome da pessoa Premium em `app/test/widget/premium_profile_navigation_test.dart`
+- [X] T085 [US1] Tornar o nome Premium um acesso acessível à tela de perfil em `app/lib/features/home/home_page.dart`
+- [X] T086 [P] [US1] Cobrir que o título do paywall mensal/anual seja renderizado uma única vez em `app/test/widget/purchase_restore_test.dart`
+- [X] T087 [US1] Remover o título redundante da barra superior do paywall em `app/lib/features/onboarding/paywall_page.dart`
+- [X] T088 [P] [US1] Cobrir o espaçamento mínimo acima do cabeçalho da Home Free e Premium em `app/test/widget/premium_profile_navigation_test.dart`
+- [X] T089 [US1] Reduzir a margem superior compartilhada da Home Free e Premium em `app/lib/features/home/home_page.dart`
 
 ---
 
