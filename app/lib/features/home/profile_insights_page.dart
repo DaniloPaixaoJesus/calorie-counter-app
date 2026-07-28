@@ -56,9 +56,9 @@ class _ProfileInsightsPageState extends State<ProfileInsightsPage> {
     super.dispose();
   }
 
-  Future<void> _saveGoal() async {
+  Future<bool> _saveGoal() async {
     final goal = int.tryParse(_goalController.text.trim());
-    if (goal == null) return;
+    if (goal == null) return false;
     final birthDateText = _birthDateController.text.trim();
     final birthDate = birthDateText.isEmpty
         ? null
@@ -67,17 +67,56 @@ class _ProfileInsightsPageState extends State<ProfileInsightsPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(AppLocalizations.of(context).invalidBirthDate)),
       );
-      return;
+      return false;
     }
     await context.read<SubscriptionService>().updateUserProfile(
           birthDate: birthDate,
           gender: _selectedGender,
           dailyCalorieGoal: goal,
         );
-    if (!mounted) return;
+    if (!mounted) return false;
     FocusScope.of(context).unfocus();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(AppLocalizations.of(context).profileUpdated)),
+    );
+    return true;
+  }
+
+  Future<void> _showProfileEditor() async {
+    var selectedGender = _selectedGender;
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (sheetContext) {
+        return StatefulBuilder(
+          builder: (context, setSheetState) => SafeArea(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.fromLTRB(
+                AppSpacing.lg,
+                0,
+                AppSpacing.lg,
+                MediaQuery.viewInsetsOf(sheetContext).bottom + AppSpacing.lg,
+              ),
+              child: _GoalCard(
+                controller: _goalController,
+                birthDateController: _birthDateController,
+                selectedGender: selectedGender,
+                onBirthDateTap: _pickBirthDate,
+                onGenderChanged: (value) {
+                  setSheetState(() => selectedGender = value);
+                  setState(() => _selectedGender = value);
+                },
+                onSave: () async {
+                  if (await _saveGoal() && sheetContext.mounted) {
+                    Navigator.of(sheetContext).pop();
+                  }
+                },
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -116,7 +155,24 @@ class _ProfileInsightsPageState extends State<ProfileInsightsPage> {
         LayoutBreakpoints.isSmall(context) ? AppSpacing.md : AppSpacing.lg;
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.premiumProfile)),
+      appBar: AppBar(
+        title: Text(l10n.profileAndGoals),
+        actions: [
+          _PlanAction(
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(l10n.managePlanSoon)),
+              );
+            },
+          ),
+          IconButton(
+            onPressed: _logout,
+            tooltip: l10n.logout,
+            icon: const Icon(Icons.logout_rounded),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+        ],
+      ),
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
@@ -138,23 +194,10 @@ class _ProfileInsightsPageState extends State<ProfileInsightsPage> {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        _UserSummary(settings: settings, stats: stats),
-                        const SizedBox(height: AppSpacing.md),
-                        _GoalCard(
-                          controller: _goalController,
-                          birthDateController: _birthDateController,
-                          selectedGender: _selectedGender,
-                          onBirthDateTap: _pickBirthDate,
-                          onGenderChanged: (value) {
-                            setState(() => _selectedGender = value);
-                          },
-                          onSave: _saveGoal,
-                        ),
-                        const SizedBox(height: AppSpacing.md),
-                        OutlinedButton.icon(
-                          onPressed: _logout,
-                          icon: const Icon(Icons.logout_rounded),
-                          label: Text(l10n.logout),
+                        _UserSummary(
+                          settings: settings,
+                          stats: stats,
+                          onEdit: _showProfileEditor,
                         ),
                         const SizedBox(height: AppSpacing.md),
                         _CaloriesChartCard(
@@ -299,10 +342,12 @@ class _ProfileStats {
 class _UserSummary extends StatelessWidget {
   final AppSettings settings;
   final _ProfileStats stats;
+  final VoidCallback onEdit;
 
   const _UserSummary({
     required this.settings,
     required this.stats,
+    required this.onEdit,
   });
 
   @override
@@ -318,7 +363,7 @@ class _UserSummary extends StatelessWidget {
         padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
           children: [
-            _UserHeader(settings: settings),
+            _UserHeader(settings: settings, onEdit: onEdit),
             const SizedBox(height: AppSpacing.lg),
             const Divider(height: 1),
             const SizedBox(height: AppSpacing.md),
@@ -361,8 +406,12 @@ class _UserSummary extends StatelessWidget {
 
 class _UserHeader extends StatelessWidget {
   final AppSettings settings;
+  final VoidCallback onEdit;
 
-  const _UserHeader({required this.settings});
+  const _UserHeader({
+    required this.settings,
+    required this.onEdit,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -373,7 +422,7 @@ class _UserHeader extends StatelessWidget {
       if (_localizedGender(l10n, settings.gender) != null)
         _localizedGender(l10n, settings.gender)!,
     ];
-    final profileInfo = Row(
+    return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         _ProfilePhoto(settings: settings),
@@ -411,45 +460,16 @@ class _UserHeader extends StatelessWidget {
                       ),
                 ),
               ],
-              const SizedBox(height: AppSpacing.md),
-              const _PlanStatus(),
             ],
           ),
         ),
+        const SizedBox(width: AppSpacing.sm),
+        IconButton.filledTonal(
+          onPressed: onEdit,
+          tooltip: '${l10n.edit} ${l10n.personalData.toLowerCase()}',
+          icon: const Icon(Icons.edit_rounded),
+        ),
       ],
-    );
-
-    final manageButton = OutlinedButton(
-      onPressed: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context).managePlanSoon)),
-        );
-      },
-      child: Text(AppLocalizations.of(context).managePlan),
-    );
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        if (constraints.maxWidth < 520) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              profileInfo,
-              const SizedBox(height: AppSpacing.md),
-              manageButton,
-            ],
-          );
-        }
-
-        return Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Expanded(child: profileInfo),
-            const SizedBox(width: AppSpacing.md),
-            manageButton,
-          ],
-        );
-      },
     );
   }
 
@@ -478,39 +498,39 @@ class _UserHeader extends StatelessWidget {
   }
 }
 
-class _PlanStatus extends StatelessWidget {
-  const _PlanStatus();
+class _PlanAction extends StatelessWidget {
+  final VoidCallback onPressed;
+
+  const _PlanAction({required this.onPressed});
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        const Icon(
-          Icons.workspace_premium_rounded,
-          color: Color(0xFFF2BE1A),
-        ),
-        const SizedBox(width: AppSpacing.sm),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return Tooltip(
+      message: AppLocalizations.of(context).managePlan,
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(20),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                AppLocalizations.of(context).premiumPlan,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w800,
-                    ),
+              const Icon(
+                Icons.workspace_premium_rounded,
+                color: Color(0xFFF2BE1A),
+                size: 20,
               ),
+              const SizedBox(width: AppSpacing.xs),
               Text(
-                AppLocalizations.of(context).activeSubscription,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.primary,
-                      fontWeight: FontWeight.w700,
+                AppLocalizations.of(context).premium,
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      fontWeight: FontWeight.w800,
                     ),
               ),
             ],
           ),
         ),
-      ],
+      ),
     );
   }
 }
