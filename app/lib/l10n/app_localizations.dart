@@ -192,6 +192,21 @@ class AppLocalizations {
       );
   String get save33 =>
       pick(en: 'Save 33%', pt: 'Economize 33%', es: 'Ahorra 33%');
+  String get restorePurchase => pick(
+        en: 'Restore purchase',
+        pt: 'Recuperar compra',
+        es: 'Restaurar compra',
+      );
+  String get restoringPurchase => pick(
+        en: 'Restoring purchase...',
+        pt: 'Recuperando compra...',
+        es: 'Restaurando compra...',
+      );
+  String get noActivePremiumPlan => pick(
+        en: 'No active Premium plan was found for this account.',
+        pt: 'Não encontramos um plano Premium ativo para esta conta.',
+        es: 'No encontramos un plan Premium activo para esta cuenta.',
+      );
   String get accessYourAccount => pick(
         en: 'Access your account',
         pt: 'Acesse sua conta',

@@ -11,7 +11,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class PaywallPage extends StatefulWidget {
-  const PaywallPage({super.key});
+  final GoogleAuthService? restoreGoogleAuthService;
+
+  const PaywallPage({
+    super.key,
+    this.restoreGoogleAuthService,
+  });
 
   @override
   State<PaywallPage> createState() => _PaywallPageState();
@@ -19,6 +24,16 @@ class PaywallPage extends StatefulWidget {
 
 class _PaywallPageState extends State<PaywallPage> {
   _PremiumPlan _selectedPlan = _PremiumPlan.monthly;
+  late final GoogleAuthService _restoreGoogleAuthService;
+  bool _isRestoringPurchase = false;
+  String? _restoreError;
+
+  @override
+  void initState() {
+    super.initState();
+    _restoreGoogleAuthService =
+        widget.restoreGoogleAuthService ?? GoogleAuthService();
+  }
 
   void _openLogin(BuildContext context) {
     Navigator.of(context).push(
@@ -27,6 +42,44 @@ class _PaywallPageState extends State<PaywallPage> {
         builder: (_) => const _PremiumGoogleLoginPage(),
       ),
     );
+  }
+
+  Future<void> _restorePurchase() async {
+    if (_isRestoringPurchase) return;
+    final l10n = AppLocalizations.of(context);
+    setState(() {
+      _isRestoringPurchase = true;
+      _restoreError = null;
+    });
+
+    try {
+      final account = await _restoreGoogleAuthService.signIn();
+      if (!mounted) return;
+      final restored = await context
+          .read<SubscriptionService>()
+          .restorePremiumWithGoogle(account);
+      if (!mounted) return;
+      if (!restored) {
+        await _restoreGoogleAuthService.signOut();
+        if (!mounted) return;
+        Navigator.of(context).pop(PaywallResult.noActivePlan);
+        return;
+      }
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const HomeShellPage()),
+        (_) => false,
+      );
+    } on GoogleAuthCancelledException {
+      if (mounted) setState(() => _restoreError = l10n.googleLoginCancelled);
+    } on GoogleAuthException catch (error) {
+      if (mounted) setState(() => _restoreError = error.message);
+    } on UserBffException catch (error) {
+      if (mounted) setState(() => _restoreError = error.message);
+    } catch (_) {
+      if (mounted) setState(() => _restoreError = l10n.googleLoginFailed);
+    } finally {
+      if (mounted) setState(() => _isRestoringPurchase = false);
+    }
   }
 
   @override
@@ -90,9 +143,35 @@ class _PaywallPageState extends State<PaywallPage> {
                 ),
                 const SizedBox(height: AppSpacing.xl),
                 FilledButton(
-                  onPressed: () => _openLogin(context),
+                  onPressed:
+                      _isRestoringPurchase ? null : () => _openLogin(context),
                   child: Text(l10n.continueLabel),
                 ),
+                const SizedBox(height: AppSpacing.sm),
+                TextButton.icon(
+                  onPressed: _isRestoringPurchase ? null : _restorePurchase,
+                  icon: _isRestoringPurchase
+                      ? const SizedBox.square(
+                          dimension: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.restore_rounded),
+                  label: Text(
+                    _isRestoringPurchase
+                        ? l10n.restoringPurchase
+                        : l10n.restorePurchase,
+                  ),
+                ),
+                if (_restoreError != null) ...[
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    _restoreError!,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -103,6 +182,8 @@ class _PaywallPageState extends State<PaywallPage> {
 }
 
 enum _PremiumPlan { monthly, yearly }
+
+enum PaywallResult { noActivePlan }
 
 class _PremiumPlanCard extends StatelessWidget {
   final String title;

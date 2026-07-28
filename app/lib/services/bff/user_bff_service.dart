@@ -26,14 +26,24 @@ class UserBffService {
   }) : client = client ?? BffClient();
 
   Future<AppSettings> authenticateGoogle(GoogleAuthAccount account) async {
-    final response = await client.post('/auth/google', {
-      'email': account.email,
-      'name': account.displayName,
-      'photoUrl': account.photoUrl,
-      'idToken': account.idToken,
-      'accessToken': account.accessToken,
-      'locale': localeProvider(),
-    });
+    final response = await client.post(
+      '/auth/google',
+      _googleAuthBody(account),
+    );
+
+    return _settingsFromResponse(response).copyWith(
+      googleAuthToken: account.idToken ?? account.accessToken,
+    );
+  }
+
+  Future<AppSettings?> restoreGooglePurchase(
+    GoogleAuthAccount account,
+  ) async {
+    final response = await client.post(
+      '/auth/google/restore',
+      _googleAuthBody(account),
+    );
+    if (response.statusCode == 404) return null;
 
     return _settingsFromResponse(response).copyWith(
       googleAuthToken: account.idToken ?? account.accessToken,
@@ -112,6 +122,15 @@ class UserBffService {
 
     _ensureSuccess(response);
   }
+
+  Map<String, Object?> _googleAuthBody(GoogleAuthAccount account) => {
+        'email': account.email,
+        'name': account.displayName,
+        'photoUrl': account.photoUrl,
+        'idToken': account.idToken,
+        'accessToken': account.accessToken,
+        'locale': localeProvider(),
+      };
 
   AppSettings _settingsFromResponse(BffResponse response) {
     _ensureSuccess(response);

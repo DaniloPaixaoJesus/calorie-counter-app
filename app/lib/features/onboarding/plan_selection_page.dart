@@ -5,12 +5,18 @@ import 'package:calorie_counter_app/design_system/premium_crown_icon.dart';
 import 'package:calorie_counter_app/features/home/home_shell_page.dart';
 import 'package:calorie_counter_app/features/onboarding/paywall_page.dart';
 import 'package:calorie_counter_app/l10n/app_localizations.dart';
+import 'package:calorie_counter_app/services/auth/google_auth_service.dart';
 import 'package:calorie_counter_app/services/subscription/subscription_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class PlanSelectionPage extends StatelessWidget {
-  const PlanSelectionPage({super.key});
+  final GoogleAuthService? restoreGoogleAuthService;
+
+  const PlanSelectionPage({
+    super.key,
+    this.restoreGoogleAuthService,
+  });
 
   Future<void> _continueFree(BuildContext context) async {
     await context.read<SubscriptionService>().selectFreePlan();
@@ -20,9 +26,17 @@ class PlanSelectionPage extends StatelessWidget {
     );
   }
 
-  void _openPremium(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const PaywallPage()),
+  Future<void> _openPremium(BuildContext context) async {
+    final result = await Navigator.of(context).push<PaywallResult>(
+      MaterialPageRoute(
+        builder: (_) => PaywallPage(
+          restoreGoogleAuthService: restoreGoogleAuthService,
+        ),
+      ),
+    );
+    if (!context.mounted || result != PaywallResult.noActivePlan) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(AppLocalizations.of(context).noActivePremiumPlan)),
     );
   }
 

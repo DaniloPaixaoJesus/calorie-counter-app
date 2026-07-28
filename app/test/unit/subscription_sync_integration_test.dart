@@ -2,9 +2,21 @@ import 'dart:async';
 
 import 'package:calorie_counter_app/models/app_settings.dart';
 import 'package:calorie_counter_app/services/auth/google_auth_service.dart';
+import 'package:calorie_counter_app/services/bff/user_bff_service.dart';
 import 'package:calorie_counter_app/services/subscription/in_memory_app_settings_repository.dart';
 import 'package:calorie_counter_app/services/subscription/subscription_service.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+class _RestoreUserBffService extends UserBffService {
+  final AppSettings? restoredSettings;
+
+  _RestoreUserBffService(this.restoredSettings)
+      : super(localeProvider: () => 'pt_BR');
+
+  @override
+  Future<AppSettings?> restoreGooglePurchase(GoogleAuthAccount account) async =>
+      restoredSettings;
+}
 
 void main() {
   test('login premium não aguarda o bootstrap', () async {
@@ -25,6 +37,47 @@ void main() {
     expect(service.isPremium, isTrue);
     await bootstrapStarted.future;
     releaseBootstrap.complete();
+  });
+
+  test('recuperação ativa salva sessão premium e inicia bootstrap', () async {
+    final bootstrapStarted = Completer<void>();
+    final service = await SubscriptionService.load(
+      InMemoryAppSettingsRepository(),
+      userBffService: _RestoreUserBffService(const AppSettings(
+        selectedPlan: AppPlan.premium,
+        isPremium: true,
+        userLogged: true,
+        userId: 'premium-user',
+        userEmail: 'premium@example.com',
+        googleAuthToken: 'google-token',
+      )),
+      onPremiumAuthenticated: (_) async => bootstrapStarted.complete(),
+    );
+
+    final restored = await service.restorePremiumWithGoogle(
+      const GoogleAuthAccount(email: 'premium@example.com'),
+    );
+
+    expect(restored, isTrue);
+    expect(service.isPremium, isTrue);
+    expect(service.settings.userId, 'premium-user');
+    await bootstrapStarted.future;
+  });
+
+  test('recuperação sem plano ativo preserva seleção de plano', () async {
+    final repository = InMemoryAppSettingsRepository();
+    final service = await SubscriptionService.load(
+      repository,
+      userBffService: _RestoreUserBffService(null),
+    );
+
+    final restored = await service.restorePremiumWithGoogle(
+      const GoogleAuthAccount(email: 'free@example.com'),
+    );
+
+    expect(restored, isFalse);
+    expect(service.settings, same(AppSettings.empty));
+    expect((await repository.load()), same(AppSettings.empty));
   });
 
   test('meta é persistida localmente antes de notificar sincronização',

@@ -166,6 +166,35 @@ class SubscriptionService extends ChangeNotifier {
     Future<void>(() async => _onPremiumAuthenticated?.call(_settings));
   }
 
+  Future<bool> restorePremiumWithGoogle(GoogleAuthAccount account) async {
+    final userBffService = _userBffService;
+    if (userBffService == null) return false;
+
+    final remoteSettings = await userBffService.restoreGooglePurchase(account);
+    if (remoteSettings == null || !remoteSettings.isPremium) return false;
+
+    await _save(
+      _settings.copyWith(
+        selectedPlan: AppPlan.premium,
+        isPremium: true,
+        userLogged: true,
+        userId: remoteSettings.userId,
+        userName: remoteSettings.userName,
+        userEmail: remoteSettings.userEmail,
+        userPhotoAssetPath: remoteSettings.userPhotoAssetPath,
+        googleAuthToken: remoteSettings.googleAuthToken,
+        trialStartDate: remoteSettings.trialStartDate,
+        birthDate: remoteSettings.birthDate,
+        gender: remoteSettings.gender,
+        dailyCalorieGoal: remoteSettings.dailyCalorieGoal,
+        remainingDailyEstimations: freeDailyEstimateLimit,
+        lastResetDate: DateTime.now(),
+      ),
+    );
+    Future<void>(() async => _onPremiumAuthenticated?.call(_settings));
+    return true;
+  }
+
   Future<void> logout() async {
     await _save(
       AppSettings(
